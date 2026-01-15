@@ -1,0 +1,491 @@
+================================================================================
+                    REFERENCIA TÉCNICA RÁPIDA - SOS-HABILIDOSO
+                    Guía de Consulta Rápida para Desarrolladores
+================================================================================
+
+FECHA: 21 de Noviembre de 2025
+VERSIÓN: 1.0
+
+================================================================================
+PUERTOS Y URLS
+================================================================================
+
+FRONTEND:
+- URL: http://localhost:4000
+- Puerto: 4000
+- Framework: Next.js 13.5.1
+- Lenguaje: TypeScript + React
+
+BACKEND:
+- URL: http://localhost:8000
+- Puerto: 8000
+- Framework: Django 4.x
+- API: REST con Django REST Framework
+
+BASE DE DATOS:
+- Motor: MySQL 8
+- Host: 127.0.0.1
+- Puerto: 3307
+- Base de datos: habilidosos_db
+- Usuario: root
+- Contraseña: (vacía)
+
+================================================================================
+ESTRUCTURA DE CARPETAS CLAVE
+================================================================================
+
+FRONTEND:
+app/                           # Rutas Next.js
+├── login/                     # Página de login
+├── profile/                   # Perfil de usuario
+├── feed/                      # Feed principal
+├── communities/               # Comunidades
+├── messages/                  # Mensajería
+├── reels/                     # Videos cortos
+└── [otras rutas]/             # Otras páginas
+
+components/                    # Componentes reutilizables
+├── auth/                      # Componentes de autenticación
+├── ui/                        # Componentes UI
+├── navigation/                # Navegación
+├── providers/                 # Providers (Auth, etc.)
+└── [otros]/                   # Otros componentes
+
+lib/                           # Utilidades
+├── services/                  # Servicios API
+├── api-client.ts              # Cliente HTTP
+└── utils.ts                   # Funciones auxiliares
+
+BACKEND:
+apps/                          # Aplicaciones Django
+├── authentication/            # Autenticación
+├── users/                     # Usuarios
+├── posts/                     # Publicaciones
+├── communities/               # Comunidades
+├── reels/                     # Reels
+├── messaging/                 # Mensajería
+├── notifications/             # Notificaciones
+└── reality/                   # Reality Show
+
+sos_habilidoso/                # Configuración principal
+├── settings.py                # Configuración
+├── urls.py                    # URLs principales
+└── views.py                   # Vistas principales
+
+================================================================================
+ENDPOINTS PRINCIPALES
+================================================================================
+
+AUTENTICACIÓN:
+POST   /api/auth/login/                 # Login
+POST   /api/auth/register/              # Registro
+POST   /api/auth/refresh/               # Refresh token
+GET    /api/auth/profile/               # Obtener perfil
+PATCH  /api/auth/profile/               # Actualizar perfil
+
+USUARIOS:
+GET    /api/users/search/               # Buscar usuarios
+GET    /api/users/profile/<username>/   # Obtener perfil
+POST   /api/users/follow/<username>/    # Seguir usuario
+DELETE /api/users/unfollow/<username>/  # Dejar de seguir
+
+PUBLICACIONES:
+GET    /api/posts/                      # Listar publicaciones
+POST   /api/posts/                      # Crear publicación
+GET    /api/posts/<id>/                 # Obtener publicación
+POST   /api/posts/<id>/react/           # Reaccionar
+POST   /api/posts/<id>/comments/        # Comentar
+
+COMUNIDADES:
+GET    /api/communities/                # Listar comunidades
+POST   /api/communities/                # Crear comunidad
+GET    /api/communities/<id>/           # Obtener comunidad
+POST   /api/communities/<id>/join/      # Unirse
+
+MENSAJERÍA:
+GET    /api/messaging/chats/            # Listar chats
+POST   /api/messaging/chats/            # Crear chat
+GET    /api/messaging/chats/<id>/messages/  # Listar mensajes
+POST   /api/messaging/chats/<id>/messages/  # Enviar mensaje
+
+================================================================================
+MODELOS PRINCIPALES
+================================================================================
+
+USER:
+- id (UUID)
+- email (único)
+- username (único)
+- display_name
+- avatar (ImageField)
+- cover_photo (ImageField)
+- bio
+- position
+- team
+- followers_count
+- following_count
+- posts_count
+
+POST:
+- id (UUID)
+- short_id (único)
+- user (FK)
+- content
+- images (JSONField)
+- video (FileField)
+- likes_count
+- comments_count
+- created_at
+
+COMMENT:
+- id (UUID)
+- post (FK)
+- user (FK)
+- content
+- parent (FK - para respuestas)
+- likes_count
+
+COMMUNITY:
+- id (UUID)
+- name
+- slug (único)
+- owner (FK)
+- member_count
+- post_count
+
+CHATROOM:
+- id (UUID)
+- name
+- chat_type (private/group)
+- created_by (FK)
+
+MESSAGE:
+- id (UUID)
+- chat_room (FK)
+- sender (FK)
+- content
+- message_type (text/image/video/audio/file)
+
+================================================================================
+AUTENTICACIÓN
+================================================================================
+
+TIPO: JWT (JSON Web Tokens)
+
+TOKENS:
+- Access Token: Duración 1 hora
+- Refresh Token: Duración 7 días
+
+HEADERS REQUERIDOS:
+Authorization: Bearer <access_token>
+
+FLUJO:
+1. POST /api/auth/login/ → Recibe tokens
+2. Guardar tokens en localStorage
+3. Incluir en headers de peticiones
+4. Si expira, usar refresh token
+5. Si refresh falla, redirigir a login
+
+VALIDACIÓN DE CONTRASEÑA:
+- Mínimo 8 caracteres
+- Al menos una mayúscula
+- Al menos una minúscula
+- Al menos un número
+- Al menos un carácter especial (!@#$%^&*)
+
+================================================================================
+VARIABLES DE ENTORNO
+================================================================================
+
+BACKEND (.env):
+DJANGO_SETTINGS_MODULE=sos_habilidoso.settings.development
+SECRET_KEY=dev-secret-key-change-me
+DEBUG=true
+ALLOWED_HOSTS=127.0.0.1,localhost
+BACKEND_URL=http://localhost:8000
+DATABASE_NAME=habilidosos_db
+DATABASE_USER=root
+DATABASE_PASSWORD=
+DATABASE_HOST=127.0.0.1
+DATABASE_PORT=3307
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:4000,http://127.0.0.1:4000
+JWT_ACCESS_TOKEN_LIFETIME=3600
+JWT_REFRESH_TOKEN_LIFETIME=86400
+GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbwhHJLUPsz5za7_JQrRGRdzeB5BfnhL9XFa0A9lSmmLl9Iz6Qe2UnuHeAvyP5PXxDQo/exec
+GOOGLE_SHEETS_REGISTRATION_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbwuODUlDGzWVQfAA6vWX5F44HHNlteKuMfuRfzb6dgxsoNA1n_rsoJmnVW-2lp9xzvTVw/exec
+
+FRONTEND (.env.local):
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
+NEXT_PUBLIC_WS_URL=ws://127.0.0.1:8000/ws
+NODE_ENV=development
+
+================================================================================
+COMANDOS IMPORTANTES
+================================================================================
+
+INICIAR APLICACIÓN:
+npm run dev:both-win            # Windows
+npm run dev:both                # Multiplataforma
+npm run soshabilidoso:simple    # Con nombres personalizados
+
+INICIAR SOLO BACKEND:
+cd backend
+python manage.py runserver 0.0.0.0:8000
+
+INICIAR SOLO FRONTEND:
+npm run dev
+
+MIGRACIONES:
+python manage.py makemigrations
+python manage.py migrate
+
+CREAR SUPERUSUARIO:
+python manage.py createsuperuser
+
+VERIFICAR CONFIGURACIÓN:
+python manage.py check
+
+LIMPIAR BASE DE DATOS:
+python manage.py flush
+
+================================================================================
+DEPENDENCIAS PRINCIPALES
+================================================================================
+
+FRONTEND:
+- next: 13.5.1
+- react: 18.2.0
+- typescript: 5.2.2
+- tailwindcss: 3.3.3
+- axios: 1.12.2
+- react-hook-form: 7.53.0
+- lucide-react: 0.446.0
+- sonner: 1.5.0
+- framer-motion: 12.23.24
+
+BACKEND:
+- Django: 4.x
+- djangorestframework: 3.x
+- django-cors-headers: 4.x
+- djangorestframework-simplejwt: 5.x
+- mysql-connector-python: 8.x
+- requests: 2.x
+
+================================================================================
+FLUJOS PRINCIPALES
+================================================================================
+
+REGISTRO:
+1. Usuario completa formulario
+2. Validar contraseña
+3. Crear usuario en BD
+4. Enviar correo de confirmación
+5. Guardar en Google Sheets
+6. Devolver tokens JWT
+7. Redirigir a feed
+
+LOGIN:
+1. Usuario ingresa credenciales
+2. Validar email/username y contraseña
+3. Si válido, generar tokens JWT
+4. Guardar tokens en localStorage
+5. Redirigir a feed
+6. Si inválido, mostrar error
+
+CREAR PUBLICACIÓN:
+1. Usuario escribe contenido
+2. Agregar multimedia (opcional)
+3. Configurar privacidad
+4. Validar contenido
+5. Guardar en BD
+6. Actualizar feed
+7. Mostrar notificación de éxito
+
+ENVIAR MENSAJE:
+1. Usuario abre chat
+2. Escribe mensaje
+3. Validar contenido
+4. Guardar en BD
+5. Enviar a destinatario
+6. Actualizar chat
+7. Marcar como entregado
+
+SEGUIR USUARIO:
+1. Usuario hace clic en "Seguir"
+2. Crear relación Follow
+3. Incrementar contador de seguidores
+4. Enviar notificación
+5. Actualizar UI
+
+================================================================================
+CÓDIGOS DE ESTADO HTTP
+================================================================================
+
+200 OK                         # Solicitud exitosa
+201 Created                    # Recurso creado
+204 No Content                 # Solicitud exitosa sin contenido
+400 Bad Request                # Solicitud inválida
+401 Unauthorized               # No autenticado
+403 Forbidden                  # No autorizado
+404 Not Found                  # Recurso no encontrado
+409 Conflict                   # Conflicto (ej: email duplicado)
+500 Internal Server Error      # Error del servidor
+
+================================================================================
+MANEJO DE ERRORES
+================================================================================
+
+FRONTEND:
+try {
+  const response = await api.get('/endpoint/');
+} catch (error) {
+  if (error.response?.status === 401) {
+    // No autenticado
+  } else if (error.response?.status === 404) {
+    // No encontrado
+  } else {
+    // Otro error
+  }
+}
+
+BACKEND:
+from rest_framework.response import Response
+from rest_framework import status
+
+return Response(
+  {'error': 'Mensaje de error'},
+  status=status.HTTP_400_BAD_REQUEST
+)
+
+================================================================================
+DEBUGGING
+================================================================================
+
+FRONTEND:
+- F12: Abrir DevTools
+- Console: Ver errores
+- Network: Ver peticiones
+- Application: Ver localStorage
+- console.log(): Debug en código
+
+BACKEND:
+- print(): Debug en terminal
+- Django Debug Toolbar: Análisis de BD
+- Logs: Ver en terminal
+- Django Shell: Pruebas interactivas
+
+================================================================================
+OPTIMIZACIÓN
+================================================================================
+
+FRONTEND:
+- Lazy loading de componentes
+- Caché de datos
+- Compresión de imágenes
+- Minificación de código
+- Code splitting
+
+BACKEND:
+- Paginación de resultados
+- Índices en BD
+- Caché de consultas
+- Optimización de queries
+- Compresión de respuestas
+
+================================================================================
+SEGURIDAD
+================================================================================
+
+FRONTEND:
+- Validar entrada de usuario
+- Sanitizar HTML
+- Usar HTTPS en producción
+- Proteger tokens en localStorage
+- CSRF tokens en formularios
+
+BACKEND:
+- Validar entrada en servidor
+- Usar HTTPS en producción
+- Hashear contraseñas
+- Limitar rate de peticiones
+- Validar permisos
+- Usar CORS correctamente
+
+================================================================================
+TESTING
+================================================================================
+
+FRONTEND:
+npm test                       # Ejecutar tests
+npm run test:watch             # Tests en modo watch
+
+BACKEND:
+python manage.py test          # Ejecutar tests
+python manage.py test app.tests.TestClass  # Test específico
+
+================================================================================
+DEPLOYMENT
+================================================================================
+
+FRONTEND:
+npm run build                  # Compilar
+npm run start                  # Iniciar producción
+Desplegar en: Vercel, Netlify, AWS, etc.
+
+BACKEND:
+python manage.py collectstatic # Recopilar estáticos
+gunicorn sos_habilidoso.wsgi   # Iniciar con Gunicorn
+Desplegar en: Heroku, AWS, DigitalOcean, etc.
+
+================================================================================
+RECURSOS ÚTILES
+================================================================================
+
+DOCUMENTACIÓN:
+- Next.js: https://nextjs.org/docs
+- Django: https://docs.djangoproject.com
+- Django REST: https://www.django-rest-framework.org
+- React: https://react.dev
+- Tailwind: https://tailwindcss.com
+
+HERRAMIENTAS:
+- Postman: Probar APIs
+- VS Code: Editor de código
+- MySQL Workbench: Gestor de BD
+- Git: Control de versiones
+
+================================================================================
+CONTACTO Y SOPORTE
+================================================================================
+
+PROBLEMAS COMUNES:
+
+Error de conexión a BD:
+- Verificar MySQL está corriendo
+- Verificar credenciales en .env
+- Verificar puerto 3307
+
+Error CORS:
+- Verificar CORS_ALLOWED_ORIGINS
+- Reiniciar backend
+
+Token expirado:
+- Usar refresh token automáticamente
+- Si falla, redirigir a login
+
+Archivos media no cargan:
+- Verificar MEDIA_URL y MEDIA_ROOT
+- Verificar carpeta media existe
+- Reiniciar backend
+
+================================================================================
+                              FIN DE REFERENCIA
+================================================================================
+
+Última actualización: 21 de Noviembre de 2025
+Versión: 1.0
+
+Para documentación completa, ver DOCUMENTACION_APLICACION.txt
+Para manual de uso, ver MANUAL_USO_APLICACION.txt
+
+================================================================================

@@ -1,0 +1,363 @@
+================================================================================
+                    ÍNDICE DE DOCUMENTACIÓN - SOS-HABILIDOSO
+                    Guía de Navegación de Documentos
+================================================================================
+
+FECHA: 21 de Noviembre de 2025
+VERSIÓN: 1.0
+
+================================================================================
+DOCUMENTOS DISPONIBLES
+================================================================================
+
+1. DOCUMENTACION_APLICACION.txt
+   - Descripción: Documentación técnica completa de la aplicación
+   - Contenido:
+     * Descripción general del proyecto
+     * Arquitectura del proyecto
+     * Rutas del frontend (Next.js)
+     * Endpoints del backend (Django REST API)
+     * Modelos de datos
+     * Autenticación y autorización
+     * Características principales
+     * Configuración y variables de entorno
+     * Instrucciones de instalación y ejecución
+     * Solución de problemas
+     * Notas importantes y contexto
+   - Audiencia: Desarrolladores, Arquitectos
+   - Tamaño: ~50 KB
+   - Tiempo de lectura: 30-45 minutos
+
+2. MANUAL_USO_APLICACION.txt
+   - Descripción: Manual práctico de uso de la aplicación
+   - Contenido:
+     * Guía rápida de inicio
+     * Registro e inicio de sesión
+     * Navegación de la aplicación
+     * Crear y compartir contenido
+     * Interactuar con otros usuarios
+     * Comunidades
+     * Mensajería
+     * Búsqueda y descubrimiento
+     * Configuración de perfil
+     * Guía para desarrolladores
+     * Comandos útiles
+     * Preguntas frecuentes
+     * Atajos de teclado
+   - Audiencia: Usuarios finales, Desarrolladores
+   - Tamaño: ~40 KB
+   - Tiempo de lectura: 25-35 minutos
+
+3. REFERENCIA_TECNICA_RAPIDA.txt
+   - Descripción: Referencia técnica rápida para consultas
+   - Contenido:
+     * Puertos y URLs
+     * Estructura de carpetas clave
+     * Endpoints principales
+     * Modelos principales
+     * Autenticación
+     * Variables de entorno
+     * Comandos importantes
+     * Dependencias principales
+     * Flujos principales
+     * Códigos de estado HTTP
+     * Manejo de errores
+     * Debugging
+     * Optimización
+     * Seguridad
+     * Testing
+     * Deployment
+     * Recursos útiles
+   - Audiencia: Desarrolladores
+   - Tamaño: ~30 KB
+   - Tiempo de lectura: 15-20 minutos
+
+4. INDICE_DOCUMENTACION.txt
+   - Descripción: Este archivo - Índice de documentación
+   - Contenido:
+     * Lista de documentos
+     * Descripción de cada documento
+     * Cómo usar la documentación
+     * Mapa de navegación
+     * Glosario de términos
+   - Audiencia: Todos
+   - Tamaño: ~20 KB
+   - Tiempo de lectura: 10-15 minutos
+
+================================================================================
+DOCUMENTOS ADICIONALES EN EL PROYECTO
+================================================================================
+
+INSTRUCCIONES_CONFIGURACION.md
+- Ubicación: Raíz del proyecto
+- Descripción: Instrucciones de configuración de Google Apps Script
+- Contenido:
+  * Cambios realizados
+  * Pasos de configuración
+  * Pruebas
+  * Solución de problemas
+
+RESUMEN_CAMBIOS_FINALES.md
+- Ubicación: Raíz del proyecto
+- Descripción: Resumen de cambios recientes
+- Contenido:
+  * Configuración completada
+  * Funcionalidades implementadas
+  * Archivos modificados
+  * Cómo probar
+
+CHECKLIST_VERIFICACION.md
+- Ubicación: Raíz del proyecto
+- Descripción: Checklist de verificación
+- Contenido:
+  * Verificación de configuración
+  * Pruebas funcionales
+  * Verificación visual
+  * Verificación técnica
+  * Datos de prueba
+  * Pasos finales
+
+backend/scripts/GOOGLE_SHEETS_SETUP.md
+- Ubicación: backend/scripts/
+- Descripción: Configuración de Google Sheets
+- Contenido:
+  * Requisitos
+  * Pasos de instalación
+  * Estructura de la hoja
+  * Solución de problemas
+
+================================================================================
+CÓMO USAR ESTA DOCUMENTACIÓN
+================================================================================
+
+PARA USUARIOS FINALES:
+1. Leer: MANUAL_USO_APLICACION.txt
+2. Consultar: Preguntas frecuentes
+3. Usar: Atajos de teclado
+4. Explorar: Características principales
+
+PARA DESARROLLADORES NUEVOS:
+1. Leer: DOCUMENTACION_APLICACION.txt (Secciones 1-3)
+2. Leer: REFERENCIA_TECNICA_RAPIDA.txt
+3. Leer: MANUAL_USO_APLICACION.txt (Sección 10)
+4. Consultar: Comandos útiles
+
+PARA DESARROLLADORES EXPERIMENTADOS:
+1. Consultar: REFERENCIA_TECNICA_RAPIDA.txt
+2. Revisar: Endpoints principales
+3. Revisar: Modelos principales
+4. Consultar: Flujos principales
+
+PARA ARQUITECTOS:
+1. Leer: DOCUMENTACION_APLICACION.txt (Secciones 2, 6-8)
+2. Revisar: Estructura del proyecto
+3. Revisar: Decisiones de diseño
+4. Revisar: Consideraciones de escalabilidad
+
+PARA ADMINISTRADORES:
+1. Leer: DOCUMENTACION_APLICACION.txt (Sección 9)
+2. Leer: INSTRUCCIONES_CONFIGURACION.md
+3. Revisar: Variables de entorno
+4. Revisar: Solución de problemas
+
+================================================================================
+MAPA DE NAVEGACIÓN
+================================================================================
+
+INICIO
+  ├── ¿Eres usuario final?
+  │   └── Lee: MANUAL_USO_APLICACION.txt
+  │
+  ├── ¿Eres desarrollador nuevo?
+  │   ├── Lee: DOCUMENTACION_APLICACION.txt
+  │   ├── Consulta: REFERENCIA_TECNICA_RAPIDA.txt
+  │   └── Sigue: MANUAL_USO_APLICACION.txt (Sección 10)
+  │
+  ├── ¿Eres desarrollador experimentado?
+  │   ├── Consulta: REFERENCIA_TECNICA_RAPIDA.txt
+  │   └── Revisa: Endpoints y Modelos
+  │
+  ├── ¿Eres arquitecto?
+  │   ├── Lee: DOCUMENTACION_APLICACION.txt
+  │   └── Revisa: Decisiones de diseño
+  │
+  └── ¿Eres administrador?
+      ├── Lee: INSTRUCCIONES_CONFIGURACION.md
+      └── Revisa: Variables de entorno
+
+================================================================================
+GLOSARIO DE TÉRMINOS
+================================================================================
+
+API: Application Programming Interface (Interfaz de Programación)
+JWT: JSON Web Tokens (Tokens de autenticación)
+REST: Representational State Transfer (Arquitectura de API)
+CORS: Cross-Origin Resource Sharing (Compartir recursos entre orígenes)
+CRUD: Create, Read, Update, Delete (Operaciones básicas)
+ORM: Object-Relational Mapping (Mapeo de objetos a BD)
+UUID: Universally Unique Identifier (Identificador único)
+FK: Foreign Key (Clave foránea)
+BD: Base de datos
+HTTP: HyperText Transfer Protocol
+HTTPS: HTTP Secure
+WebSocket: Protocolo de comunicación bidireccional
+JSON: JavaScript Object Notation
+XML: eXtensible Markup Language
+SQL: Structured Query Language
+NoSQL: Not Only SQL
+MVC: Model-View-Controller
+MVP: Model-View-Presenter
+MVVM: Model-View-ViewModel
+SPA: Single Page Application
+SSR: Server-Side Rendering
+CSR: Client-Side Rendering
+SEO: Search Engine Optimization
+PWA: Progressive Web Application
+CI/CD: Continuous Integration/Continuous Deployment
+DevOps: Development Operations
+Git: Sistema de control de versiones
+npm: Node Package Manager
+pip: Python Package Installer
+venv: Virtual Environment (Python)
+Docker: Contenedorización
+Kubernetes: Orquestación de contenedores
+
+================================================================================
+PREGUNTAS FRECUENTES SOBRE DOCUMENTACIÓN
+================================================================================
+
+P: ¿Dónde encuentro información sobre endpoints?
+R: En DOCUMENTACION_APLICACION.txt (Sección 4) o REFERENCIA_TECNICA_RAPIDA.txt
+
+P: ¿Cómo instalo la aplicación?
+R: En DOCUMENTACION_APLICACION.txt (Sección 9)
+
+P: ¿Cómo creo una publicación?
+R: En MANUAL_USO_APLICACION.txt (Sección 4)
+
+P: ¿Cuáles son los requisitos de contraseña?
+R: En MANUAL_USO_APLICACION.txt (Sección 2) o REFERENCIA_TECNICA_RAPIDA.txt
+
+P: ¿Cómo configuro Google Sheets?
+R: En INSTRUCCIONES_CONFIGURACION.md o backend/scripts/GOOGLE_SHEETS_SETUP.md
+
+P: ¿Cuáles son los comandos útiles?
+R: En MANUAL_USO_APLICACION.txt (Sección 11) o REFERENCIA_TECNICA_RAPIDA.txt
+
+P: ¿Cómo soluciono problemas?
+R: En DOCUMENTACION_APLICACION.txt (Sección 10)
+
+P: ¿Cuál es la estructura del proyecto?
+R: En DOCUMENTACION_APLICACION.txt (Sección 2)
+
+P: ¿Cómo funciona la autenticación?
+R: En DOCUMENTACION_APLICACION.txt (Sección 6) o REFERENCIA_TECNICA_RAPIDA.txt
+
+P: ¿Cuáles son los modelos de datos?
+R: En DOCUMENTACION_APLICACION.txt (Sección 5) o REFERENCIA_TECNICA_RAPIDA.txt
+
+================================================================================
+INFORMACIÓN DE VERSIÓN
+================================================================================
+
+VERSIÓN ACTUAL: 1.0
+FECHA DE CREACIÓN: 21 de Noviembre de 2025
+ÚLTIMA ACTUALIZACIÓN: 21 de Noviembre de 2025
+
+CAMBIOS EN ESTA VERSIÓN:
+- Documentación completa de la aplicación
+- Manual de uso para usuarios finales
+- Referencia técnica rápida para desarrolladores
+- Índice de documentación
+- Glosario de términos
+- Preguntas frecuentes
+
+PRÓXIMAS VERSIONES:
+- Documentación de API detallada
+- Guía de contribución
+- Guía de deployment
+- Documentación de testing
+- Guía de performance
+
+================================================================================
+CÓMO CONTRIBUIR A LA DOCUMENTACIÓN
+================================================================================
+
+1. REPORTAR ERRORES:
+   - Encontraste un error en la documentación?
+   - Abre un issue en GitHub
+   - Describe el error y la ubicación
+
+2. SUGERIR MEJORAS:
+   - Tienes una sugerencia?
+   - Abre un issue con la etiqueta "documentation"
+   - Describe tu sugerencia
+
+3. AGREGAR CONTENIDO:
+   - Quieres agregar contenido?
+   - Crea un pull request
+   - Sigue el formato existente
+
+4. TRADUCIR:
+   - Quieres traducir la documentación?
+   - Crea un pull request
+   - Mantén el mismo formato
+
+================================================================================
+RECURSOS EXTERNOS
+================================================================================
+
+DOCUMENTACIÓN OFICIAL:
+- Next.js: https://nextjs.org/docs
+- Django: https://docs.djangoproject.com
+- Django REST Framework: https://www.django-rest-framework.org
+- React: https://react.dev
+- Tailwind CSS: https://tailwindcss.com
+- MySQL: https://dev.mysql.com/doc/
+- Python: https://docs.python.org/3/
+
+TUTORIALES:
+- Next.js Tutorial: https://nextjs.org/learn
+- Django Tutorial: https://docs.djangoproject.com/en/stable/intro/tutorial01/
+- REST API Best Practices: https://restfulapi.net/
+
+HERRAMIENTAS:
+- Postman: https://www.postman.com/
+- VS Code: https://code.visualstudio.com/
+- Git: https://git-scm.com/
+- MySQL Workbench: https://www.mysql.com/products/workbench/
+
+COMUNIDADES:
+- Stack Overflow: https://stackoverflow.com/
+- GitHub Discussions: https://github.com/
+- Reddit: https://www.reddit.com/r/django/, https://www.reddit.com/r/nextjs/
+
+================================================================================
+CONTACTO
+================================================================================
+
+PARA PREGUNTAS SOBRE DOCUMENTACIÓN:
+- Abre un issue en GitHub
+- Etiqueta: documentation
+- Describe tu pregunta
+
+PARA REPORTAR ERRORES:
+- Abre un issue en GitHub
+- Etiqueta: bug
+- Describe el error y cómo reproducirlo
+
+PARA SUGERENCIAS:
+- Abre un issue en GitHub
+- Etiqueta: enhancement
+- Describe tu sugerencia
+
+================================================================================
+                              FIN DEL ÍNDICE
+================================================================================
+
+Última actualización: 21 de Noviembre de 2025
+Versión: 1.0
+
+Gracias por usar SOS-HABILIDOSO. ¡Esperamos que esta documentación sea útil!
+
+================================================================================

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Usuario Admin - SOS Habilidoso</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #00cc6a;
+        }
+        .success {
+            background: #00ff88;
+            color: #000;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .error {
+            background: #ff4444;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .info {
+            background: #0088ff;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .credentials {
+            background: #333;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #00ff88;
+        }
+        pre {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Crear Usuario Administrador de Prueba</h1>
+        <p>Este script creará un usuario administrador de prueba en el localStorage del navegador para que puedas acceder al frontend de SOS Habilidoso.</p>
+        
+        <div class="credentials">
+            <h3>📋 Credenciales del Usuario Admin:</h3>
+            <p><strong>Email:</strong> admin@test.com</p>
+            <p><strong>Password:</strong> admin123</p>
+            <p><strong>Username:</strong> admin</p>
+            <p><strong>Nombre:</strong> Administrador de Prueba</p>
+        </div>
+
+        <button onclick="createAdminUser()">Crear Usuario Admin</button>
+        <button onclick="clearStorage()">Limpiar Storage</button>
+        <button onclick="checkCurrentUser()">Ver Usuario Actual</button>
+
+        <div id="result"></div>
+
+        <div class="info">
+            <h3>📝 Instrucciones:</h3>
+            <ol>
+                <li>Haz clic en "Crear Usuario Admin" para agregar el usuario al localStorage</li>
+                <li>Ve a tu aplicación de SOS Habilidoso en <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+                <li>La aplicación debería reconocer automáticamente que estás logueado</li>
+                <li>Si no funciona, recarga la página de la aplicación</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        async function createAdminUser() {
+            try {
+                // Hacer login real con el backend
+                const response = await fetch('http://localhost:8000/api/auth/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        login: 'admin@test.com',
+                        password: 'admin123'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                // Guardar tokens reales en localStorage
+                localStorage.setItem('access_token', data.access);
+                localStorage.setItem('refresh_token', data.refresh);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Mostrar resultado exitoso
+                document.getElementById('result').innerHTML = `
+                    <div class="success">
+                        <h3>✅ Usuario administrador autenticado exitosamente!</h3>
+                        <p>Se ha realizado login con el backend y los tokens han sido guardados.</p>
+                        <h4>Datos del usuario:</h4>
+                        <pre>${JSON.stringify(data.user, null, 2)}</pre>
+                        <p><strong>Tokens obtenidos del backend:</strong></p>
+                        <p>Access Token: ${data.access.substring(0, 50)}...</p>
+                        <p>Refresh Token: ${data.refresh.substring(0, 50)}...</p>
+                        <p><strong>🎉 ¡Ahora puedes ir a tu aplicación y estarás logueado!</strong></p>
+                    </div>
+                `;
+
+                console.log('Usuario admin autenticado:', data.user);
+                console.log('Tokens guardados:', { access: data.access, refresh: data.refresh });
+
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error al autenticar el usuario</h3>
+                        <p>${error.message}</p>
+                        <p><strong>Posibles soluciones:</strong></p>
+                        <ul>
+                            <li>Verifica que el backend esté corriendo en http://localhost:8000</li>
+                            <li>Asegúrate de que el usuario admin@test.com existe en la base de datos</li>
+                            <li>Revisa la consola del navegador para más detalles</li>
+                        </ul>
+                    </div>
+                `;
+                console.error('Error:', error);
+            }
+        }
+
+        function clearStorage() {
+            try {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('user');
+
+                document.getElementById('result').innerHTML = `
+                    <div class="info">
+                        <h3>🧹 Storage limpiado</h3>
+                        <p>Se han eliminado todos los datos de autenticación del localStorage.</p>
+                    </div>
+                `;
+
+                console.log('Storage limpiado');
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error al limpiar storage</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                console.error('Error:', error);
+            }
+        }
+
+        function checkCurrentUser() {
+            try {
+                const user = localStorage.getItem('user');
+                const accessToken = localStorage.getItem('access_token');
+                const refreshToken = localStorage.getItem('refresh_token');
+
+                if (user) {
+                    const userData = JSON.parse(user);
+                    document.getElementById('result').innerHTML = `
+                        <div class="info">
+                            <h3>👤 Usuario actual en localStorage:</h3>
+                            <p><strong>Email:</strong> ${userData.email}</p>
+                            <p><strong>Username:</strong> ${userData.username}</p>
+                            <p><strong>Nombre:</strong> ${userData.displayName}</p>
+                            <p><strong>Access Token:</strong> ${accessToken ? 'Presente' : 'No encontrado'}</p>
+                            <p><strong>Refresh Token:</strong> ${refreshToken ? 'Presente' : 'No encontrado'}</p>
+                            <h4>Datos completos:</h4>
+                            <pre>${JSON.stringify(userData, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('result').innerHTML = `
+                        <div class="info">
+                            <h3>👤 No hay usuario en localStorage</h3>
+                            <p>No se encontró ningún usuario guardado.</p>
+                        </div>
+                    `;
+                }
+
+                console.log('Usuario actual:', user ? JSON.parse(user) : null);
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error al verificar usuario</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                console.error('Error:', error);
+            }
+        }
+
+        // Verificar usuario al cargar la página
+        window.onload = function() {
+            checkCurrentUser();
+        };
+    </script>
+</body>
+</html>

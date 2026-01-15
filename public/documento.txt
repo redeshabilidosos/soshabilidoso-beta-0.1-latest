@@ -1,0 +1,140 @@
+================================================================================
+                         SOS-HABILIDOSO - RED SOCIAL
+================================================================================
+
+¿QUÉ ES SOS-HABILIDOSO?
+--------------------------------------------------------------------------------
+SOS-HABILIDOSO es una red social innovadora diseñada para conectar personas 
+apasionadas de todo el mundo. Es una plataforma donde los usuarios pueden 
+compartir sus talentos, habilidades y pasiones, ya sea en deportes, música, 
+arte, baile, tecnología o cualquier otra área de interés.
+
+El proyecto nace con la visión de crear una comunidad global donde cada persona 
+pueda mostrar lo que sabe hacer, aprender de otros y encontrar personas con 
+intereses similares.
+
+================================================================================
+                              FUNCIONALIDADES
+================================================================================
+
+PERFIL DE USUARIO
+- Creación de perfil personalizado con foto, nombre y biografía
+- Indicación de habilidades principales (ej: futbolista, músico, bailarín)
+- Asociación a equipos o grupos
+- Lista de intereses personales
+
+FEED DE PUBLICACIONES
+- Publicación de contenido multimedia (fotos, videos, texto)
+- Sistema de reacciones y comentarios
+- Compartir publicaciones de otros usuarios
+- Feed personalizado según intereses
+
+COMUNIDADES
+- Creación y participación en comunidades temáticas
+- Grupos de interés específico
+- Eventos y actividades grupales
+
+MENSAJERÍA
+- Chat privado entre usuarios
+- Conversaciones grupales
+- Notificaciones en tiempo real
+
+GALERÍA
+- Subida de fotos y videos
+- Organización por álbumes
+- Compartir momentos destacados
+
+REELS / VIDEOS CORTOS
+- Creación de videos cortos
+- Descubrimiento de contenido viral
+- Interacción con creadores
+
+TRANSMISIONES EN VIVO (LIVE)
+- Streaming en tiempo real
+- Interacción con la audiencia
+- Eventos en vivo
+
+CAPACITACIONES
+- Cursos y tutoriales
+- Aprendizaje de nuevas habilidades
+- Contenido educativo de la comunidad
+
+CLASIFICADOS
+- Publicación de servicios
+- Ofertas y demandas
+- Conexión entre profesionales
+
+BÚSQUEDA Y DESCUBRIMIENTO
+- Búsqueda de usuarios por habilidad
+- Exploración de contenido por categorías
+- Sugerencias personalizadas
+
+NOTIFICACIONES
+- Alertas de actividad
+- Menciones y etiquetas
+- Actualizaciones de amigos
+
+================================================================================
+                               BENEFICIOS
+================================================================================
+
+PARA USUARIOS INDIVIDUALES:
+✓ Visibilidad para tus talentos y habilidades
+✓ Conexión con personas de intereses similares
+✓ Oportunidades de aprendizaje y crecimiento
+✓ Plataforma para mostrar tu trabajo
+✓ Networking profesional y personal
+✓ Acceso a comunidades especializadas
+
+PARA EQUIPOS Y GRUPOS:
+✓ Gestión de miembros y comunicación
+✓ Promoción de actividades y eventos
+✓ Reclutamiento de nuevos talentos
+✓ Coordinación de entrenamientos o ensayos
+✓ Visibilidad ante patrocinadores
+
+PARA LA COMUNIDAD:
+✓ Descubrimiento de talentos locales
+✓ Intercambio de conocimientos
+✓ Creación de redes de apoyo
+✓ Fomento de la cultura y el deporte
+✓ Conexión intergeneracional
+
+================================================================================
+                          CARACTERÍSTICAS TÉCNICAS
+================================================================================
+
+- Diseño moderno con estética "cyber/neon"
+- Interfaz responsiva (móvil y escritorio)
+- Actualizaciones en tiempo real
+- Sistema de autenticación seguro
+- Recuperación de contraseña
+- Validación de datos robusta
+
+================================================================================
+                              TECNOLOGÍAS
+================================================================================
+
+Frontend:
+- Next.js (React)
+- TypeScript
+- Tailwind CSS
+- Componentes UI personalizados
+
+Backend:
+- Django (Python)
+- Django REST Framework
+- Base de datos relacional
+
+================================================================================
+                               CONTACTO
+================================================================================
+
+Para más información sobre el proyecto SOS-HABILIDOSO, puedes contactarnos
+a través de la plataforma o visitar nuestra página principal.
+
+¡Únete a la comunidad y comparte tu talento con el mundo!
+
+================================================================================
+                    © SOS-HABILIDOSO - Todos los derechos reservados
+================================================================================

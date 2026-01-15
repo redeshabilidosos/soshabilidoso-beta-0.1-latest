@@ -1,0 +1,87 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production builds
+.next/
+out/
+build/
+dist/
+
+# Environment variables (mantener .env.example)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments (excluir venv del repo)
+backend/venv/
+backend/venv312/
+backend/env/
+backend/ENV/
+backend/env.bak/
+backend/venv.bak/
+
+# Database files (excluir bases de datos locales)
+backend/db.sqlite3
+backend/db.sqlite3-journal
+
+# Media files uploaded by users
+backend/media/uploads/
+backend/media/avatars/
+backend/media/covers/
+
+# Large video files (exclude from repo)
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+backend/media/videos/
+backend/media/ads/videos/
+backend/media/reels/videos/
+public/*.mp4
+
+# Static files collected
+backend/staticfiles/
+backend/static_collected/
+
+# Logs
+*.log
+backend/logs/*.log
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+qc
+
+# Test files (mantener algunos archivos de test importantes)
+test-background.html
+test-comparison.html
+test-countdown.html
+test-mobile-navbar.html
+test-static-navbar.html

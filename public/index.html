@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOS-HABILIDOSOS | La Red Social de las Habilidades - Próximo Lanzamiento</title>
+    <meta name="description" content="La red social futurista para compartir y monetizar tus habilidades. Fútbol, música, arte, tecnología y más. Conecta con miles de personas en el mundo.">
+    <link rel="icon" href="logo sos@logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="landing-styles.css">
+</head>
+<body>
+    <!-- Fondo de partículas -->
+    <canvas id="particles-canvas"></canvas>
+    
+    <!-- Estrellas de fondo -->
+    <div class="stars-container" id="stars"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo-container">
+                <img src="./logo sos@3x.png" alt="SOS-HABILIDOSO Logo" class="logo">
+            </div>
+            <nav class="nav">
+                <a href="#inicio" class="nav-link">Inicio</a>
+                <a href="#caracteristicas" class="nav-link">Características</a>
+                <a href="#comunidad" class="nav-link">Comunidad</a>
+                <!-- <a href="#planes" class="nav-link">Planes</a> -->
+                <a href="#contacto" class="nav-link">Contacto</a>
+            </nav>
+            <div class="header-actions">
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+                <a href="/login" class="btn-primary" id="btn-login">Login</a>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobile-menu">
+            <div class="mobile-menu-content">
+                <a href="#inicio" class="mobile-nav-link">Inicio</a>
+                <a href="#caracteristicas" class="mobile-nav-link">Características</a>
+                <a href="#comunidad" class="mobile-nav-link">Comunidad</a>
+                <a href="#contacto" class="mobile-nav-link">Contacto</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Logo Principal -->
+    <section class="main-logo-section">
+        <div class="container">
+            <div class="main-logo-container">
+                <img src="./logo sos@3x.png" alt="SOS-HABILIDOSO Logo Principal" class="main-logo">
+            </div>
+        </div>
+    </section>
+
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="hero-wrapper">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="badge-container">
+                        <span class="badge">🚀 Lanzamiento Global Diciembre 2025</span>
+                    </div>
+                    <h1 class="hero-title">
+                        La Red Social de las <span class="gradient-text">Habilidades</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Muestra tu talento,  Comparte tus habilidades y conecta con miles de personas en todo el mundo.
+                    </p>
+
+                    <p class="hero-subtitle">
+                        Fútbol, deportes, música, arte, tecnología, cocina y mucho más.
+                    </p>
+
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" data-target="10000">0</div>
+                            <div class="stat-label">Pre-registros</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" data-target="500">0</div>
+                            <div class="stat-label">Comunidades</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" data-target="50">0</div>
+                            <div class="stat-label">Países</div>
+                        </div>
+                    </div>
+                    <div class="hero-cta">
+                        <button class="btn-large btn-primary" id="btn-register">
+                            <span>Regístrate Gratis</span>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <button class="btn-large btn-outline" id="btn-demo">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M8 7L13 10L8 13V7Z" fill="currentColor"/>
+                            </svg>
+                            <span>Ver Demo</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Características -->
+    <section class="features" id="caracteristicas">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Plataforma Todo-en-Uno</h2>
+                <p class="section-subtitle">Todas las herramientas que necesitas para compartir y monetizar tus habilidades</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-users"></i></div>
+                    <h3 class="feature-title">Comunidades Ilimitadas</h3>
+                    <p class="feature-description">Crea comunidades públicas, privadas o premium. Monetiza tu contenido exclusivo y construye tu audiencia.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-video"></i></div>
+                    <h3 class="feature-title">Streaming en Vivo</h3>
+                    <p class="feature-description">Transmite en vivo tus habilidades. Clases, tutoriales, partidos, conciertos y más. Interactúa con tu audiencia en tiempo real.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-film"></i></div>
+                    <h3 class="feature-title">Reels & Contenido</h3>
+                    <p class="feature-description">Comparte videos cortos de tus mejores momentos. Gana seguidores y construye tu marca personal.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-store"></i></div>
+                    <h3 class="feature-title">Marketplace Integrado</h3>
+                    <p class="feature-description">Vende productos, ofrece servicios freelance o publica clasificados. Todo en una sola plataforma.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                    <h3 class="feature-title">Mensajería Instantánea</h3>
+                    <p class="feature-description">Chat en tiempo real con individuos y grupos. Comparte archivos, fotos y videos sin límites.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
+                    <h3 class="feature-title">Escuelas Premium</h3>
+                    <p class="feature-description">Crea tu propia escuela online. Ofrece cursos, certificaciones y monetiza tu conocimiento.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-newspaper"></i></div>
+                    <h3 class="feature-title">Habil News</h3>
+                    <p class="feature-description">Publica noticias y artículos. Mantén a tu comunidad informada sobre las últimas novedades.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-globe"></i></div>
+                    <h3 class="feature-title">Red Global</h3>
+                    <p class="feature-description">Conecta con miles de personas en todo el mundo. Encuentra colaboradores, clientes o mentores.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3 class="feature-title">Analytics Avanzados</h3>
+                    <p class="feature-description">Analiza el rendimiento de tu contenido. Estadísticas detalladas para optimizar tu estrategia.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categorías -->
+    <section class="categories">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Todas las Habilidades en un Solo Lugar</h2>
+                <p class="section-subtitle">Explora, aprende y comparte en múltiples categorías</p>
+            </div>
+            <div class="categories-grid">
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-futbol"></i></div>
+                    <div class="category-text">Deportes</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-music"></i></div>
+                    <div class="category-text">Música</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-palette"></i></div>
+                    <div class="category-text">Arte & Diseño</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-laptop-code"></i></div>
+                    <div class="category-text">Tecnología</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-utensils"></i></div>
+                    <div class="category-text">Cocina</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-running"></i></div>
+                    <div class="category-text">Danza</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-book"></i></div>
+                    <div class="category-text">Educación</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-gamepad"></i></div>
+                    <div class="category-text">Gaming</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-camera"></i></div>
+                    <div class="category-text">Fotografía</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-pen"></i></div>
+                    <div class="category-text">Escritura</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-theater-masks"></i></div>
+                    <div class="category-text">Teatro</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon"><i class="fas fa-dumbbell"></i></div>
+                    <div class="category-text">Fitness</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comunidad -->
+    <section class="community" id="comunidad">
+        <div class="container">
+            <div class="community-content">
+                <div class="community-text">
+                    <h2 class="section-title">Únete a la Comunidad Global</h2>
+                    <p class="section-subtitle">Miles de creadores ya están esperando el lanzamiento</p>
+                    <div class="community-stats">
+                        <div class="community-stat">
+                            <div class="stat-icon"><i class="fas fa-users"></i></div>
+                            <div>
+                                <div class="stat-value">10,000+</div>
+                                <div class="stat-text">Usuarios registrados</div>
+                            </div>
+                        </div>
+                        <div class="community-stat">
+                            <div class="stat-icon"><i class="fas fa-globe-americas"></i></div>
+                            <div>
+                                <div class="stat-value">50+</div>
+                                <div class="stat-text">Países representados</div>
+                            </div>
+                        </div>
+                        <div class="community-stat">
+                            <div class="stat-icon"><i class="fas fa-star"></i></div>
+                            <div>
+                                <div class="stat-value">4.9/5</div>
+                                <div class="stat-text">Calificación beta</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-large btn-primary">Únete Ahora</button>
+                </div>
+                <div class="community-visual">
+                    <div class="floating-card card-1">
+                        <div class="card-avatar avatar-1"><i class="fas fa-camera"></i></div>
+                        <div class="card-content">
+                            <div class="card-name">Ana Fotógrafa</div>
+                            <div class="card-role">Fotografía Profesional</div>
+                        </div>
+                    </div>
+                    <div class="floating-card card-2">
+                        <div class="card-avatar avatar-2"><i class="fas fa-utensils"></i></div>
+                        <div class="card-content">
+                            <div class="card-name">Chef Martínez</div>
+                            <div class="card-role">Cocina Gourmet</div>
+                        </div>
+                    </div>
+                    <div class="floating-card card-3">
+                        <div class="card-avatar avatar-3"><i class="fas fa-music"></i></div>
+                        <div class="card-content">
+                            <div class="card-name">Laura Música</div>
+                            <div class="card-role">Productora Musical</div>
+                        </div>
+                    </div>
+                    <div class="floating-card card-4">
+                        <div class="card-avatar avatar-4"><i class="fas fa-futbol"></i></div>
+                        <div class="card-content">
+                            <div class="card-name">Carlos Entrenador</div>
+                            <div class="card-role">Entrenador Deportivo</div>
+                        </div>
+                    </div>
+                    <div class="floating-card card-5">
+                        <div class="card-avatar avatar-5"><i class="fas fa-laptop-code"></i></div>
+                        <div class="card-content">
+                            <div class="card-name">Tech Developer</div>
+                            <div class="card-role">Desarrollador Full Stack</div>
+                        </div>
+                    </div>
+                    <div class="floating-card card-6">
+                        <div class="card-avatar avatar-6"><i class="fas fa-palette"></i></div>
+                        <div class="card-content">
+                            <div class="card-name">Sofia Diseño</div>
+                            <div class="card-role">Diseñadora Gráfica</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Creadores de Contenido -->
+    <section class="creators">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Para Creadores de Contenido</h2>
+                <p class="section-subtitle"> talento y construye tu comunidad</p>
+            </div>
+            <div class="creators-content">
+                <div class="creators-features">
+                    <div class="creator-feature">
+                        <div class="creator-icon"><i class="fas fa-dollar-sign"></i></div>
+                        <h3>Monetización Directa</h3>
+                        <p>Gana dinero con suscripciones, donaciones y contenido premium. Tú decides tus precios.</p>
+                    </div>
+                    <div class="creator-feature">
+                        <div class="creator-icon"><i class="fas fa-chart-bar"></i></div>
+                        <h3>Analytics Profesionales</h3>
+                        <p>Estadísticas detalladas de tu audiencia, engagement y ganancias en tiempo real.</p>
+                    </div>
+                    <div class="creator-feature">
+                        <div class="creator-icon"><i class="fas fa-video"></i></div>
+                        <h3>Streaming Ilimitado</h3>
+                        <p>Transmite en vivo sin límites. Clases, tutoriales, eventos y más con calidad HD.</p>
+                    </div>
+                    <div class="creator-feature">
+                        <div class="creator-icon"><i class="fas fa-school"></i></div>
+                        <h3>Tu Propia Escuela</h3>
+                        <p>Crea cursos, vende certificaciones y construye tu academia online personalizada.</p>
+                    </div>
+                </div>
+                <div class="creators-cta">
+                    <h3>Únete a miles de creadores exitosos</h3>
+                    <p>Comienza a monetizar tu contenido hoy mismo</p>
+                    <a href="/login" class="btn-large btn-primary">Convertirme en Creador</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Planes -->
+    <!-- SECCIÓN TEMPORALMENTE COMENTADA - PRECIOS PARA USUARIOS
+    <section class="pricing" id="planes">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Planes para Usuarios</h2>
+                <p class="section-subtitle">Elige el plan que mejor se adapte a tus necesidades</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Gratis</h3>
+                        <div class="pricing-price">
+                            <span class="price-currency">$</span>
+                            <span class="price-amount">0</span>
+                            <span class="price-period">/mes</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✓ Perfil básico</li>
+                        <li>✓ Unirse a comunidades</li>
+                        <li>✓ Publicar contenido</li>
+                        <li>✓ Chat básico</li>
+                        <li>✓ Marketplace acceso</li>
+                        <li>✗ Sin anuncios</li>
+                        <li>✗ Estadísticas avanzadas</li>
+                    </ul>
+                    <button class="btn-outline">Comenzar Gratis</button>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="popular-badge">Más Popular</div>
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Pro</h3>
+                        <div class="pricing-price">
+                            <span class="price-currency">$</span>
+                            <span class="price-amount">9.99</span>
+                            <span class="price-period">/mes</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✓ Todo lo del plan Gratis</li>
+                        <li>✓ Sin anuncios</li>
+                        <li>✓ Estadísticas avanzadas</li>
+                        <li>✓ Comunidades premium</li>
+                        <li>✓ Streaming HD</li>
+                        <li>✓ Soporte prioritario</li>
+                        <li>✓ Badge verificado</li>
+                    </ul>
+                    <button class="btn-primary">Obtener Pro</button>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Creador</h3>
+                        <div class="pricing-price">
+                            <span class="price-currency">$</span>
+                            <span class="price-amount">29.99</span>
+                            <span class="price-period">/mes</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✓ Todo lo del plan Pro</li>
+                        <li>✓ Monetización habilitada</li>
+                        <li>✓ Escuela online propia</li>
+                        <li>✓ Analytics profesionales</li>
+                        <li>✓ API personalizada</li>
+                        <li>✓ Comisión reducida (5%)</li>
+                        <li>✓ Soporte dedicado 24/7</li>
+                    </ul>
+                    <button class="btn-outline">Ser Creador</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    FIN SECCIÓN COMENTADA - PRECIOS PARA USUARIOS -->
+
+    <!-- Empresas y Publicidad -->
+    <!-- SECCIÓN TEMPORALMENTE COMENTADA - PRECIOS PARA EMPRESAS
+    <section class="business">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Para Empresas y Negocios</h2>
+                <p class="section-subtitle">Llega a miles de usuarios con publicidad estratégica</p>
+            </div>
+            <div class="business-content">
+                <div class="business-grid">
+                    <div class="business-card">
+                        <div class="business-icon">📢</div>
+                        <h3>Publicidad Segmentada</h3>
+                        <p>Alcanza tu público objetivo con anuncios personalizados por categoría, ubicación e intereses.</p>
+                        <ul class="business-list">
+                            <li>• Banners en feed</li>
+                            <li>• Stories patrocinados</li>
+                            <li>• Videos promocionales</li>
+                            <li>• Posts destacados</li>
+                        </ul>
+                    </div>
+                    <div class="business-card">
+                        <div class="business-icon">🎯</div>
+                        <h3>Campañas Inteligentes</h3>
+                        <p>Crea campañas efectivas con nuestras herramientas de marketing avanzadas.</p>
+                        <ul class="business-list">
+                            <li>• Segmentación avanzada</li>
+                            <li>• A/B Testing</li>
+                            <li>• Retargeting</li>
+                            <li>• Analytics en tiempo real</li>
+                        </ul>
+                    </div>
+                    <div class="business-card">
+                        <div class="business-icon">🤝</div>
+                        <h3>Patrocinios y Alianzas</h3>
+                        <p>Patrocina comunidades, eventos y creadores para mayor visibilidad de marca.</p>
+                        <ul class="business-list">
+                            <li>• Patrocinio de comunidades</li>
+                            <li>• Eventos corporativos</li>
+                            <li>• Colaboraciones con creadores</li>
+                            <li>• Branded content</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="business-pricing">
+                    <h3>Planes de Publicidad</h3>
+                    <div class="business-plans">
+                        <div class="business-plan">
+                            <h4>Starter</h4>
+                            <div class="business-price">$299<span>/mes</span></div>
+                            <p>Perfecto para pequeños negocios</p>
+                            <ul>
+                                <li>50,000 impresiones</li>
+                                <li>Segmentación básica</li>
+                                <li>Reportes mensuales</li>
+                            </ul>
+                        </div>
+                        <div class="business-plan featured">
+                            <div class="popular-badge">Recomendado</div>
+                            <h4>Business</h4>
+                            <div class="business-price">$799<span>/mes</span></div>
+                            <p>Para empresas en crecimiento</p>
+                            <ul>
+                                <li>200,000 impresiones</li>
+                                <li>Segmentación avanzada</li>
+                                <li>Reportes semanales</li>
+                                <li>Soporte prioritario</li>
+                            </ul>
+                        </div>
+                        <div class="business-plan">
+                            <h4>Enterprise</h4>
+                            <div class="business-price">Personalizado</div>
+                            <p>Soluciones a medida</p>
+                            <ul>
+                                <li>Impresiones ilimitadas</li>
+                                <li>Account manager dedicado</li>
+                                <li>API de publicidad</li>
+                                <li>Reportes personalizados</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <button class="btn-large btn-primary">Solicitar Demo Empresarial</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    FIN SECCIÓN COMENTADA - PRECIOS PARA EMPRESAS -->
+
+    <!-- Fundación Habilidosos -->
+    <section class="foundation">
+        <div class="container">
+            <div class="foundation-content">
+                <div class="foundation-text">
+                    <div class="foundation-badge">
+                        <span>🏆 Fundación Habilidosos</span>
+                    </div>
+                    <h2 class="section-title">Impulsando Talentos, Transformando Vidas</h2>
+                    <p class="foundation-description">
+                        SOS-HABILIDOSOS es una iniciativa de la <strong>Fundación Habilidosos</strong>, 
+                        una organización sin ánimo de lucro dedicada a descubrir, desarrollar y promover 
+                        el talento en todas sus formas. Creemos que cada persona tiene habilidades únicas 
+                        que merecen ser compartidas con el mundo.
+                    </p>
+                    <div class="foundation-stats">
+                        <div class="foundation-stat">
+                            <div class="stat-number">10,000+</div>
+                            <div class="stat-label">Talentos descubiertos</div>
+                        </div>
+                        <div class="foundation-stat">
+                            <div class="stat-number">50+</div>
+                            <div class="stat-label">Países alcanzados</div>
+                        </div>
+                        <div class="foundation-stat">
+                            <div class="stat-number">2026</div>
+                            <div class="stat-label">Reality Show</div>
+                        </div>
+                    </div>
+                    <div class="foundation-button-container">
+                        <a href="https://www.fundahabilidosos.com/" target="_blank" class="btn-large btn-outline">
+                            Conocer la Fundación
+                        </a>
+                    </div>
+                </div>
+                <div class="foundation-visual">
+                    <div class="foundation-card">
+                        <div class="foundation-icon"><i class="fas fa-star"></i></div>
+                        <h3>Nuestra Misión</h3>
+                        <p>Democratizar el acceso a oportunidades para que cualquier persona, sin importar su origen, pueda mostrar su talento al mundo.</p>
+                    </div>
+                    <div class="foundation-card">
+                        <div class="foundation-icon"><i class="fas fa-bullseye"></i></div>
+                        <h3>Nuestra Visión</h3>
+                        <p>Ser la plataforma líder global en descubrimiento y desarrollo de talento, conectando habilidades con oportunidades.</p>
+                    </div>
+                    <div class="foundation-card">
+                        <div class="foundation-icon"><i class="fas fa-lightbulb"></i></div>
+                        <h3>Nuestros Valores</h3>
+                        <p>Inclusión, excelencia, innovación y compromiso con el desarrollo del potencial humano en todas sus expresiones.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reality 2026 -->
+    <section class="reality">
+        <div class="container">
+            <div class="reality-hero">
+                <div class="reality-logo-container">
+                    <img src="Loggo.png" alt="Habilidosos Reality Logo" class="reality-logo">
+                </div>
+                <div class="reality-badge-large">
+                    <span><i class="fas fa-film"></i> REALITY 2026</span>
+                </div>
+                <h2 class="reality-title">
+                    Habilidosos "Un Golazo A Tus Sueños"
+                </h2>
+                <p class="reality-subtitle">
+                    El reality show de fútbol más grande de Colombia. Si tienes entre 13 y 19 años y sueñas con ser futbolista profesional, 
+                    esta es tu oportunidad. Demuestra tu talento, compite con los mejores y gana premios increíbles. 
+                    ¡Tu sueño de ser estrella del fútbol está a un golazo de distancia!
+                </p>
+            </div>
+
+            <div class="reality-content">
+                <div class="reality-info">
+                    <h3>¿Qué es "Un Golazo A Tus Sueños"?</h3>
+                    <p>
+                        <strong>Habilidosos: "Un Golazo A Tus Sueños"</strong> es el reality show de fútbol más esperado de 2026 en Colombia. 
+                        Un programa de televisión y streaming donde <strong>jóvenes entre 13 y 19 años</strong> (chicas y chicos) 
+                        demostrarán su talento futbolístico y competirán por cumplir su sueño de convertirse en futbolistas profesionales. 
+                        Los ganadores recibirán premios en efectivo, contratos con clubes profesionales, becas deportivas y la oportunidad 
+                        de impulsar sus carreras en el fútbol colombiano e internacional. ¡Dale un golazo a tus sueños y conviértete en la próxima estrella del fútbol!
+                    </p>
+                    
+                    <div class="reality-highlights">
+                        <div class="reality-highlight">
+                            <div class="highlight-icon"><i class="fas fa-trophy"></i></div>
+                            <div>
+                                <h4>Premios y Becas</h4>
+                                <p>Premios en efectivo, becas deportivas y equipamiento profesional</p>
+                            </div>
+                        </div>
+                        <div class="reality-highlight">
+                            <div class="highlight-icon"><i class="fas fa-tv"></i></div>
+                            <div>
+                                <h4>Transmisión Nacional</h4>
+                                <p>Win Sports, Canal Uno, Telemedellín y Teleantioquia</p>
+                            </div>
+                        </div>
+                        <div class="reality-highlight">
+                            <div class="highlight-icon"><i class="fas fa-futbol"></i></div>
+                            <div>
+                                <h4>Contratos con Clubes</h4>
+                                <p>Oportunidades con clubes profesionales de Colombia</p>
+                            </div>
+                        </div>
+                        <div class="reality-highlight">
+                            <div class="highlight-icon"><i class="fas fa-graduation-cap"></i></div>
+                            <div>
+                                <h4>Formación Profesional</h4>
+                                <p>Entrenamiento con técnicos de alto nivel y mentores</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reality-registration">
+                    <div class="reality-card-main">
+                        <h3>¿Cómo Participar?</h3>
+                        <div class="reality-steps">
+                            <div class="reality-step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h4>Regístrate en SOS-HABILIDOSOS</h4>
+                                    <p>Crea tu cuenta en nuestra red social</p>
+                                </div>
+                            </div>
+                            <div class="reality-step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h4>Construye tu Portafolio</h4>
+                                    <p>Comparte tu contenido y demuestra tu talento</p>
+                                </div>
+                            </div>
+                            <div class="reality-step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h4>Inscríbete al Reality</h4>
+                                    <p>Completa tu inscripción oficial desde la plataforma</p>
+                                </div>
+                            </div>
+                            <div class="reality-step">
+                                <div class="step-number">4</div>
+                                <div class="step-content">
+                                    <h4>¡Compite y Gana!</h4>
+                                    <p>Participa en las audiciones y llega a la final</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="reality-cta">
+                            <a href="http://localhost:4000/register-habilidosos" class="btn-large btn-primary" id="btn-reality">
+                                <i class="fas fa-user-plus"></i> Registrar
+                            </a>
+                            <p class="reality-note">
+                                <i class="fas fa-bolt"></i> Inscripciones abiertas hasta Diciembre 2025
+                            </p>
+                            <p class="reality-slogan">
+                                "Un Golazo A Tus Sueños" - Reality Habilidosos 2026
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reality-categories">
+                <h3>Requisitos de Participación</h3>
+                <div class="reality-requirements">
+                    <div class="requirement-card">
+                        <div class="requirement-icon"><i class="fas fa-users"></i></div>
+                        <h4>Edad</h4>
+                        <p>Entre 13 y 19 años</p>
+                    </div>
+                    <div class="requirement-card">
+                        <div class="requirement-icon"><i class="fas fa-flag"></i></div>
+                        <h4>Nacionalidad</h4>
+                        <p>Colombiano(a) o residente en Colombia</p>
+                    </div>
+                    <div class="requirement-card">
+                        <div class="requirement-icon"><i class="fas fa-heart"></i></div>
+                        <h4>Pasión</h4>
+                        <p>Amor por el fútbol y ganas de triunfar</p>
+                    </div>
+                    <div class="requirement-card">
+                        <div class="requirement-icon"><i class="fas fa-mobile-alt"></i></div>
+                        <h4>Registro</h4>
+                        <p>Cuenta activa en SOS-HABILIDOSOS</p>
+                    </div>
+                </div>
+                <div class="reality-info-box">
+                    <p>
+                        <strong><i class="fas fa-futbol"></i> Reality enfocado 100% en fútbol</strong><br>
+                        Abierto para chicas y chicos que sueñan con ser futbolistas profesionales. 
+                        Demuestra tu talento en la cancha y conviértete en la próxima estrella del fútbol colombiano.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Canales de Transmisión -->
+            <div class="broadcast-channels">
+                <h3>Transmitido por los Mejores Canales de Colombia</h3>
+                <p class="broadcast-subtitle">Mira el reality en televisión nacional y streaming</p>
+                <div class="channels-grid">
+                    <div class="channel-card">
+                        <div class="channel-logo"><i class="fas fa-tv"></i></div>
+                        <h4>Win Sports</h4>
+                        <p>Canal deportivo líder</p>
+                    </div>
+                    <div class="channel-card">
+                        <div class="channel-logo"><i class="fas fa-satellite-dish"></i></div>
+                        <h4>Canal Uno</h4>
+                        <p>Televisión nacional</p>
+                    </div>
+                    <div class="channel-card">
+                        <div class="channel-logo"><i class="fas fa-video"></i></div>
+                        <h4>Telemedellín</h4>
+                        <p>Canal regional</p>
+                    </div>
+                    <div class="channel-card">
+                        <div class="channel-logo"><i class="fas fa-broadcast-tower"></i></div>
+                        <h4>Teleantioquia</h4>
+                        <p>Televisión regional</p>
+                    </div>
+                </div>
+                <div class="broadcast-note">
+                    <p>
+                        <i class="fas fa-circle" style="color: #ef4444;"></i> <strong>Transmisión en vivo y diferido</strong> | 
+                        <i class="fas fa-mobile-alt"></i> <strong>Disponible en streaming</strong> a través de SOS-HABILIDOSOS | 
+                        <i class="fas fa-globe-americas"></i> <strong>Alcance nacional</strong> en Colombia
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Countdown de Lanzamiento -->
+    <section class="launch-countdown">
+        <div class="container">
+            <div class="launch-countdown-content">
+                <div class="launch-badge">
+                    <span>🚀 LANZAMIENTO OFICIAL</span>
+                </div>
+                <h2 class="launch-title">¡Faltan Pocos Días!</h2>
+                <p class="launch-subtitle">
+                    SOS-HABILIDOSOS estará disponible muy pronto. Únete a la revolución de las habilidades.
+                </p>
+                
+                <div class="launch-countdown-timer">
+                    <div class="launch-countdown-item">
+                        <span class="launch-countdown-value" id="launch-days">00</span>
+                        <span class="launch-countdown-unit">Días</span>
+                    </div>
+                    <div class="launch-countdown-separator">:</div>
+                    <div class="launch-countdown-item">
+                        <span class="launch-countdown-value" id="launch-hours">00</span>
+                        <span class="launch-countdown-unit">Horas</span>
+                    </div>
+                    <div class="launch-countdown-separator">:</div>
+                    <div class="launch-countdown-item">
+                        <span class="launch-countdown-value" id="launch-minutes">00</span>
+                        <span class="launch-countdown-unit">Minutos</span>
+                    </div>
+                    <div class="launch-countdown-separator">:</div>
+                    <div class="launch-countdown-item">
+                        <span class="launch-countdown-value" id="launch-seconds">00</span>
+                        <span class="launch-countdown-unit">Segundos</span>
+                    </div>
+                </div>
+
+                <div class="launch-actions">
+                    <button class="btn-large btn-primary" id="btn-notify-launch">
+                        🔔 Notificarme del Lanzamiento
+                    </button>
+                    <p class="launch-note">
+                        ✨ Sé el primero en experimentar la nueva era de las habilidades digitales
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter" id="contacto">
+        <div class="container">
+            <div class="newsletter-content">
+                <h2 class="newsletter-title">Mantente Informado</h2>
+                <p class="newsletter-subtitle">Recibe actualizaciones exclusivas sobre el lanzamiento</p>
+                <form class="newsletter-form" id="newsletter-form">
+                    <input type="email" placeholder="tu@email.com" class="newsletter-input" required>
+                    <button type="submit" class="btn-primary">Suscribirse</button>
+                </form>
+                <p class="newsletter-note">🔒 No compartimos tu información. Cancela cuando quieras.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Countdown Section -->
+    <!-- SECCIÓN TEMPORALMENTE COMENTADA - COUNTDOWN YA DISPONIBLE
+    <section class="countdown-section">
+        <div class="container">
+            <div class="countdown-container">
+                <p class="countdown-label">🚀 Lanzamiento oficial: 12 de Diciembre 2025</p>
+                <div class="countdown" id="countdown">
+                    <div class="countdown-item">
+                        <span class="countdown-value" id="days">00</span>
+                        <span class="countdown-unit">Días</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-value" id="hours">00</span>
+                        <span class="countdown-unit">Horas</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-value" id="minutes">00</span>
+                        <span class="countdown-unit">Min</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-value" id="seconds">00</span>
+                        <span class="countdown-unit">Seg</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    FIN SECCIÓN COMENTADA - COUNTDOWN YA DISPONIBLE -->
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <!-- Logo y descripción centrados -->
+                <div class="footer-brand">
+                    <img src="SOS-HABILIDOSO.gif" alt="Logo" class="footer-logo">
+                    <p class="footer-description">La red social de las habilidades que revolucionará la forma en que compartes tu talento con el mundo.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Enlaces organizados en 3 columnas -->
+                <div class="footer-links">
+                    <div class="footer-section">
+                        <h4 class="footer-title">Producto</h4>
+                        <a href="#caracteristicas" class="footer-link">Características</a>
+                        <!-- <a href="#planes" class="footer-link">Precios</a> -->
+                        <a href="#" class="footer-link">Roadmap</a>
+                        <a href="#" class="footer-link">Changelog</a>
+                    </div>
+                    <div class="footer-section">
+                        <h4 class="footer-title">Empresa</h4>
+                        <a href="https://www.fundahabilidosos.com/" target="_blank" class="footer-link">Fundación Habilidosos</a>
+                        <a href="#" class="footer-link">Reality 2026</a>
+                        <a href="#" class="footer-link">Blog</a>
+                        <a href="#" class="footer-link">Carreras</a>
+                        <a href="#" class="footer-link">Prensa</a>
+                    </div>
+                    <div class="footer-section">
+                        <h4 class="footer-title">Legal</h4>
+                        <a href="#" class="footer-link">Privacidad</a>
+                        <a href="#" class="footer-link">Términos</a>
+                        <a href="#" class="footer-link">Cookies</a>
+                        <a href="#" class="footer-link">Licencias</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 SOS-HABILIDOSO. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Registro -->
+    <div class="modal" id="register-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <h2 class="modal-title">Acceso Anticipado</h2>
+            <p class="modal-subtitle">Sé de los primeros en experimentar la revolución del fútbol digital</p>
+            <form class="modal-form" id="register-form">
+                <input type="text" placeholder="Nombre completo" class="form-input" required>
+                <input type="email" placeholder="Email" class="form-input" required>
+                <input type="tel" placeholder="Teléfono (opcional)" class="form-input">
+                <select class="form-input" required>
+                    <option value="">Selecciona tu posición</option>
+                    <option value="portero">Portero</option>
+                    <option value="defensa">Defensa</option>
+                    <option value="mediocampista">Mediocampista</option>
+                    <option value="delantero">Delantero</option>
+                    <option value="entrenador">Entrenador</option>
+                    <option value="aficionado">Aficionado</option>
+                </select>
+                <button type="submit" class="btn-primary btn-block">Registrarme</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="index-script.js"></script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+
+# CHECKLIST DE DESARROLLO
+
+## Frontend ✅
+- [x] Página principal de capacitaciones (`app/capacitaciones/page.tsx`)
+- [x] Página de sección individual (`app/capacitaciones/secciones/[id]/page.tsx`)
+- [x] Página de tema individual (`app/capacitaciones/temas/[id]/page.tsx`)
+- [x] Grid responsive de secciones con progreso
+- [x] Barra de progreso general del usuario
+- [x] Sistema de logros visuales
+- [x] Navegación entre temas (anterior/siguiente)
+- [x] Botón "Marcar como completado"
+- [x] Diseño consistente con la aplicación (glass-card, estrellas, colores)
+
+## Backend ✅
+- [x] Modelos Django (Seccion, Tema, TemaContenido, TemaPuntoClave, ProgresoUsuario, Logro, UsuarioLogro)
+- [x] Script SQL para crear tablas (`backend/scripts/create_learning_tables.sql`)
+- [x] Serializers completos con progreso de usuario
+- [x] ViewSets (SeccionViewSet, TemaViewSet, ProgresoViewSet, LogroViewSet)
+- [x] Endpoints REST API:
+  - GET /api/learning/secciones/
+  - GET /api/learning/secciones/{slug}/
+  - GET /api/learning/temas/
+  - GET /api/learning/temas/{slug}/
+  - POST /api/learning/temas/{slug}/marcar_completado/
+  - GET /api/learning/progreso/estadisticas/
+  - GET /api/learning/logros/
+  - GET /api/learning/logros/mis_logros/
+- [x] Panel de administración Django con inlines
+- [x] App registrada en settings y urls
+
+## Integración (Pendiente)
+- [ ] Ejecutar migraciones Django
+- [ ] Conectar frontend con API real
+- [ ] Persistencia de progreso
+- [ ] Sistema de logros funcional
+- [ ] Insignias en perfil de usuario
+
+---
+
+# Contexto General
+
+**Aplicación:** SOS Habilidoso
+**Módulo a desarrollar:** Interfaz de Aprendizaje de Fútbol
+**Tipo:** Plataforma educativa dentro de una red social
+
+El módulo permitirá a los usuarios aprender sobre fútbol, llevar control de su progreso y visualizar estadísticas desde el panel administrativo de Django.
+
+---
+
+# Objetivo del Desarrollo
+
+Diseñar e implementar un **sistema de aprendizaje estructurado**, con:
+
+* Secciones y temas educativos.
+* Progreso por usuario.
+* Persistencia de datos.
+* Visualización clara del estado (no iniciado / en progreso / completado).
+* Administración completa desde Django Admin.
+
+---
+
+# Arquitectura Tecnológica
+
+## Frontend
+
+(mismo diseño opcimizado  en el contexto  de la interfas)
+
+## Backend
+
+* Django
+* Django REST Framework
+* MySQL
+* Panel administrativo Django Admin
+
+---
+
+# Estructura Funcional del Sistema
+
+## 1. Modelo Conceptual
+
+* **Secciones** → Agrupan temas (ej: Técnica, Reglamento)
+* **Temas** → Contenido educativo
+* **ProgresoUsuario** → Relación usuario-tema
+* **Logros** → Recompensas por avance
+
+---
+
+# FRONTEND – Estructura y Componentes
+
+## Estructura de Carpetas Recomendada
+Acomodandose a la estructura ya existente
+
+```
+app/
+ ├─ layout.tsx
+ ├─ page.tsx
+ ├─ dashboard/
+ │   └─ page.tsx
+ ├─ secciones/[id]/page.tsx
+ ├─ temas/[id]/page.tsx
+components/
+ ├─ CardSeccion.tsx
+ ├─ CardTema.tsx
+ ├─ ProgressBar.tsx
+ ├─ TemaNavigator.tsx
+ ├─ UserStatsPanel.tsx
+ └─ CompletionButton.tsx
+store/
+ └─ progresoStore.ts
+data/
+ └─ futbolData.ts
+services/
+ └─ api.ts
+```
+
+
+
+---
+
+## Componentes Clave
+
+### Layout Principal
+
+* Header con logo
+* Proveedor de estado global
+
+### Página Principal
+
+* Grid de secciones
+* Cálculo de progreso por sección
+
+### CardSeccion
+
+* Icono
+* Nombre
+* Barra de progreso
+* Nombre de usuario
+* Badge "X/Y completados"
+
+### Página de Tema Individual
+
+**Columna Izquierda (60%)**
+
+* Video o imagen principal
+* Contenido
+* Puntos clave
+
+**Columna Derecha (40%)**
+
+* Navegador sticky de temas
+* Estado visual
+* Botón completar
+* Botón siguiente
+* Panel de estadísticas
+
+### Sistema de Progreso
+
+* Actualización local inmediata
+* Sincronización con backend
+* Animaciones de confirmación
+
+---
+
+# BACKEND – Django REST Framework
+
+## Apps Django
+
+* users
+* learning (secciones, temas)
+* progress (avance usuario)
+* achievements
+
+---
+
+## Endpoints Principales
+
+* GET /api/secciones/
+* GET /api/secciones/{id}/temas/
+* GET /api/temas/{id}/
+* POST /api/progreso/marcar-completado/
+* GET /api/usuario/progreso/
+* GET /api/usuario/estadisticas/
+
+---
+
+## Lógica Backend
+
+* Validar usuario
+* Marcar tema como completado
+* Registrar fecha y duración
+* Calcular progreso por sección
+* Exponer estadísticas
+
+---
+
+# BASE DE DATOS – MySQL
+
+## Tablas y Relaciones
+
+### Segun logica existente a convenir 
+
+* id (PK)
+* username
+* email
+
+---
+
+### secciones
+
+* id (PK)
+* nombre
+* descripcion
+* icono
+* created_at
+
+---
+
+### temas
+
+* id (PK)
+* seccion_id (FK → secciones.id)
+* titulo
+* descripcion
+* nivel (basico/intermedio/avanzado)
+* duracion_estimada
+* imagen_url
+* video_url
+* created_at
+
+---
+
+### tema_contenido
+
+* id (PK)
+* tema_id (FK → temas.id)
+* subtitulo
+* contenido (TEXT)
+
+---
+
+### progreso_usuario
+
+* id (PK)
+* user_id (FK → users.id)
+* tema_id (FK → temas.id)
+* estado (no_iniciado | en_progreso | completado)
+* fecha_completado
+* tiempo_dedicado
+
+---
+
+### logros
+
+* id (PK)
+* nombre
+* descripcion
+* icono
+
+---
+
+### usuario_logros
+
+* id (PK)
+* user_id (FK → users.id)
+* logro_id (FK → logros.id)
+* fecha_obtenido
+( La insignica puede se run icono medalla que se debe de aparecer en el perfil del usuario al lado derecho de su nombre en las estadisticas con hypervinculo si un otro usuaruio que no lo tiene  quiere realizar los cursos  )
+
+---
+
+# Control desde Django Admin
+
+* CRUD completo de secciones y temas
+* Visualización del progreso por usuario
+* Filtros por sección, nivel y estado
+* Gestión de logros
+
+---
+
+# Flujo de Usuario
+
+1. Usuario entra a la plataforma
+2. Ve secciones y progreso
+3. Selecciona tema
+4. Consume contenido
+5. Marca como completado
+6. Sistema actualiza BD y UI
+7. Se desbloquean logros
+
+---
+
+# Resultado Esperado
+
+* Módulo educativo totalmente funcional
+* Progreso persistente
+* Administración centralizada en Django
+* Código limpio, escalable y documentado
+
+---
+
+# Instrucción Final para IA Generadora de Código
+
+Genera:
+
+1. Modelos Django + migraciones MySQL
+2. Serializers y ViewSets
+3. Endpoints REST
+4. Componentes principales en Next.js
+5. Store de estado
+6. Ejemplos de consumo de API
+
+Prioriza buenas prácticas, rendimiento y claridad arquitectónica.
+
+
+los siguientes son los temas de la capacitacion con su titulo y breve descripcion 
+
+## **Técnicas y Prácticas en el Fútbol:**
+Son los métodos y ejercicios utilizados para desarrollar las habilidades individuales y colectivas. Incluyen dominio del balón, pase, tiro, defensa, táctica (sistemas de juego) y preparación física.
+
+---
+
+## **Escuelas (Fundacion Habilidosos) de Formación para chicas, chicos y adolescentes en sede deportiva:**
+Centros especializados dentro de un complejo deportivo donde jóvenes futbolistas reciben entrenamiento estructurado. Su objetivo es la enseñanza técnica y táctica, junto con la formación en valores, adaptándose a las diferentes categorías por edad y género.
+
+---
+
+## **Reglamentos FIFA:**
+Conjunto de **Leyes del Juego** establecidas por la Fédération Internationale de Football Association. Son las reglas universales que definen el deporte: dimensiones del campo, duración, fueras de juego, faltas, saques, etc. Son de obligatorio cumplimiento en todo partido oficial.
+
+---
+
+## **Reglamentos de Árbitros:**
+Normativas específicas que rigen la labor del cuerpo arbitral. Incluyen protocolos de actuación, interpretación de las Leyes del Juego, posicionamiento en el campo, uso del VAR (Video Assistant Referee) y procedimientos disciplinarios.
+
+---
+
+## **Reglamento Deportivo:**
+Normativa general de una liga, federación o asociación que complementa las Leyes del Juego. Cubre aspectos como inscripción de equipos y jugadores, calendario, sistema de competición, sanciones administrativas y transferencias.
+
+---
+
+## **Estructura de una Sede Deportiva:**
+Se refiere a la infraestructura física necesaria para operar un centro de formación. Incluye:
+*   **Campo principal y campos auxiliares.**
+*   **Vestuarios** (separados por géneros).
+*   **Gimnasio y sala de fisioterapia.**
+*   **Almacén para equipamiento.**
+*   **Oficinas administrativas.**
+*   **Áreas comunes y de descanso.**
+
+---
+
+## **Capacitación en Técnica Deportiva (Desglose de temas):**
+Programa de entrenamiento para mejorar las habilidades técnicas individuales.
+*   **Control y dominio del balón** (con diferentes superficies del pie).
+*   **Conducción / Regate** (cambios de ritmo y dirección).
+*   **Pase** (corto, largo, con efecto, al espacio).
+*   **Tiro / Remate** (potencia, colocación, volea).
+*   **Técnica de cabeceo.**
+*   **Técnica defensiva** (entrada, marcaje, anticipación).
+*   **Técnica del portero** (posición, blocaje, despejes).
+
+---
+
+## **Conferencias, Charlas para Cuerpo Técnico (Coaches y Técnicos):**
+Sesiones formativas para entrenadores y staff. Temas comunes:
+*   **Análisis táctico y lectura del juego.**
+*   **Metodologías de entrenamiento modernas.**
+*   **Preparación física y prevención de lesiones.**
+*   **Psicología deportiva y manejo de grupo.**
+*   **Scouting y análisis de rivales.**
+*   **Nutrición para el alto rendimiento.**
+
+---
+
+## **Representación de Jugadores y Deportistas:**
+Actividad realizada por **agentes o representantes deportivos**. Se encargan de:
+*   Negociar y gestionar contratos con clubes.
+*   Gestionar la imagen y derechos de publicidad del deportista.
+*   Asesorar en transferencias y planes de carrera.
+*   Ofrecer soporte legal y financiero.
+
+---
+
+## **Educación de Idiomas para Jugadores:**
+Programa de enseñanza de lenguas extranjeras dirigido a futbolistas, especialmente en clubes internacionales o academias de élite. **Objetivos:**
+*   Facilitar la **integración** en un nuevo país y vestuario multicultural.
+*   Mejorar la **comprensión táctica** con entrenadores y compañeros.
+*   Potenciar la **proyección internacional** y oportunidades de transferencia.
+*   Preparar para **entrevistas y relaciones públicas**.
+*   Los idiomas más comunes son **inglés, español, alemán, italiano y francés**.
+
+Reglamentos fifa:
+
+
+Las reglas básicas del fútbol FIFA establecen 11 jugadores por equipo, dos tiempos de 45 minutos, y el objetivo es meter el balón en la portería contraria sin tocarlo con las manos (excepto el portero en su área). El juego se rige por 17 reglas que cubren el terreno, el balón, jugadores, árbitros (que controlan el tiempo y las faltas como manos, codazos o obstrucciones) y las reanudaciones (saques de banda, meta, córner, tiros libres y penales). Las faltas resultan en tiros libres (directos o indirectos) o penales si son dentro del área, y el fuera de juego es una infracción clave. 
+Reglas Fundamentales
+Jugadores: 11 por equipo (incluido el portero), con un mínimo de 7 para jugar. 
+Duración: Dos tiempos de 45 minutos, con descanso de 15 minutos; se añade tiempo por detenciones. 
+Balón: Esférico, de cuero u otro material adecuado, con medidas y peso específicos. 
+Objetivo: Marcar un gol cuando el balón cruza completamente la línea de meta, entre los postes. 
+Manos: Prohibido tocar el balón con manos o brazos, excepto el portero en su área. 
+Infracciones y Reanudaciones
+Faltas: Golpes, empujones, cargas peligrosas o manos. 
+Tiros Libres: Directos (se puede marcar gol) e indirectos (debe tocar a otro jugador). 
+Penal: Tiro libre directo desde el punto penal (11 metros) por falta dentro del área. 
+Saque de Banda: Cuando el balón sale por las líneas laterales (lanzamiento con ambas manos). 
+Saque de Meta (Arco): El portero saca el balón desde su área cuando un rival lo envió fuera por la línea de fondo. 
+Tiro de Esquina (Córner): Si un defensor envía el balón fuera por su línea de fondo. 
+Fuera de Juego (Offside): Un jugador en posición adelantada recibe el balón de un compañero en una jugada ofensiva. 
+Aspectos Clave
+Árbitro: Dirige el partido, controla el tiempo y sanciona faltas. 
+Portero (Arquero): Solo él puede usar las manos en su área; tiene 8 segundos para despejar el balón. 
+
+
+
+La estructura de una sede deportiva en fútbol:
+
+ se refiere a la organización física y funcional de un club, incluyendo sus instalaciones (canchas, gimnasios) y la jerarquía de personas (directiva, cuerpo técnico, jugadores, áreas administrativas y comunicacionales), todo diseñado para operar como una entidad eficiente, desde la formación de talentos hasta la gestión del equipo profesional y la marca, operando como un mini-negocio. 
+Componentes Clave de la Estructura de una Sede Deportiva:
+Área Deportiva (El Corazón del Club)
+Junta Directiva/Presidencia: Define la estrategia general y la visión del club.
+Dirección Deportiva/Secretaría Técnica: Coordina todo lo deportivo, desde el primer equipo hasta las categorías inferiores (fútbol base), gestionando fichajes y planificación a largo plazo.
+Cuerpo Técnico (Primer Equipo): Entrenadores, preparadores físicos, fisioterapeutas que preparan al equipo para competir.
+Fútbol Base/Cantera: Formación de jóvenes talentos, scouting (búsqueda de jugadores) y desarrollo de categorías inferiores.
+Área Administrativa y Financiera
+Gerencia/Administración: Maneja presupuestos, finanzas, legal y recursos humanos.
+Marketing y Comunicación: Gestiona la imagen del club, redes sociales, patrocinios, relaciones con medios, generando ingresos y manteniendo la conexión con los aficionados.
+Infraestructura Física (La Sede)
+Campos de Entrenamiento: Canchas de césped natural o artificial.
+Instalaciones Auxiliares: Gimnasios, vestuarios, salas de prensa, zonas de recuperación, oficinas. 
+En Resumen, la estructura de una sede deportiva de fútbol es:
+Funcional: Organiza roles y responsabilidades para alcanzar objetivos deportivos y económicos.
+Multidisciplinar: Combina gestión deportiva, empresarial y de comunicación.
+Jerárquica: Con una dirección clara (Presidente, Junta Directiva) que delega en áreas específicas (deportiva, administrativa).
+Integral: No solo forma jugadores, sino que opera como una organización completa que busca rendimiento y rentabilidad. 
+Es el entramado que permite que un equipo funcione eficientemente en todos los niveles, desde la cantera hasta la élite, más allá de lo que sucede en el campo de juego. 

@@ -1,0 +1,1116 @@
+================================================================================
+                    DOCUMENTACIÓN COMPLETA - SOS-HABILIDOSO
+                    Plataforma de Conexión y Descubrimiento de Talentos
+================================================================================
+
+FECHA DE CREACIÓN: 21 de Noviembre de 2025
+ÚLTIMA ACTUALIZACIÓN: 22 de Diciembre de 2025
+VERSIÓN: 2.0
+ESTADO: En Desarrollo Activo
+
+================================================================================
+                              TABLA DE CONTENIDOS
+================================================================================
+
+1. DESCRIPCIÓN GENERAL DE LA APLICACIÓN
+2. ARQUITECTURA DEL PROYECTO
+3. RUTAS DEL FRONTEND (Next.js)
+4. ENDPOINTS DEL BACKEND (Django REST API)
+5. MODELOS DE DATOS
+6. AUTENTICACIÓN Y AUTORIZACIÓN
+7. CARACTERÍSTICAS PRINCIPALES
+8. MÓDULO DE CLASIFICADOS Y MARKETPLACE
+9. SISTEMA DE DONACIONES
+10. SISTEMA DE PUBLICIDAD
+11. TRANSMISIONES EN VIVO Y STREAMING
+12. SISTEMA DE MENSAJERÍA AVANZADO
+13. CONFIGURACIÓN Y VARIABLES DE ENTORNO
+14. INSTRUCCIONES DE INSTALACIÓN Y EJECUCIÓN
+15. SOLUCIÓN DE PROBLEMAS
+16. NOTAS IMPORTANTES Y CONTEXTO
+
+================================================================================
+1. DESCRIPCIÓN GENERAL DE LA APLICACIÓN
+================================================================================
+
+SOS-HABILIDOSO es una plataforma social avanzada diseñada para:
+
+- Conectar personas de todo el mundo que comparten pasiones similares
+- Compartir talentos, habilidades y experiencias
+- Descubrir nuevos talentos y oportunidades
+- Crear comunidades alrededor de intereses comunes
+- Participar en eventos y reality shows
+- Comunicarse en tiempo real con otros usuarios
+- Comprar, vender e intercambiar productos y servicios
+- Buscar y ofrecer empleos freelance
+- Apoyar deportistas y streamers mediante donaciones
+- Conectar emprendedores con inversionistas
+PÚ
+BLICO OBJETIVO:
+- Deportistas (futbolistas, bailarines, etc.)
+- Artistas y músicos
+- Emprendedores y startups
+- Freelancers y profesionales independientes
+- Streamers y creadores de contenido
+- Inversionistas y patrocinadores
+- Empresas que buscan publicitar
+- Personas con habilidades especiales
+- Comunidades de entusiastas
+
+CARACTERÍSTICAS PRINCIPALES:
+- Feed de publicaciones en tiempo real con reacciones
+- Reels (videos cortos)
+- Sistema de mensajería con reacciones a mensajes
+- Comunidades temáticas
+- Búsqueda de usuarios
+- Perfiles personalizables
+- Sistema de notificaciones
+- Galería de contenido
+- Noticias de habilidades
+- Transmisiones en vivo (clases y streams)
+- Clasificados y Marketplace
+- Sistema de empleos y freelancers
+- Donaciones a deportistas y streamers
+- Financiamiento de proyectos empresariales
+- Sistema de publicidad para empresas
+- Reuniones virtuales
+- Capacitaciones online
+
+================================================================================
+2. ARQUITECTURA DEL PROYECTO
+================================================================================
+
+ESTRUCTURA GENERAL:
+```
+SOS-HABILIDOSO/
+├── frontend/                    # Next.js (Puerto 4000)
+│   ├── app/                     # Rutas principales
+│   ├── components/              # Componentes reutilizables
+│   ├── lib/                     # Utilidades y servicios
+│   ├── public/                  # Archivos estáticos
+│   └── package.json             # Dependencias
+│
+├── backend/                     # Django (Puerto 8000)
+│   ├── sos_habilidoso/          # Configuración principal
+│   ├── apps/                    # Aplicaciones Django
+│   │   ├── users/               # Gestión de usuarios
+│   │   ├── posts/               # Publicaciones
+│   │   ├── reels/               # Videos cortos
+│   │   ├── messaging/           # Sistema de mensajería
+│   │   ├── communities/         # Comunidades
+│   │   ├── classifieds/         # Clasificados y marketplace
+│   │   ├── advertising/         # Sistema de publicidad
+│   │   ├── donations/           # Donaciones
+│   │   ├── reality/             # Reality show
+│   │   └── notifications/       # Notificaciones
+│   ├── scripts/                 # Scripts de utilidad
+│   ├── manage.py                # Gestor de Django
+│   └── requirements.txt         # Dependencias Python
+│
+└── public/                      # Documentación y archivos públicos
+```
+
+TECNOLOGÍAS UTILIZADAS:
+
+FRONTEND:
+- Next.js 13.5.1 (React Framework)
+- TypeScript
+- Tailwind CSS (Estilos)
+- Radix UI (Componentes)
+- Axios (Cliente HTTP)
+- Framer Motion (Animaciones)
+- Lucide React (Iconos)
+- React Hook Form (Formularios)
+- Sonner (Notificaciones)
+
+BACKEND:
+- Django 4.x (Framework Python)
+- Django REST Framework (API REST)
+- Django CORS Headers (CORS)
+- Django Simple JWT (Autenticación)
+- MySQL 8 (Base de datos)
+- Python 3.x
+
+INTEGRACIONES EXTERNAS:
+- Google Sheets (Respaldo de datos)
+- Google Apps Script (Envío de correos)
+==========
+======================================================================
+3. RUTAS DEL FRONTEND (Next.js)
+================================================================================
+
+ESTRUCTURA DE RUTAS:
+
+RUTAS PÚBLICAS (Sin autenticación):
+- /                             # Página de inicio
+- /login                        # Página de login
+- /register-habilidosos         # Página de registro
+
+RUTAS AUTENTICADAS (Requieren login):
+
+FEED Y PUBLICACIONES:
+- /feed                         # Feed principal con publicaciones y anuncios
+- /posts/[id]                   # Detalle de una publicación
+- /reels                        # Sección de reels (videos cortos)
+
+PERFIL Y USUARIO:
+- /profile                      # Mi perfil
+- /profile/[username]           # Perfil de otro usuario
+- /profile/edit                 # Editar mi perfil
+- /users/[id]                   # Perfil de usuario por ID
+- /search                       # Búsqueda de usuarios
+
+COMUNIDADES:
+- /communities                  # Listado de comunidades
+- /communities/[id]             # Detalle de comunidad
+- /communities/category/[cat]   # Comunidades por categoría
+
+MENSAJERÍA:
+- /messages                     # Bandeja de mensajes
+- /chat/[username]              # Chat con usuario específico
+
+NOTIFICACIONES:
+- /notifications                # Centro de notificaciones
+
+AMIGOS Y CONEXIONES:
+- /friends                      # Lista de amigos
+
+CONTENIDO:
+- /gallery                      # Galería de contenido
+- /habil-news                   # Noticias de habilidades
+
+CLASIFICADOS Y MARKETPLACE:
+- /classifieds                  # Clasificados (5 secciones)
+  - Explorar                    # Buscar productos y servicios
+  - Mis Anuncios                # Gestionar mis publicaciones
+  - Empleos                     # Buscar/publicar ofertas de trabajo
+  - Empresas                    # Proyectos buscando financiamiento
+  - Publicar                    # Crear nueva publicación
+
+DONACIONES:
+- /donations                    # Donaciones a deportistas
+- /donations/[id]               # Detalle de deportista
+
+TRANSMISIONES:
+- /live                         # Transmisiones en vivo
+- /live/start                   # Iniciar transmisión
+- /live/join                    # Unirse con código de acceso
+
+CAPACITACIONES:
+- /capacitaciones               # Cursos y capacitaciones
+- /capacitaciones/secciones/[id] # Sección de capacitación
+- /capacitaciones/temas/[id]    # Tema específico
+
+REUNIONES:
+- /meeting/[id]                 # Sala de reunión virtual
+
+CONFIGURACIÓN:
+- /settings                     # Configuración de cuenta
+===
+=============================================================================
+4. ENDPOINTS DEL BACKEND (Django REST API)
+================================================================================
+
+BASE URL: http://localhost:8000/api
+
+AUTENTICACIÓN (api/auth/):
+- POST   /auth/login/                    # Iniciar sesión
+- POST   /auth/register/                 # Registrar nuevo usuario
+- POST   /auth/refresh/                  # Refrescar token JWT
+- POST   /auth/logout/                   # Cerrar sesión
+- GET    /auth/verify/                   # Verificar token
+- GET    /auth/profile/                  # Obtener perfil actual
+- PATCH  /auth/profile/                  # Actualizar perfil
+- POST   /auth/upload-avatar/            # Subir avatar
+- POST   /auth/upload-cover/             # Subir foto de portada
+- POST   /auth/change-password/          # Cambiar contraseña
+
+USUARIOS (api/users/):
+- GET    /users/search/                  # Buscar usuarios
+- GET    /users/profile/<username>/      # Obtener perfil de usuario
+- POST   /users/follow/<username>/       # Seguir usuario
+- DELETE /users/unfollow/<username>/     # Dejar de seguir usuario
+- GET    /users/followers/<username>/    # Obtener seguidores
+- GET    /users/following/<username>/    # Obtener usuarios que sigo
+- GET    /users/friends/                 # Obtener mis amigos
+- POST   /users/friend-requests/send/<username>/  # Enviar solicitud
+- POST   /users/chat/<username>/         # Crear o obtener chat
+
+PUBLICACIONES (api/posts/):
+- GET    /posts/                         # Listar publicaciones
+- POST   /posts/                         # Crear publicación
+- GET    /posts/<id>/                    # Obtener detalle de publicación
+- POST   /posts/<id>/react/              # Reaccionar (like/celebration/golazo)
+- GET    /posts/<id>/comments/           # Listar comentarios
+- POST   /posts/<id>/comments/           # Crear comentario
+- POST   /posts/comments/<id>/like/      # Dar like a comentario
+- POST   /posts/<id>/share/              # Compartir publicación
+- POST   /posts/<id>/bookmark/           # Guardar publicación
+
+COMUNIDADES (api/communities/):
+- GET    /communities/                   # Listar comunidades
+- POST   /communities/                   # Crear comunidad
+- GET    /communities/<id>/              # Obtener detalle de comunidad
+- POST   /communities/<id>/join/         # Unirse a comunidad
+- POST   /communities/<id>/leave/        # Salir de comunidad
+- GET    /communities/<id>/posts/        # Obtener posts de comunidad
+
+REELS (api/reels/):
+- GET    /reels/                         # Listar reels
+- POST   /reels/                         # Crear reel
+- GET    /reels/<id>/                    # Obtener detalle de reel
+- POST   /reels/<id>/like/               # Dar like a reel
+- GET    /reels/<id>/comments/           # Listar comentarios de reel
+
+MENSAJERÍA (api/messaging/):
+- GET    /messaging/chats/               # Listar chats
+- POST   /messaging/chats/               # Crear chat
+- GET    /messaging/chats/<id>/          # Obtener detalle de chat
+- GET    /messaging/chats/<id>/messages/ # Listar mensajes
+- POST   /messaging/chats/<id>/send_message/ # Enviar mensaje
+- POST   /messaging/chats/<id>/mark_as_read/ # Marcar como leído
+- POST   /messaging/chats/<id>/messages/<id>/react/ # Reaccionar a mensaje
+- PATCH  /messaging/chats/<id>/settings/ # Configuración del chat
+
+NOTIFICACIONES (api/notifications/):
+- GET    /notifications/                 # Listar notificaciones
+- GET    /notifications/unread-count/    # Contador de no leídas
+- POST   /notifications/<id>/read/       # Marcar como leída
+- POST   /notifications/mark-all-read/   # Marcar todas como leídas
+
+CLASIFICADOS (api/classifieds/):
+- GET    /classifieds/products/          # Listar productos
+- POST   /classifieds/products/          # Crear producto
+- GET    /classifieds/marketplace/       # Listar servicios marketplace
+- POST   /classifieds/marketplace/       # Crear servicio
+- GET    /classifieds/freelancer/        # Listar ofertas freelancer
+- POST   /classifieds/freelancer/        # Crear oferta freelancer
+
+DONACIONES (api/donations/):
+- GET    /donations/athletes/            # Listar deportistas
+- GET    /donations/athletes/<id>/       # Detalle de deportista
+- POST   /donations/athletes/<id>/donate/ # Realizar donación
+- GET    /donations/streamers/           # Listar streamers
+
+PUBLICIDAD (api/advertising/):
+- GET    /advertising/ads/               # Listar anuncios
+- POST   /advertising/ads/               # Crear anuncio
+- GET    /advertising/ads/get_feed_ads/  # Obtener anuncios para feed
+- POST   /advertising/ads/<id>/record_impression/ # Registrar impresión
+- POST   /advertising/ads/<id>/record_click/      # Registrar click
+- POST   /advertising/ads/<id>/record_video_view/ # Registrar vista de video
+==
+==============================================================================
+5. MODELOS DE DATOS
+================================================================================
+
+USUARIO (User):
+- id (UUID)
+- email (único)
+- username (único)
+- display_name
+- avatar (ImageField)
+- cover_photo (ImageField)
+- bio
+- position (habilidad/posición)
+- team (equipo/grupo)
+- contact_number
+- interests (JSONField - array)
+- social_links (JSONField - array)
+- followers_count
+- following_count
+- posts_count
+- is_verified
+- is_private
+- account_type (user/enterprise)
+- created_at
+- updated_at
+- last_active
+
+PUBLICACIÓN (Post):
+- id (UUID)
+- short_id (string único)
+- user (ForeignKey)
+- content (TextField)
+- images (JSONField - array de URLs)
+- video (FileField)
+- thumbnail (ImageField)
+- post_type (text, image, video, podcast, streaming)
+- category
+- likes_count
+- celebrations_count
+- golazos_count
+- comments_count
+- shares_count
+- views_count
+- is_pinned
+- allow_comments
+- is_public
+- created_at
+- updated_at
+
+COMENTARIO (Comment):
+- id (UUID)
+- post (ForeignKey)
+- user (ForeignKey)
+- content (TextField)
+- image (ImageField)
+- parent (ForeignKey - para respuestas/replies)
+- mentioned_users (ManyToMany - menciones @usuario)
+- likes_count
+- replies_count
+- is_edited
+- created_at
+- updated_at
+
+REACCIÓN DE POST (PostReaction):
+- id (UUID)
+- post (ForeignKey)
+- user (ForeignKey)
+- reaction_type (like, celebration, golazo)
+- created_at
+
+MENSAJE (Message):
+- id (UUID)
+- chat_room (ForeignKey)
+- sender (ForeignKey)
+- content (TextField)
+- message_type (text, image, video, audio, file)
+- image (ImageField)
+- video (FileField)
+- audio (FileField)
+- file_url
+- file_name
+- file_size
+- reply_to (ForeignKey - para respuestas)
+- is_edited
+- is_deleted
+- is_read
+- created_at
+- updated_at
+
+REACCIÓN DE MENSAJE (MessageReaction):
+- id (UUID)
+- message (ForeignKey)
+- user (ForeignKey)
+- reaction_type (love, laugh, like, dislike)
+- created_at
+
+CLASIFICADO (Classified):
+- id (UUID)
+- user (ForeignKey)
+- title
+- description
+- price
+- currency
+- category
+- condition
+- location
+- images (JSONField)
+- classified_type (product, marketplace, freelancer)
+- tags (JSONField)
+- negotiable
+- featured
+- views_count
+- likes_count
+- is_active
+- created_at
+
+PROYECTO EMPRESARIAL (EnterpriseProject):
+- id (UUID)
+- founder (ForeignKey)
+- name
+- description
+- problem
+- solution
+- category
+- location
+- funding_goal
+- funding_raised
+- investors_count
+- stage (idea, semilla, pre-serie-a, serie-a)
+- impact_type (ambiental, social, educativo, salud)
+- tags (JSONField)
+- featured
+- verified
+- created_at
+
+DONACIÓN (Donation):
+- id (UUID)
+- donor (ForeignKey)
+- athlete (ForeignKey)
+- amount
+- currency
+- message
+- is_anonymous
+- created_at
+
+DEPORTISTA (Athlete):
+- id (UUID)
+- user (ForeignKey)
+- sport
+- team
+- position
+- bio
+- achievements (JSONField)
+- funding_goal
+- funding_raised
+- donors_count
+- verified
+- created_at
+
+ANUNCIO PUBLICITARIO (Advertisement):
+- id (UUID)
+- advertiser_name
+- title
+- description
+- ad_type (image, video, carousel, banner, sponsored_post)
+- media_url
+- advertiser_logo_url
+- link_url
+- call_to_action
+- carousel_images (JSONField)
+- impressions_count
+- clicks_count
+- is_active
+- start_date
+- end_date
+- created_at
+=
+===============================================================================
+6. AUTENTICACIÓN Y AUTORIZACIÓN
+================================================================================
+
+SISTEMA DE AUTENTICACIÓN:
+- JWT (JSON Web Tokens)
+- Tokens de acceso y refresh
+- Duración del token de acceso: 1 hora
+- Duración del token de refresh: 7 días
+
+FLUJO DE AUTENTICACIÓN:
+
+1. REGISTRO:
+   - Usuario completa formulario con:
+     * Email (único)
+     * Username (único, 3+ caracteres)
+     * Nombre completo
+     * Contraseña (requisitos: 8+ caracteres, mayúscula, minúscula, número, carácter especial)
+   - Se valida la contraseña
+   - Se crea el usuario en la BD
+   - Se envía correo de confirmación
+   - Se guardan datos en Google Sheets
+   - Se devuelven tokens JWT
+
+2. LOGIN:
+   - Usuario ingresa email/username y contraseña
+   - Se validan las credenciales
+   - Si son correctas, se devuelven tokens JWT
+   - Si son incorrectas, se muestra: "Verifique su correo o contraseña"
+
+3. REFRESH TOKEN:
+   - Cuando el token de acceso expira
+   - Se usa el refresh token para obtener uno nuevo
+   - Se devuelve nuevo token de acceso
+
+4. LOGOUT:
+   - Se invalida el token
+   - Se limpia el localStorage del cliente
+
+PERMISOS Y ROLES:
+- AllowAny: Endpoints públicos (login, registro)
+- IsAuthenticated: Endpoints que requieren autenticación
+- IsOwner: Solo el propietario puede acceder
+- IsAdminUser: Solo administradores
+
+================================================================================
+7. CARACTERÍSTICAS PRINCIPALES
+================================================================================
+
+FEED DE PUBLICACIONES:
+- Mostrar publicaciones de usuarios seguidos
+- Crear nuevas publicaciones (texto, imagen, video)
+- Reaccionar a publicaciones (like, celebration, golazo)
+- Comentar en publicaciones con soporte para:
+  * Respuestas anidadas (replies)
+  * Menciones de usuarios (@username)
+  * Autocompletado de contactos
+- Compartir publicaciones
+- Guardar publicaciones en favoritos
+- Ver estadísticas de publicaciones
+- Anuncios publicitarios integrados en el feed
+
+REELS (VIDEOS CORTOS):
+- Crear reels con video y descripción
+- Reproducir reels en feed
+- Controles de reproducción (play, pause, mute)
+- Reaccionar a reels
+- Comentar en reels
+- Ver información del autor
+
+PERFILES DE USUARIO:
+- Ver perfil de usuario
+- Editar mi perfil
+- Subir avatar y foto de portada
+- Agregar información personal
+- Ver estadísticas (seguidores, publicaciones, etc.)
+- Seguir/dejar de seguir usuarios
+- Enviar solicitudes de amistad
+- Tipos de cuenta: Usuario normal / Empresa
+
+BÚSQUEDA:
+- Buscar usuarios por nombre o username
+- Buscar publicaciones por contenido
+- Filtrar resultados
+
+COMUNIDADES:
+- Crear comunidades temáticas
+- Unirse a comunidades
+- Publicar en comunidades
+- Ver miembros de comunidad
+- Administrar comunidad (si eres propietario)
+- Galería de medios de la comunidad
+
+NOTIFICACIONES:
+- Notificaciones de likes
+- Notificaciones de comentarios
+- Notificaciones de nuevos seguidores
+- Notificaciones de mensajes
+- Notificaciones de solicitudes de amistad
+- Centro de notificaciones
+- Marcar como leídas
+
+AMIGOS:
+- Ver lista de amigos
+- Enviar solicitudes de amistad
+- Aceptar/rechazar solicitudes
+- Ver solicitudes pendientes
+========
+========================================================================
+8. MÓDULO DE CLASIFICADOS Y MARKETPLACE
+================================================================================
+
+El módulo de Clasificados es una sección completa que permite a los usuarios
+comprar, vender, ofrecer servicios y buscar oportunidades laborales.
+
+SECCIONES PRINCIPALES:
+
+1. EXPLORAR (Browse):
+   - Buscar productos y servicios
+   - Filtrar por categoría (Deportes, Tecnología, Música, Moda, Hogar)
+   - Filtrar por rango de precios
+   - Ver productos destacados
+   - Dar like a productos
+   - Ver detalles del vendedor (rating, verificación)
+   - Contactar al vendedor
+
+2. MIS ANUNCIOS:
+   - Ver mis publicaciones activas
+   - Gestionar mis anuncios
+   - Ver estadísticas (vistas, likes)
+   - Editar o eliminar anuncios
+
+3. EMPLEOS (Job Search):
+   - Buscar ofertas de trabajo
+   - Filtrar por modalidad (Remoto, Presencial, Híbrido)
+   - Ver requisitos y salario
+   - Aplicar a ofertas
+   - Publicar ofertas de trabajo
+   - Tipos de empleo: Tiempo Completo, Medio Tiempo, Freelance
+   - Indicadores de urgencia y destacados
+
+4. EMPRESAS Y PROYECTOS (Financiamiento):
+   - Proyectos buscando inversión
+   - Filtrar por etapa (Idea, Semilla, Pre-Serie A, Serie A)
+   - Ver progreso de financiamiento
+   - Tipos de impacto: Ambiental, Social, Educativo, Salud
+   - Información del fundador
+   - Problema que resuelve y solución propuesta
+   - Invertir en proyectos
+   - Ver detalles completos del proyecto
+   - Publicar tu propio proyecto
+
+5. PUBLICAR:
+   - Crear anuncio de producto físico
+   - Crear servicio de marketplace
+   - Crear oferta de trabajo freelancer
+   - Formularios específicos por tipo de publicación
+
+TIPOS DE PUBLICACIÓN:
+
+PRODUCTO FÍSICO:
+- Galería de fotos múltiples
+- Estado del producto (Nuevo, Usado - Como Nuevo, Usado - Buen Estado)
+- Precio negociable
+- Ubicación y opciones de entrega
+- Categorías específicas
+- Tags para mejor búsqueda
+
+SERVICIO MARKETPLACE:
+- Tarifas por hora/servicio
+- Disponibilidad horaria
+- Área de cobertura
+- Sistema de reseñas y calificaciones
+- Reserva instantánea
+
+TRABAJO FREELANCER:
+- Portfolio de trabajos
+- Presupuestos personalizados
+- Plazos de entrega
+- Habilidades y certificaciones
+- Comunicación directa con clientes
+
+================================================================================
+9. SISTEMA DE DONACIONES
+================================================================================
+
+El sistema de donaciones permite apoyar económicamente a deportistas y
+streamers de la comunidad.
+
+DONACIONES A DEPORTISTAS:
+
+FUNCIONALIDADES:
+- Listado de deportistas verificados
+- Filtrar por deporte (Fútbol, Natación, Baloncesto, Gimnasia, etc.)
+- Buscar por nombre, deporte o ciudad
+- Ver perfil completo del deportista
+- Ver meta de financiamiento y progreso
+- Realizar donaciones
+- Mensajes de apoyo
+- Donaciones anónimas opcionales
+
+INFORMACIÓN DEL DEPORTISTA:
+- Nombre y foto de perfil
+- Deporte y posición
+- Equipo actual
+- Ciudad/País
+- Biografía y logros
+- Meta de financiamiento
+- Cantidad recaudada
+- Número de donantes
+- Estado de verificación
+
+PROCESO DE DONACIÓN:
+1. Seleccionar deportista
+2. Ver perfil y necesidades
+3. Elegir monto de donación
+4. Agregar mensaje de apoyo (opcional)
+5. Opción de donación anónima
+6. Confirmar donación
+7. Recibir confirmación
+
+DONACIONES A STREAMERS:
+- Similar al sistema de deportistas
+- Apoyo a creadores de contenido
+- Integración con transmisiones en vivo
+=====
+===========================================================================
+10. SISTEMA DE PUBLICIDAD
+================================================================================
+
+El sistema de publicidad permite a empresas promocionar sus productos y
+servicios dentro de la plataforma SOS-HABILIDOSO.
+
+TIPOS DE ANUNCIOS:
+
+1. IMAGE (Imagen):
+   - Anuncio con imagen estática
+   - Ideal para promociones visuales
+   - Click directo al sitio web
+
+2. VIDEO:
+   - Anuncio con video
+   - Reproducción automática en feed
+   - Métricas de visualización
+   - Duración y porcentaje visto
+
+3. CAROUSEL:
+   - Múltiples imágenes deslizables
+   - Ideal para mostrar varios productos
+   - Navegación interactiva
+
+4. BANNER:
+   - Anuncio tipo banner
+   - Posiciones estratégicas en la app
+
+5. SPONSORED_POST:
+   - Publicación patrocinada
+   - Se integra naturalmente en el feed
+   - Apariencia similar a posts normales
+
+CARACTERÍSTICAS:
+
+PARA ANUNCIANTES:
+- Crear campañas publicitarias
+- Subir creativos (imágenes/videos)
+- Definir call-to-action
+- Establecer URL de destino
+- Ver métricas de rendimiento
+- Segmentación de audiencia
+
+MÉTRICAS DISPONIBLES:
+- Impresiones (veces mostrado)
+- Clicks (interacciones)
+- CTR (Click-Through Rate)
+- Vistas de video
+- Duración promedio de visualización
+- Tasa de completación de video
+
+INTEGRACIÓN EN FEED:
+- Los anuncios aparecen cada cierto número de posts
+- Se identifican claramente como "Patrocinado"
+- Incluyen logo del anunciante
+- Botón de call-to-action visible
+- No interrumpen la experiencia del usuario
+
+ENDPOINTS DE TRACKING:
+- record_impression: Registra cuando se muestra el anuncio
+- record_click: Registra cuando el usuario hace click
+- record_video_view: Registra métricas de video
+
+================================================================================
+11. TRANSMISIONES EN VIVO Y STREAMING
+================================================================================
+
+El módulo de transmisiones permite crear y ver contenido en vivo.
+
+TIPOS DE TRANSMISIÓN:
+
+1. CLASES EN VIVO:
+   - Crear clases educativas
+   - Código de acceso para clases privadas
+   - Ideal para tutorías y capacitaciones
+   - Interacción con estudiantes
+
+2. STREAMS:
+   - Transmisiones abiertas
+   - Gaming, entretenimiento, deportes
+   - Chat en vivo con espectadores
+   - Reacciones en tiempo real
+
+FUNCIONALIDADES:
+
+PARA CREADORES:
+- Iniciar transmisión (clase o stream)
+- Configurar título y descripción
+- Establecer categoría
+- Crear código de acceso (clases privadas)
+- Ver número de espectadores
+- Interactuar con el chat
+- Finalizar transmisión
+
+PARA ESPECTADORES:
+- Ver transmisiones en vivo
+- Filtrar por tipo (clases/streams)
+- Buscar transmisiones
+- Unirse con código de acceso
+- Participar en chat en vivo
+- Enviar reacciones
+- Ver información del streamer
+
+CARACTERÍSTICAS:
+- Indicador de "EN VIVO" en tiempo real
+- Contador de espectadores
+- Duración de la transmisión
+- Badges de tipo (Clase/Stream)
+- Indicador de transmisión privada
+- Preview de la transmisión
+- Información del host
+==
+==============================================================================
+12. SISTEMA DE MENSAJERÍA AVANZADO
+================================================================================
+
+El sistema de mensajería permite comunicación privada entre usuarios con
+múltiples características avanzadas.
+
+FUNCIONALIDADES PRINCIPALES:
+
+CHATS:
+- Chats privados entre usuarios
+- Chats grupales
+- Lista de conversaciones
+- Indicador de mensajes no leídos
+- Última actividad del chat
+- Búsqueda de chats
+
+MENSAJES:
+- Enviar mensajes de texto
+- Enviar imágenes
+- Enviar archivos
+- Responder a mensajes específicos
+- Editar mensajes enviados
+- Eliminar mensajes
+- Indicador de mensaje leído (doble check)
+
+REACCIONES A MENSAJES:
+- ❤️ Me encanta (love)
+- 😂 Jajaja (laugh)
+- 👍 Me gusta (like)
+- 👎 No me gusta (dislike)
+- Doble click para reaccionar
+- Botón de reacción al pasar el mouse
+- Ver quién reaccionó
+- Contador de reacciones
+
+PERSONALIZACIÓN DEL CHAT:
+- Colores de burbujas personalizables:
+  * Verde Neón
+  * Azul
+  * Púrpura
+  * Rosa
+  * Naranja
+  * Rojo
+- Fondos animados:
+  * Estrellas (con rotación y brillo)
+  * Corazones (con latido y flotación)
+  * Partículas (con movimiento suave)
+  * Oscuro (minimalista)
+- Configuración de notificaciones por chat
+
+CARACTERÍSTICAS VISUALES:
+- Burbujas de mensaje con gradientes
+- Agrupación de mensajes consecutivos
+- Avatares de usuarios
+- Indicador de usuario en línea
+- Hora de envío
+- Estado de lectura
+- Animaciones suaves
+- Emojis rápidos
+
+FUNCIONES ADICIONALES:
+- Ver perfil del usuario desde el chat
+- Llamadas de voz (próximamente)
+- Videollamadas (próximamente)
+- Adjuntar archivos
+- Selector de emojis
+- Mensajes sugeridos para iniciar conversación
+=======
+=========================================================================
+13. CONFIGURACIÓN Y VARIABLES DE ENTORNO
+================================================================================
+
+ARCHIVO: backend/.env
+
+CONFIGURACIÓN DE DJANGO:
+DJANGO_SETTINGS_MODULE=sos_habilidoso.settings.development
+SECRET_KEY=dev-secret-key-change-me
+DEBUG=true
+ALLOWED_HOSTS=127.0.0.1,localhost
+
+BACKEND URL:
+BACKEND_URL=http://localhost:8000
+
+BASE DE DATOS (MySQL):
+DATABASE_NAME=habilidosos_db
+DATABASE_USER=root
+DATABASE_PASSWORD=
+DATABASE_HOST=127.0.0.1
+DATABASE_PORT=3307
+
+CORS:
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:4000,http://127.0.0.1:4000
+
+JWT:
+JWT_ACCESS_TOKEN_LIFETIME=3600
+JWT_REFRESH_TOKEN_LIFETIME=86400
+
+GOOGLE SHEETS:
+GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/...
+GOOGLE_SHEETS_REGISTRATION_WEBHOOK_URL=https://script.google.com/macros/s/...
+
+ARCHIVO: .env.local (Frontend)
+
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
+NEXT_PUBLIC_WS_URL=ws://127.0.0.1:8000/ws
+NODE_ENV=development
+
+================================================================================
+14. INSTRUCCIONES DE INSTALACIÓN Y EJECUCIÓN
+================================================================================
+
+REQUISITOS PREVIOS:
+- Node.js 16+ y npm
+- Python 3.8+
+- MySQL 8
+- Git
+
+INSTALACIÓN DEL BACKEND:
+
+1. Navegar a la carpeta backend:
+   cd backend
+
+2. Crear entorno virtual:
+   python -m venv venv
+
+3. Activar entorno virtual:
+   - Windows: venv\Scripts\activate.bat
+   - Linux/Mac: source venv/bin/activate
+
+4. Instalar dependencias:
+   pip install -r requirements.txt
+
+5. Crear base de datos MySQL:
+   - Crear base de datos: habilidosos_db
+   - Usuario: root
+   - Contraseña: (vacía por defecto)
+   - Puerto: 3307
+
+6. Ejecutar migraciones:
+   python manage.py migrate
+
+7. Crear superusuario (opcional):
+   python manage.py createsuperuser
+
+8. Ejecutar servidor:
+   python manage.py runserver 0.0.0.0:8000
+
+INSTALACIÓN DEL FRONTEND:
+
+1. Navegar a la carpeta raíz:
+   cd ..
+
+2. Instalar dependencias:
+   npm install
+
+3. Crear archivo .env.local:
+   NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
+   NEXT_PUBLIC_WS_URL=ws://127.0.0.1:8000/ws
+   NODE_ENV=development
+
+4. Ejecutar servidor de desarrollo:
+   npm run dev
+
+5. Acceder a la aplicación:
+   http://localhost:4000
+
+EJECUTAR AMBOS SERVIDORES SIMULTÁNEAMENTE:
+
+Opción 1 (Windows):
+npm run dev:both-win
+
+Opción 2 (Multiplataforma):
+npm run dev:both
+
+Opción 3 (Manual):
+Terminal 1: cd backend && python manage.py runserver 8000
+Terminal 2: npm run dev
+==
+==============================================================================
+15. SOLUCIÓN DE PROBLEMAS
+================================================================================
+
+PROBLEMA: Error de conexión a la base de datos
+SOLUCIÓN:
+- Verificar que MySQL esté corriendo
+- Verificar credenciales en .env
+- Verificar puerto (3307)
+- Crear base de datos si no existe
+
+PROBLEMA: CORS error
+SOLUCIÓN:
+- Verificar CORS_ALLOWED_ORIGINS en .env
+- Asegurar que el frontend esté en localhost:4000
+- Reiniciar el backend
+
+PROBLEMA: Token JWT expirado
+SOLUCIÓN:
+- El frontend automáticamente intenta refrescar el token
+- Si falla, redirige al login
+- Limpiar localStorage y volver a iniciar sesión
+
+PROBLEMA: Archivos media no se cargan
+SOLUCIÓN:
+- Verificar que MEDIA_URL y MEDIA_ROOT estén configurados
+- Verificar que la carpeta media existe
+- Reiniciar el backend
+
+PROBLEMA: Reacciones no funcionan
+SOLUCIÓN:
+- Verificar que el endpoint de reacciones esté activo
+- Revisar la consola del navegador para errores
+- Verificar autenticación del usuario
+
+PROBLEMA: Animaciones del chat no funcionan
+SOLUCIÓN:
+- Limpiar caché del navegador
+- Verificar que no haya conflictos de CSS
+- Recargar la página
+
+================================================================================
+16. NOTAS IMPORTANTES Y CONTEXTO
+================================================================================
+
+CONTEXTO DEL PROYECTO:
+
+SOS-HABILIDOSO es una plataforma social integral diseñada para conectar
+personas con habilidades especiales. El proyecto está en desarrollo activo
+y se están agregando nuevas características constantemente.
+
+ENFOQUE PRINCIPAL:
+- Conexión global de talentos
+- Descubrimiento de nuevas habilidades
+- Comunidades temáticas
+- Participación en reality shows
+- Monetización de contenido
+- Apoyo a deportistas y creadores
+- Conexión entre emprendedores e inversionistas
+- Marketplace de productos y servicios
+- Oportunidades laborales freelance
+
+CARACTERÍSTICAS IMPLEMENTADAS RECIENTEMENTE (Diciembre 2025):
+
+1. SISTEMA DE REACCIONES A MENSAJES:
+   - 4 tipos de reacciones (love, laugh, like, dislike)
+   - Doble click o botón para reaccionar
+   - Visualización de reacciones en mensajes
+
+2. FONDOS ANIMADOS DEL CHAT:
+   - Estrellas con rotación y brillo
+   - Corazones con latido y flotación
+   - Partículas con movimiento suave
+   - Animaciones combinadas sin conflictos
+
+3. SISTEMA DE COMENTARIOS MEJORADO:
+   - Respuestas anidadas (replies)
+   - Menciones de usuarios (@username)
+   - Autocompletado de contactos
+
+4. MÓDULO DE CLASIFICADOS COMPLETO:
+   - Productos físicos
+   - Servicios marketplace
+   - Ofertas freelancer
+   - Búsqueda de empleo
+   - Financiamiento de proyectos
+
+5. SISTEMA DE DONACIONES:
+   - Donaciones a deportistas
+   - Donaciones a streamers
+   - Seguimiento de metas
+
+6. SISTEMA DE PUBLICIDAD:
+   - Anuncios en feed
+   - Múltiples formatos
+   - Métricas de rendimiento
+
+PRÓXIMAS CARACTERÍSTICAS PLANEADAS:
+- Sistema de pagos integrado
+- Monetización de contenido
+- Transmisiones en vivo mejoradas
+- Inteligencia artificial para recomendaciones
+- Análisis avanzado de datos
+- Aplicación móvil nativa
+- Videollamadas en chat
+- Sistema de suscripciones
+
+================================================================================
+                              FIN DE DOCUMENTACIÓN
+================================================================================
+
+Última actualización: 22 de Diciembre de 2025
+Versión: 2.0
+Estado: Completo y Verificado
+
+Para más información, consultar los archivos de documentación adicional
+en la carpeta backend/scripts/ y en la raíz del proyecto.
+
+================================================================================

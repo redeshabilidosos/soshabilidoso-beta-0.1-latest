@@ -1,0 +1,48 @@
+# Django y DRF
+Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+drf-nested-routers==0.93.4
+
+# Base de datos
+psycopg2-binary==2.9.7
+dj-database-url==2.1.0
+
+# Autenticaci�n JWT
+djangorestframework-simplejwt==5.3.0
+PyJWT==2.8.0
+
+# Validaci�n y serializaci�n
+django-filter==23.3
+Pillow==10.0.1
+
+# Utilidades
+python-decouple==3.8
+python-dotenv==1.0.0
+
+# Almacenamiento de archivos
+cloudinary==1.36.0
+django-cloudinary-storage==0.3.0
+
+# Cache y tareas as�ncronas
+redis==5.0.1
+celery==5.3.4
+django-redis==5.4.0
+
+# WebSockets para chat en tiempo real
+channels==4.0.0
+channels-redis==4.1.0
+
+# Documentaci�n API
+drf-spectacular==0.26.5
+
+# Validaciones adicionales
+django-phonenumber-field==7.2.0
+phonenumbers==8.13.25
+
+# Seguridad
+django-ratelimit==4.1.0
+django-extensions==3.2.3
+
+# Monitoreo y logs
+sentry-sdk==1.38.0

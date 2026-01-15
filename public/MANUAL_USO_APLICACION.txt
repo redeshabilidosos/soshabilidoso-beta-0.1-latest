@@ -1,0 +1,691 @@
+================================================================================
+                    MANUAL DE USO - SOS-HABILIDOSO
+                    Guía Práctica para Usuarios y Desarrolladores
+================================================================================
+
+FECHA: 21 de Noviembre de 2025
+VERSIÓN: 1.0
+
+================================================================================
+                              TABLA DE CONTENIDOS
+================================================================================
+
+1. GUÍA RÁPIDA DE INICIO
+2. REGISTRO E INICIO DE SESIÓN
+3. NAVEGACIÓN DE LA APLICACIÓN
+4. CREAR Y COMPARTIR CONTENIDO
+5. INTERACTUAR CON OTROS USUARIOS
+6. COMUNIDADES
+7. MENSAJERÍA
+8. BÚSQUEDA Y DESCUBRIMIENTO
+9. CONFIGURACIÓN DE PERFIL
+10. GUÍA PARA DESARROLLADORES
+11. COMANDOS ÚTILES
+
+================================================================================
+1. GUÍA RÁPIDA DE INICIO
+================================================================================
+
+ACCESO A LA APLICACIÓN:
+- URL: http://localhost:4000
+- Puerto Frontend: 4000
+- Puerto Backend: 8000
+
+PRIMEROS PASOS:
+1. Abre http://localhost:4000 en tu navegador
+2. Haz clic en "¿No tienes cuenta? Regístrate"
+3. Completa el formulario de registro
+4. Verifica tu correo de confirmación
+5. Inicia sesión con tus credenciales
+6. ¡Comienza a explorar!
+
+REQUISITOS DE CONTRASEÑA:
+- Mínimo 8 caracteres
+- Al menos una mayúscula (A-Z)
+- Al menos una minúscula (a-z)
+- Al menos un número (0-9)
+- Al menos un carácter especial (!@#$%^&*)
+
+EJEMPLO DE CONTRASEÑA VÁLIDA:
+- Contraseña123!
+- MiPassword456@
+- SosHabilidoso789#
+
+================================================================================
+2. REGISTRO E INICIO DE SESIÓN
+================================================================================
+
+REGISTRO DE NUEVO USUARIO:
+
+Paso 1: Acceder a la página de registro
+- Ve a http://localhost:4000/login
+- Haz clic en "¿No tienes cuenta? Regístrate"
+
+Paso 2: Completar formulario
+- Email: Tu correo electrónico (único)
+- Nombre de usuario: @usuario (único, 3+ caracteres)
+- Nombre completo: Tu nombre
+- Contraseña: Cumplir requisitos
+- Confirmar contraseña: Debe coincidir
+- Habilidad (opcional): Tu posición o habilidad
+- Equipo/Grupo (opcional): Tu equipo actual
+- Intereses (opcional): Separados por comas
+
+Paso 3: Validación
+- El sistema valida la contraseña en tiempo real
+- Verás ✓ en verde cuando sea válida
+- Verás ❌ en rojo si no cumple requisitos
+
+Paso 4: Crear cuenta
+- Haz clic en "Crear Cuenta"
+- Se crea tu cuenta en la BD
+- Se envía correo de confirmación
+- Se guardan datos en Google Sheets
+- Se redirige al feed
+
+Paso 5: Verificar correo
+- Revisa tu bandeja de entrada
+- Abre el correo de confirmación
+- Verifica que los datos sean correctos
+
+INICIO DE SESIÓN:
+
+Paso 1: Acceder a login
+- Ve a http://localhost:4000/login
+
+Paso 2: Ingresar credenciales
+- Email o nombre de usuario: Tu email o @usuario
+- Contraseña: Tu contraseña
+
+Paso 3: Iniciar sesión
+- Haz clic en "Iniciar Sesión"
+- Si las credenciales son correctas, accedes al feed
+- Si son incorrectas, verás: "Verifique su correo o contraseña"
+
+RECUPERAR CONTRASEÑA:
+- Haz clic en "¿Olvidaste tu contraseña?"
+- Ingresa tu email
+- Recibirás un enlace de recuperación
+- Sigue las instrucciones del correo
+
+================================================================================
+3. NAVEGACIÓN DE LA APLICACIÓN
+================================================================================
+
+MENÚ PRINCIPAL (Sidebar):
+
+SECCIONES PRINCIPALES:
+- 🏠 Inicio: Feed principal
+- 👤 Perfil: Mi perfil
+- 🔍 Buscar: Buscar usuarios
+- 🔔 Notificaciones: Centro de notificaciones
+- 💬 Mensajes: Bandeja de mensajes
+- 👥 Amigos: Lista de amigos
+- 🎬 Reels: Videos cortos
+- 🏘️ Comunidades: Comunidades temáticas
+- 📰 Habil News: Noticias de habilidades
+- 🎥 En Vivo: Transmisiones en vivo
+- 📸 Galería: Galería de contenido
+- 📋 Clasificados: Anuncios clasificados
+- ⚙️ Configuración: Ajustes de cuenta
+
+NAVEGACIÓN MÓVIL:
+- Menú inferior con iconos principales
+- Desliza para ver más opciones
+- Toca el icono para navegar
+
+BREADCRUMBS:
+- Mostrar ubicación actual
+- Permitir navegación rápida
+- Disponible en páginas principales
+
+================================================================================
+4. CREAR Y COMPARTIR CONTENIDO
+================================================================================
+
+CREAR PUBLICACIÓN:
+
+Paso 1: Ir a crear publicación
+- Haz clic en "Nueva Publicación" en el feed
+- O ve a tu perfil y haz clic en "Nueva Publicación"
+
+Paso 2: Escribir contenido
+- Escribe tu mensaje
+- Máximo 5000 caracteres
+- Puedes usar emojis
+
+Paso 3: Agregar contenido multimedia
+- Imagen: Haz clic en el icono de imagen
+- Video: Haz clic en el icono de video
+- Máximo 5 imágenes por publicación
+- Máximo 1 video por publicación
+
+Paso 4: Configurar privacidad
+- Público: Todos pueden ver
+- Privado: Solo amigos pueden ver
+- Permitir comentarios: Sí/No
+
+Paso 5: Publicar
+- Haz clic en "Publicar"
+- Se crea la publicación
+- Aparece en tu perfil y en el feed
+
+CREAR REEL:
+
+Paso 1: Ir a crear reel
+- Ve a la sección Reels
+- Haz clic en "Crear Reel"
+
+Paso 2: Seleccionar video
+- Sube un video (máximo 60 segundos)
+- Formatos: MP4, WebM, Ogg
+
+Paso 3: Agregar información
+- Título: Nombre del reel
+- Descripción: Detalles del reel
+- Hashtags: Etiquetas (máximo 10)
+
+Paso 4: Publicar
+- Haz clic en "Publicar"
+- Se crea el reel
+- Aparece en la sección de Reels
+
+EDITAR PUBLICACIÓN:
+- Haz clic en los tres puntos (...)
+- Selecciona "Editar"
+- Modifica el contenido
+- Haz clic en "Guardar"
+
+ELIMINAR PUBLICACIÓN:
+- Haz clic en los tres puntos (...)
+- Selecciona "Eliminar"
+- Confirma la eliminación
+
+================================================================================
+5. INTERACTUAR CON OTROS USUARIOS
+================================================================================
+
+DAR LIKE A PUBLICACIÓN:
+- Haz clic en el icono de corazón
+- El corazón se pone rojo
+- Se incrementa el contador de likes
+
+COMENTAR EN PUBLICACIÓN:
+- Haz clic en el icono de comentario
+- Escribe tu comentario
+- Haz clic en "Enviar"
+- Tu comentario aparece en la publicación
+
+RESPONDER A COMENTARIO:
+- Haz clic en "Responder" en el comentario
+- Escribe tu respuesta
+- Haz clic en "Enviar"
+- Tu respuesta aparece como indentada
+
+COMPARTIR PUBLICACIÓN:
+- Haz clic en el icono de compartir
+- Selecciona cómo compartir:
+  * Copiar enlace
+  * Compartir en redes sociales
+  * Enviar por mensaje
+
+GUARDAR PUBLICACIÓN:
+- Haz clic en el icono de marcador
+- La publicación se guarda en favoritos
+- Accede a favoritos desde tu perfil
+
+SEGUIR USUARIO:
+- Ve al perfil del usuario
+- Haz clic en "Seguir"
+- Verás sus publicaciones en tu feed
+
+DEJAR DE SEGUIR:
+- Ve al perfil del usuario
+- Haz clic en "Siguiendo"
+- Confirma que deseas dejar de seguir
+
+ENVIAR SOLICITUD DE AMISTAD:
+- Ve al perfil del usuario
+- Haz clic en "Agregar amigo"
+- Se envía la solicitud
+- El usuario recibe una notificación
+
+ACEPTAR SOLICITUD DE AMISTAD:
+- Ve a Notificaciones
+- Busca la solicitud de amistad
+- Haz clic en "Aceptar"
+- Ahora son amigos
+
+RECHAZAR SOLICITUD:
+- Ve a Notificaciones
+- Busca la solicitud de amistad
+- Haz clic en "Rechazar"
+- La solicitud se elimina
+
+================================================================================
+6. COMUNIDADES
+================================================================================
+
+VER COMUNIDADES:
+- Ve a la sección "Comunidades"
+- Verás un listado de comunidades
+- Puedes filtrar por categoría
+- Puedes buscar comunidades
+
+UNIRSE A COMUNIDAD:
+- Haz clic en la comunidad
+- Haz clic en "Unirse"
+- Ahora eres miembro
+- Puedes ver y crear posts
+
+CREAR COMUNIDAD:
+- Ve a "Comunidades"
+- Haz clic en "Crear Comunidad"
+- Completa el formulario:
+  * Nombre: Nombre de la comunidad
+  * Descripción: Descripción
+  * Categoría: Selecciona categoría
+  * Tipo: Pública o Privada
+  * Imagen: Logo de la comunidad
+- Haz clic en "Crear"
+
+PUBLICAR EN COMUNIDAD:
+- Ve a la comunidad
+- Haz clic en "Nueva Publicación"
+- Escribe tu contenido
+- Haz clic en "Publicar"
+
+SALIR DE COMUNIDAD:
+- Ve a la comunidad
+- Haz clic en "Miembro"
+- Haz clic en "Salir"
+- Confirma que deseas salir
+
+ADMINISTRAR COMUNIDAD (Si eres propietario):
+- Ve a la comunidad
+- Haz clic en "Administrar"
+- Puedes:
+  * Editar información
+  * Cambiar imagen
+  * Moderar posts
+  * Expulsar miembros
+  * Cambiar configuración
+
+================================================================================
+7. MENSAJERÍA
+================================================================================
+
+CREAR CHAT:
+- Ve a "Mensajes"
+- Haz clic en "Nuevo Chat"
+- Selecciona el usuario
+- Se crea el chat
+
+ENVIAR MENSAJE:
+- Abre el chat
+- Escribe tu mensaje
+- Haz clic en "Enviar"
+- El mensaje aparece en el chat
+
+ENVIAR ARCHIVO:
+- Abre el chat
+- Haz clic en el icono de clip
+- Selecciona el archivo
+- Se envía el archivo
+
+REACCIONAR A MENSAJE:
+- Pasa el mouse sobre el mensaje
+- Haz clic en el icono de reacción
+- Selecciona la reacción
+- La reacción aparece en el mensaje
+
+EDITAR MENSAJE:
+- Pasa el mouse sobre el mensaje
+- Haz clic en los tres puntos (...)
+- Selecciona "Editar"
+- Modifica el mensaje
+- Haz clic en "Guardar"
+
+ELIMINAR MENSAJE:
+- Pasa el mouse sobre el mensaje
+- Haz clic en los tres puntos (...)
+- Selecciona "Eliminar"
+- Confirma la eliminación
+
+MARCAR COMO LEÍDO:
+- Los mensajes se marcan automáticamente
+- Cuando abres el chat, se marcan como leídos
+
+NOTIFICACIONES DE MENSAJES:
+- Recibirás notificación de nuevo mensaje
+- Puedes silenciar notificaciones del chat
+- Puedes silenciar sonido de notificaciones
+
+================================================================================
+8. BÚSQUEDA Y DESCUBRIMIENTO
+================================================================================
+
+BUSCAR USUARIOS:
+- Ve a "Buscar"
+- Escribe el nombre o @usuario
+- Se muestran resultados
+- Haz clic en el usuario para ver perfil
+
+BUSCAR PUBLICACIONES:
+- Ve a "Buscar"
+- Escribe palabras clave
+- Se muestran publicaciones
+- Haz clic para ver detalle
+
+FILTRAR RESULTADOS:
+- Por tipo de contenido
+- Por fecha
+- Por popularidad
+- Por relevancia
+
+USUARIOS SUGERIDOS:
+- En la página de inicio
+- Basados en tus intereses
+- Basados en usuarios que sigues
+- Haz clic en "Seguir" para seguir
+
+CONTENIDO RECOMENDADO:
+- En el feed
+- Basado en tus intereses
+- Basado en tu historial
+- Basado en usuarios similares
+
+TENDENCIAS:
+- En la página de inicio
+- Hashtags más populares
+- Temas más comentados
+- Usuarios más seguidos
+
+================================================================================
+9. CONFIGURACIÓN DE PERFIL
+================================================================================
+
+EDITAR PERFIL:
+- Ve a tu perfil
+- Haz clic en "Editar Perfil"
+- Puedes editar:
+  * Nombre completo
+  * Biografía
+  * Posición/Habilidad
+  * Equipo/Grupo
+  * Intereses
+  * Enlaces sociales
+
+CAMBIAR AVATAR:
+- Ve a tu perfil
+- Haz clic en el icono de cámara en el avatar
+- Selecciona "Subir Archivo" o "URL"
+- Sube la imagen
+- Haz clic en "Guardar"
+
+CAMBIAR FOTO DE PORTADA:
+- Ve a tu perfil
+- Haz clic en el icono de cámara en la portada
+- Selecciona "Subir Archivo" o "URL"
+- Sube la imagen
+- Haz clic en "Guardar"
+
+CONFIGURACIÓN DE PRIVACIDAD:
+- Ve a "Configuración"
+- Sección "Privacidad"
+- Opciones:
+  * Perfil privado: Solo amigos ven tu perfil
+  * Mostrar email: Otros usuarios ven tu email
+  * Mostrar teléfono: Otros usuarios ven tu teléfono
+
+CONFIGURACIÓN DE NOTIFICACIONES:
+- Ve a "Configuración"
+- Sección "Notificaciones"
+- Puedes desactivar:
+  * Notificaciones de likes
+  * Notificaciones de comentarios
+  * Notificaciones de nuevos seguidores
+  * Notificaciones de mensajes
+  * Notificaciones de solicitudes de amistad
+
+CAMBIAR CONTRASEÑA:
+- Ve a "Configuración"
+- Sección "Seguridad"
+- Haz clic en "Cambiar Contraseña"
+- Ingresa contraseña actual
+- Ingresa nueva contraseña
+- Confirma nueva contraseña
+- Haz clic en "Guardar"
+
+CERRAR SESIÓN:
+- Ve a "Configuración"
+- Haz clic en "Cerrar Sesión"
+- Se cierra tu sesión
+- Se redirige a la página de login
+
+ELIMINAR CUENTA:
+- Ve a "Configuración"
+- Sección "Peligro"
+- Haz clic en "Eliminar Cuenta"
+- Confirma que deseas eliminar
+- Tu cuenta se elimina permanentemente
+
+================================================================================
+10. GUÍA PARA DESARROLLADORES
+================================================================================
+
+ESTRUCTURA DEL PROYECTO:
+
+Frontend (Next.js):
+- app/: Rutas principales
+- components/: Componentes reutilizables
+- lib/: Utilidades y servicios
+- public/: Archivos estáticos
+- styles/: Estilos globales
+
+Backend (Django):
+- sos_habilidoso/: Configuración principal
+- apps/: Aplicaciones Django
+- scripts/: Scripts de utilidad
+- manage.py: Gestor de Django
+
+AGREGAR NUEVA RUTA:
+
+Frontend:
+1. Crear carpeta en app/: app/nueva-ruta/
+2. Crear archivo page.tsx: app/nueva-ruta/page.tsx
+3. Exportar componente por defecto
+4. La ruta se crea automáticamente
+
+Backend:
+1. Crear vista en views.py
+2. Agregar URL en urls.py
+3. Incluir en urls.py principal
+4. Reiniciar servidor
+
+AGREGAR NUEVO ENDPOINT:
+
+1. Crear modelo en models.py (si es necesario)
+2. Crear serializer en serializers.py
+3. Crear vista en views.py
+4. Agregar URL en urls.py
+5. Incluir en urls.py principal
+6. Ejecutar migraciones: python manage.py migrate
+7. Reiniciar servidor
+
+AGREGAR NUEVO COMPONENTE:
+
+1. Crear archivo en components/: components/nuevo-componente.tsx
+2. Exportar componente
+3. Importar en la página donde se usa
+4. Usar el componente
+
+CONECTAR FRONTEND CON BACKEND:
+
+1. Crear servicio en lib/services/
+2. Usar axios para hacer peticiones
+3. Manejar errores con try-catch
+4. Mostrar notificaciones con toast
+5. Actualizar estado con useState
+
+EJEMPLO DE PETICIÓN:
+```typescript
+import { api } from '@/lib/api-client';
+
+const response = await api.get('/users/search/', {
+  params: { q: 'usuario' }
+});
+```
+
+DEBUGGING:
+
+Frontend:
+- Abrir DevTools (F12)
+- Ver Console para errores
+- Ver Network para peticiones
+- Ver Application para localStorage
+
+Backend:
+- Ver logs en terminal
+- Usar print() para debug
+- Ver logs de Django
+- Usar Django Debug Toolbar
+
+TESTING:
+
+Frontend:
+- Usar herramientas de testing (Jest, React Testing Library)
+- Probar componentes aislados
+- Probar flujos completos
+
+Backend:
+- Usar Django TestCase
+- Probar modelos
+- Probar vistas
+- Probar serializers
+
+DEPLOYMENT:
+
+Frontend:
+- Ejecutar: npm run build
+- Desplegar en Vercel, Netlify, etc.
+- Configurar variables de entorno
+
+Backend:
+- Ejecutar: python manage.py collectstatic
+- Desplegar en Heroku, AWS, etc.
+- Configurar variables de entorno
+- Usar HTTPS en producción
+
+================================================================================
+11. COMANDOS ÚTILES
+================================================================================
+
+COMANDOS FRONTEND:
+
+npm run dev                     # Iniciar servidor de desarrollo
+npm run build                   # Compilar para producción
+npm run start                   # Iniciar servidor de producción
+npm run lint                    # Ejecutar linter
+npm run dev:backend             # Iniciar solo backend
+npm run dev:frontend            # Iniciar solo frontend
+npm run dev:both                # Iniciar ambos servidores
+npm run soshabilidoso:simple    # Iniciar con nombres personalizados
+
+COMANDOS BACKEND:
+
+python manage.py runserver 8000                    # Iniciar servidor
+python manage.py migrate                           # Ejecutar migraciones
+python manage.py makemigrations                    # Crear migraciones
+python manage.py createsuperuser                   # Crear admin
+python manage.py shell                            # Shell interactivo
+python manage.py collectstatic                    # Recopilar archivos estáticos
+python manage.py check                            # Verificar configuración
+python manage.py flush                            # Limpiar BD (cuidado!)
+
+COMANDOS GIT:
+
+git status                      # Ver estado
+git add .                       # Agregar cambios
+git commit -m "mensaje"         # Hacer commit
+git push                        # Subir cambios
+git pull                        # Descargar cambios
+git branch                      # Ver ramas
+git checkout -b nueva-rama      # Crear rama
+
+COMANDOS ÚTILES:
+
+# Limpiar caché del navegador
+Ctrl+Shift+Delete
+
+# Recargar página sin caché
+Ctrl+F5
+
+# Abrir DevTools
+F12
+
+# Ver logs en tiempo real
+tail -f backend/logs.txt
+
+# Buscar en archivos
+grep -r "texto" .
+
+# Contar líneas de código
+wc -l archivo.py
+
+================================================================================
+                              PREGUNTAS FRECUENTES
+================================================================================
+
+P: ¿Cómo cambio mi contraseña?
+R: Ve a Configuración > Seguridad > Cambiar Contraseña
+
+P: ¿Cómo elimino mi cuenta?
+R: Ve a Configuración > Peligro > Eliminar Cuenta
+
+P: ¿Cómo recupero mi contraseña?
+R: Haz clic en "¿Olvidaste tu contraseña?" en login
+
+P: ¿Cómo sigo a un usuario?
+R: Ve a su perfil y haz clic en "Seguir"
+
+P: ¿Cómo creo una comunidad?
+R: Ve a Comunidades > Crear Comunidad
+
+P: ¿Cómo envío un mensaje privado?
+R: Ve a Mensajes > Nuevo Chat > Selecciona usuario
+
+P: ¿Cómo busco usuarios?
+R: Ve a Buscar y escribe el nombre o @usuario
+
+P: ¿Cómo cambio mi avatar?
+R: Ve a tu perfil > Haz clic en el avatar > Subir imagen
+
+P: ¿Cómo creo una publicación?
+R: Ve al feed > Nueva Publicación > Escribe contenido > Publicar
+
+P: ¿Cómo creo un reel?
+R: Ve a Reels > Crear Reel > Sube video > Publicar
+
+================================================================================
+                              ATAJOS DE TECLADO
+================================================================================
+
+Ctrl+K                         # Abrir búsqueda
+Ctrl+/                         # Abrir ayuda
+Ctrl+Enter                     # Enviar mensaje/publicación
+Escape                         # Cerrar modal/diálogo
+Tab                            # Navegar entre elementos
+Enter                          # Activar elemento enfocado
+Espacio                        # Activar botón enfocado
+
+================================================================================
+                              FIN DEL MANUAL
+================================================================================
+
+Última actualización: 21 de Noviembre de 2025
+Versión: 1.0
+
+Para más información técnica, consultar DOCUMENTACION_APLICACION.txt
+
+================================================================================

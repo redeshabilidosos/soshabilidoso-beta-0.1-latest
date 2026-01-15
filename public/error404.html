@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error 404 | SOS-HABILIDOSO - En Construcción</title>
+    <meta name="description" content="Página no encontrada - SOS-HABILIDOSO está en desarrollo">
+    <link rel="icon" href="logo sos@3x.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --neon-green: #00ff88;
+            --neon-blue: #00d4ff;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow-x: hidden;
+            position: relative;
+            padding: 20px;
+        }
+        .stars {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Layout principal - 2 columnas */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1100px;
+            width: 100%;
+            z-index: 10;
+            align-items: center;
+        }
+
+        /* Columna izquierda - Contenido */
+        .content-column {
+            text-align: left;
+        }
+
+        .logo {
+            max-width: 220px;
+            height: auto;
+            filter: drop-shadow(0 0 15px rgba(0, 255, 136, 0.5));
+            margin-bottom: 25px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .error-code {
+            font-size: 100px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .error-message {
+            font-size: 15px;
+            color: #9ca3af;
+            line-height: 1.7;
+            margin-bottom: 25px;
+        }
+
+        .highlight {
+            color: var(--neon-green);
+            font-weight: 600;
+        }
+
+        /* Barra de progreso */
+        .progress-container {
+            margin-bottom: 25px;
+        }
+        .progress-label {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+            border-radius: 3px;
+            animation: loading 3s ease-in-out infinite;
+        }
+        @keyframes loading {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+            color: black;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.4);
+        }
+
+        /* Columna derecha - Robot */
+        .robot-column {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .robot-container {
+            position: relative;
+            width: 180px;
+            height: 220px;
+        }
+
+        .robot-head {
+            width: 110px;
+            height: 90px;
+            background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
+            border-radius: 18px;
+            margin: 0 auto;
+            position: relative;
+            border: 3px solid var(--neon-green);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+            animation: headBob 2s ease-in-out infinite;
+        }
+        @keyframes headBob {
+            0%, 100% { transform: rotate(-2deg); }
+            50% { transform: rotate(2deg); }
+        }
+
+        .antenna {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 18px;
+            background: var(--neon-green);
+            border-radius: 2px;
+        }
+        .antenna::after {
+            content: '';
+            position: absolute;
+            top: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            animation: blink 1s infinite;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .robot-eyes {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding-top: 22px;
+        }
+        .eye {
+            width: 30px;
+            height: 30px;
+            background: #0a0a0f;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--neon-green);
+            border: 2px solid var(--neon-green);
+            text-shadow: 0 0 8px var(--neon-green);
+        }
+
+        .robot-mouth {
+            width: 40px;
+            height: 6px;
+            background: var(--neon-green);
+            margin: 12px auto 0;
+            border-radius: 3px;
+            animation: mouthTalk 0.5s infinite;
+            box-shadow: 0 0 8px var(--neon-green);
+        }
+        @keyframes mouthTalk {
+            0%, 100% { width: 40px; }
+            50% { width: 25px; }
+        }
+
+        .robot-body {
+            width: 90px;
+            height: 70px;
+            background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
+            margin: 8px auto 0;
+            border-radius: 12px;
+            border: 3px solid var(--neon-blue);
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+        .robot-body::before {
+            content: '{ }';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: var(--neon-blue);
+            font-weight: bold;
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .robot-arms {
+            display: flex;
+            justify-content: space-between;
+            width: 140px;
+            margin: -55px auto 0;
+            position: relative;
+            z-index: -1;
+        }
+        .arm {
+            width: 16px;
+            height: 50px;
+            background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
+            border: 2px solid var(--neon-green);
+            border-radius: 8px;
+        }
+        .arm.left {
+            transform: rotate(15deg);
+            animation: waveLeft 2s ease-in-out infinite;
+        }
+        .arm.right {
+            transform: rotate(-15deg);
+            animation: waveRight 2s ease-in-out infinite;
+        }
+        @keyframes waveLeft {
+            0%, 100% { transform: rotate(15deg); }
+            50% { transform: rotate(25deg); }
+        }
+        @keyframes waveRight {
+            0%, 100% { transform: rotate(-15deg); }
+            50% { transform: rotate(-5deg); }
+        }
+
+        /* Partículas de código */
+        .code-particles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .code-particle {
+            position: absolute;
+            font-family: monospace;
+            color: var(--neon-green);
+            opacity: 0.3;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-50px); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 15px;
+            font-size: 12px;
+            color: #6b7280;
+            z-index: 10;
+        }
+        .footer a {
+            color: var(--neon-green);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .content-column {
+                text-align: center;
+                order: 1;
+            }
+            .robot-column {
+                order: 2;
+            }
+            .error-code {
+                font-size: 70px;
+            }
+            .error-title {
+                font-size: 20px;
+            }
+            .logo {
+                max-width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <div class="code-particles" id="codeParticles"></div>
+
+    <div class="main-container">
+        <!-- Columna izquierda - Contenido -->
+        <div class="content-column">
+            <img src="logo sos@3x.png" alt="SOS-HABILIDOSO" class="logo">
+            <div class="error-code">404</div>
+            <h1 class="error-title">🔧 ¡Habilidosos Trabajando al 100%! 🔧</h1>
+            <p class="error-message">
+                <span class="highlight">¡Estamos construyendo algo épico!</span><br><br>
+                Nuestro equipo de <span class="highlight">Habilidosos</span> está dando lo mejor 
+                para crear la red social más increíble del mundo.<br>
+                Pronto podrás conectar, compartir y brillar con tus talentos. 🌟<br><br>
+                <em>"Un golazo a tus sueños está en camino..."</em> ⚽✨
+            </p>
+            <div class="progress-container">
+                <div class="progress-label">Progreso del desarrollo...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+            <a href="landing.html" class="btn">
+                <span>🏠</span>
+                <span>Volver al Inicio</span>
+            </a>
+        </div>
+
+        <!-- Columna derecha - Robot -->
+        <div class="robot-column">
+            <div class="robot-container">
+                <div class="robot-head">
+                    <div class="antenna"></div>
+                    <div class="robot-eyes">
+                        <div class="eye">{</div>
+                        <div class="eye">}</div>
+                    </div>
+                    <div class="robot-mouth"></div>
+                </div>
+                <div class="robot-arms">
+                    <div class="arm left"></div>
+                    <div class="arm right"></div>
+                </div>
+                <div class="robot-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2024 <a href="https://fundahabilidosos.com" target="_blank">Fundación Habilidosos</a>
+    </div>
+
+    <script>
+        // Crear estrellas
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 80; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.width = Math.random() * 2 + 1 + 'px';
+            star.style.height = star.style.width;
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+        }
+
+        // Crear partículas de código
+        const codeContainer = document.getElementById('codeParticles');
+        const symbols = ['{', '}', '<', '>', '/', ';', '(', ')', '0', '1'];
+        setInterval(() => {
+            const particle = document.createElement('div');
+            particle.className = 'code-particle';
+            particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.fontSize = Math.random() * 16 + 12 + 'px';
+            particle.style.animationDuration = Math.random() * 4 + 4 + 's';
+            codeContainer.appendChild(particle);
+            setTimeout(() => particle.remove(), 8000);
+        }, 600);
+    </script>
+</body>
+</html>

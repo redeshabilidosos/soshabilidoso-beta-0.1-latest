@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "dev:backend": "cd backend && python manage.py runserver 8000",
+    "dev:frontend": "next dev",
+    "dev:both": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" --names \"Django,Next.js\" --prefix-colors \"blue,green\"",
+    "setup:backend": "cd backend && python setup_auth.py && python setup_posts.py && python setup_chat.py",
+    "install:all": "npm install && cd backend && pip install -r requirements/development.txt"
+  }
+}

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test WebSocket Feed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .connected { background-color: #22c55e; }
+        .disconnected { background-color: #ef4444; }
+        .message {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 3px solid #00ff88;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #00ff88;
+            color: black;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #00cc6a;
+        }
+        input {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Test WebSocket Feed en Tiempo Real</h1>
+    
+    <div class="container">
+        <h2>Configuración</h2>
+        <input type="text" id="tokenInput" placeholder="JWT Token" />
+        <button onclick="connect()">Conectar al Feed</button>
+        <button onclick="disconnect()">Desconectar</button>
+        
+        <div id="status" class="status disconnected">
+            ❌ Desconectado
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Mensajes Recibidos</h2>
+        <div id="messages"></div>
+        <button onclick="clearMessages()">Limpiar Mensajes</button>
+    </div>
+
+    <div class="container">
+        <h2>Enviar Ping</h2>
+        <button onclick="sendPing()">Enviar Ping</button>
+    </div>
+
+    <script>
+        let ws = null;
+        let messageCount = 0;
+
+        function connect() {
+            const token = document.getElementById('tokenInput').value;
+            if (!token) {
+                alert('Por favor ingresa un JWT token');
+                return;
+            }
+
+            // Cerrar conexión existente si existe
+            if (ws) {
+                ws.close();
+            }
+
+            // Crear nueva conexión WebSocket
+            const wsUrl = `ws://localhost:8000/ws/feed/?token=${token}`;
+            console.log('Conectando a:', wsUrl);
+            
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = function(event) {
+                console.log('WebSocket conectado');
+                updateStatus(true);
+                addMessage('✅ Conectado al feed en tiempo real', 'system');
+            };
+
+            ws.onmessage = function(event) {
+                console.log('Mensaje recibido:', event.data);
+                try {
+                    const data = JSON.parse(event.data);
+                    addMessage(JSON.stringify(data, null, 2), data.type || 'unknown');
+                } catch (e) {
+                    addMessage(event.data, 'raw');
+                }
+            };
+
+            ws.onclose = function(event) {
+                console.log('WebSocket cerrado:', event.code, event.reason);
+                updateStatus(false);
+                addMessage(`❌ Conexión cerrada (${event.code}: ${event.reason})`, 'system');
+            };
+
+            ws.onerror = function(error) {
+                console.error('Error WebSocket:', error);
+                addMessage('❌ Error de conexión', 'error');
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close(1000, 'Desconexión manual');
+                ws = null;
+            }
+        }
+
+        function sendPing() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const pingMessage = {
+                    type: 'ping',
+                    timestamp: Date.now()
+                };
+                ws.send(JSON.stringify(pingMessage));
+                addMessage('📤 Ping enviado', 'sent');
+            } else {
+                alert('WebSocket no está conectado');
+            }
+        }
+
+        function updateStatus(connected) {
+            const statusEl = document.getElementById('status');
+            if (connected) {
+                statusEl.className = 'status connected';
+                statusEl.textContent = '✅ Conectado';
+            } else {
+                statusEl.className = 'status disconnected';
+                statusEl.textContent = '❌ Desconectado';
+            }
+        }
+
+        function addMessage(content, type) {
+            const messagesEl = document.getElementById('messages');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const typeLabel = getTypeLabel(type);
+            
+            messageEl.innerHTML = `
+                <strong>[${timestamp}] ${typeLabel}</strong><br>
+                <pre>${content}</pre>
+            `;
+            
+            messagesEl.appendChild(messageEl);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+            
+            messageCount++;
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                'system': '🔧 Sistema',
+                'new_post': '📝 Nuevo Post',
+                'post_updated': '✏️ Post Actualizado',
+                'post_deleted': '🗑️ Post Eliminado',
+                'post_reaction': '❤️ Reacción',
+                'connection_established': '🔗 Conexión',
+                'pong': '🏓 Pong',
+                'sent': '📤 Enviado',
+                'error': '❌ Error',
+                'unknown': '❓ Desconocido',
+                'raw': '📄 Raw'
+            };
+            return labels[type] || `📄 ${type}`;
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+            messageCount = 0;
+        }
+
+        // Limpiar al cerrar la página
+        window.addEventListener('beforeunload', function() {
+            if (ws) {
+                ws.close();
+            }
+        });
+
+        // Información inicial
+        addMessage('Ingresa tu JWT token y haz clic en "Conectar al Feed" para comenzar', 'system');
+        addMessage('Puedes obtener tu token desde las herramientas de desarrollador en la aplicación web', 'system');
+    </script>
+</body>
+</html>
