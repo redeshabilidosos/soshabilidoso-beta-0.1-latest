@@ -32,18 +32,26 @@ class Seccion(models.Model):
 
     @property
     def temas_count(self):
-        return self.temas.filter(is_active=True).count()
+        """Cuenta los temas activos de esta sección"""
+        try:
+            return self.temas.filter(is_active=True).count()
+        except:
+            return 0
 
     @property
     def duracion_total(self):
-        total_minutos = self.temas.filter(is_active=True).aggregate(
-            total=models.Sum('duracion_minutos')
-        )['total'] or 0
-        horas = total_minutos // 60
-        minutos = total_minutos % 60
-        if horas > 0:
-            return f"{horas}h {minutos}min"
-        return f"{minutos}min"
+        """Calcula la duración total de todos los temas activos"""
+        try:
+            total_minutos = self.temas.filter(is_active=True).aggregate(
+                total=models.Sum('duracion_minutos')
+            )['total'] or 0
+            horas = total_minutos // 60
+            minutos = total_minutos % 60
+            if horas > 0:
+                return f"{horas}h {minutos}min"
+            return f"{minutos}min"
+        except:
+            return "0min"
 
 
 class Tema(models.Model):
@@ -90,11 +98,15 @@ class Tema(models.Model):
 
     @property
     def duracion_formateada(self):
-        if self.duracion_minutos >= 60:
-            horas = self.duracion_minutos // 60
-            minutos = self.duracion_minutos % 60
-            return f"{horas}h {minutos}min"
-        return f"{self.duracion_minutos} min"
+        """Formatea la duración en un formato legible"""
+        try:
+            if self.duracion_minutos >= 60:
+                horas = self.duracion_minutos // 60
+                minutos = self.duracion_minutos % 60
+                return f"{horas}h {minutos}min"
+            return f"{self.duracion_minutos} min"
+        except:
+            return "0 min"
 
 
 class TemaContenido(models.Model):

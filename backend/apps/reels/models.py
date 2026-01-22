@@ -45,6 +45,7 @@ class ReelComment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    likes = models.ManyToManyField(User, related_name='liked_reel_comments', blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -54,3 +55,10 @@ class ReelComment(models.Model):
     
     def __str__(self):
         return f"Comment by {self.author.username} on {self.reel}"
+    
+    @property
+    def likes_count(self):
+        return self.likes.count()
+    
+    def is_liked_by(self, user):
+        return self.likes.filter(id=user.id).exists()

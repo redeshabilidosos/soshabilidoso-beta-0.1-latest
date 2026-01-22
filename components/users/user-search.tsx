@@ -13,6 +13,7 @@ import { enterprisesService, Enterprise } from '@/lib/services/enterprises.servi
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { debounce } from 'lodash';
+import { cn } from '@/lib/utils';
 
 interface UserSearchProps {
   onUserSelect?: (user: User) => void;
@@ -159,30 +160,35 @@ export function UserSearch({ onUserSelect, onMessageUser }: UserSearchProps) {
   const getFriendRequestButton = (user: User) => {
     if (user.is_friend) {
       return (
-        <Badge variant="secondary" className="bg-green-100 text-green-800">
-          <UserCheck className="w-3 h-3 mr-1" />
-          Amigos
-        </Badge>
+        <div className="flex items-center gap-1 bg-green-500/20 px-3 py-1.5 rounded-full">
+          <UserCheck className="w-3 h-3 text-green-400" />
+          <span className="text-xs text-green-400 font-medium">Amigos</span>
+        </div>
       );
     }
     if (user.friend_request_status === 'sent') {
       return (
-        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-          <Clock className="w-3 h-3 mr-1" />
-          Enviada
-        </Badge>
+        <div className="flex items-center gap-1 bg-yellow-500/20 px-3 py-1.5 rounded-full">
+          <Clock className="w-3 h-3 text-yellow-400" />
+          <span className="text-xs text-yellow-400 font-medium">Enviada</span>
+        </div>
       );
     }
     if (user.friend_request_status === 'received') {
       return (
-        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-          <Clock className="w-3 h-3 mr-1" />
-          Recibida
-        </Badge>
+        <div className="flex items-center gap-1 bg-blue-500/20 px-3 py-1.5 rounded-full">
+          <Clock className="w-3 h-3 text-blue-400" />
+          <span className="text-xs text-blue-400 font-medium">Recibida</span>
+        </div>
       );
     }
     return (
-      <Button variant="outline" size="sm" onClick={() => handleSendFriendRequest(user)} className="text-xs">
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={() => handleSendFriendRequest(user)} 
+        className="text-xs border-white/20 hover:border-neon-green/50 hover:bg-neon-green/10 text-white hover:text-neon-green transition-all"
+      >
         <UserPlus className="w-3 h-3 mr-1" />
         Agregar
       </Button>
@@ -234,55 +240,116 @@ export function UserSearch({ onUserSelect, onMessageUser }: UserSearchProps) {
 
         {/* Lista de usuarios */}
         <TabsContent value="users" className="mt-4">
-          <div className="space-y-3">
+          <div className="space-y-4">
             {users.map((user) => (
-              <Card key={user.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
+              <Card key={user.id} className="glass-card hover:border-neon-green/30 transition-all duration-300 overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Contenedor principal */}
+                  <div className="flex items-start gap-4 p-4">
+                    {/* Avatar */}
                     <div 
-                      className="flex items-center space-x-3 flex-1 cursor-pointer"
+                      className="shrink-0 cursor-pointer hover:scale-105 transition-transform"
                       onClick={() => onUserSelect?.(user)}
                     >
-                      <Avatar className="w-12 h-12">
+                      <Avatar className="w-16 h-16 ring-2 ring-white/10 hover:ring-neon-green/50 transition-all">
                         <AvatarImage src={user.avatar_url} alt={user.display_name} />
-                        <AvatarFallback>{user.display_name.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback className="bg-gradient-to-br from-neon-green/20 to-neon-blue/20 text-white font-bold">
+                          {user.display_name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-semibold text-sm truncate">{user.display_name}</h3>
+                    </div>
+
+                    {/* Información del usuario */}
+                    <div className="flex-1 min-w-0">
+                      <div 
+                        className="cursor-pointer hover:text-neon-green transition-colors"
+                        onClick={() => onUserSelect?.(user)}
+                      >
+                        {/* Nombre y verificación */}
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-bold text-white text-base truncate">{user.display_name}</h3>
                           {user.is_verified && (
-                            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">✓</Badge>
+                            <div className="flex items-center gap-1 bg-neon-green/20 px-2 py-0.5 rounded-full">
+                              <BadgeCheck className="w-3 h-3 text-neon-green" />
+                              <span className="text-xs text-neon-green font-medium">Verificado</span>
+                            </div>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500">@{user.username}</p>
-                        {user.bio && <p className="text-xs text-gray-600 mt-1 line-clamp-2">{user.bio}</p>}
+                        
+                        {/* Username */}
+                        <p className="text-sm text-gray-400 mb-2">@{user.username}</p>
+                        
+                        {/* Bio */}
+                        {user.bio && (
+                          <p className="text-sm text-gray-300 mb-3 line-clamp-2 leading-relaxed">{user.bio}</p>
+                        )}
+                        
+                        {/* Tags de posición y equipo */}
                         {(user.position || user.team) && (
-                          <div className="flex items-center space-x-2 mt-1">
-                            {user.position && <Badge variant="outline" className="text-xs">{user.position}</Badge>}
-                            {user.team && <Badge variant="outline" className="text-xs">{user.team}</Badge>}
+                          <div className="flex items-center gap-2 mb-3 flex-wrap">
+                            {user.position && (
+                              <Badge className="bg-neon-blue/20 text-neon-blue border-neon-blue/30 text-xs">
+                                {user.position}
+                              </Badge>
+                            )}
+                            {user.team && (
+                              <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs">
+                                {user.team}
+                              </Badge>
+                            )}
                           </div>
                         )}
-                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                          <span>{user.followers_count} seguidores</span>
-                          <span>{user.posts_count} posts</span>
+                        
+                        {/* Estadísticas */}
+                        <div className="flex items-center gap-6 text-sm text-gray-400 mb-4">
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span>{user.followers_count} seguidores</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span>{user.posts_count} posts</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 ml-4">
-                      {getFriendRequestButton(user)}
-                      <Button
-                        variant={user.is_following ? "secondary" : "outline"}
-                        size="sm"
-                        onClick={() => handleFollowUser(user)}
-                        className="text-xs"
-                      >
-                        {user.is_following ? 'Siguiendo' : 'Seguir'}
-                      </Button>
-                      {onMessageUser && (
-                        <Button variant="outline" size="sm" onClick={() => onMessageUser(user)} className="text-xs">
-                          <MessageCircle className="w-3 h-3" />
+                  </div>
+
+                  {/* Sección de botones separada */}
+                  <div className="border-t border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      {/* Estado de amistad */}
+                      <div className="flex-shrink-0">
+                        {getFriendRequestButton(user)}
+                      </div>
+                      
+                      {/* Botones de acción */}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant={user.is_following ? "secondary" : "default"}
+                          size="sm"
+                          onClick={() => handleFollowUser(user)}
+                          className={cn(
+                            "text-xs font-medium transition-all",
+                            user.is_following 
+                              ? "bg-gray-600 hover:bg-gray-700 text-white" 
+                              : "bg-neon-green hover:bg-neon-green/80 text-black"
+                          )}
+                        >
+                          {user.is_following ? 'Siguiendo' : 'Seguir'}
                         </Button>
-                      )}
+                        
+                        {onMessageUser && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => onMessageUser(user)} 
+                            className="text-xs border-white/20 hover:border-neon-blue/50 hover:bg-neon-blue/10 text-white hover:text-neon-blue transition-all"
+                          >
+                            <MessageCircle className="w-4 h-4 mr-1" />
+                            Mensaje
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -321,69 +388,118 @@ export function UserSearch({ onUserSelect, onMessageUser }: UserSearchProps) {
 
         {/* Lista de empresas */}
         <TabsContent value="enterprises" className="mt-4">
-          <div className="space-y-3">
+          <div className="space-y-4">
             {enterprises.map((enterprise) => (
-              <Card key={enterprise.id} className="hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
+              <Card key={enterprise.id} className="glass-card hover:border-purple-500/30 transition-all duration-300 overflow-hidden border-l-4 border-l-purple-500/50">
+                <CardContent className="p-0">
+                  {/* Contenedor principal */}
+                  <div className="flex items-start gap-4 p-4">
+                    {/* Logo */}
                     <div 
-                      className="flex items-center space-x-3 flex-1 cursor-pointer"
+                      className="shrink-0 cursor-pointer hover:scale-105 transition-transform"
                       onClick={() => router.push(`/enterprise/${enterprise.id}`)}
                     >
-                      <Avatar className="w-14 h-14 rounded-lg">
-                        <AvatarImage src={enterprise.logo_url || ''} alt={enterprise.name} />
-                        <AvatarFallback className="rounded-lg bg-purple-100 text-purple-700">
-                          <Building2 className="w-6 h-6" />
+                      <Avatar className="w-16 h-16 rounded-xl ring-2 ring-purple-500/20 hover:ring-purple-500/50 transition-all">
+                        <AvatarImage src={enterprise.logo_url || ''} alt={enterprise.name} className="rounded-xl" />
+                        <AvatarFallback className="rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/20 text-white">
+                          <Building2 className="w-8 h-8 text-purple-400" />
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-semibold text-sm truncate">{enterprise.name}</h3>
+                    </div>
+
+                    {/* Información de la empresa */}
+                    <div className="flex-1 min-w-0">
+                      <div 
+                        className="cursor-pointer hover:text-purple-400 transition-colors"
+                        onClick={() => router.push(`/enterprise/${enterprise.id}`)}
+                      >
+                        {/* Nombre y verificación */}
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-bold text-white text-base truncate">{enterprise.name}</h3>
                           {enterprise.is_verified && (
-                            <BadgeCheck className="w-4 h-4 text-purple-500" />
+                            <div className="flex items-center gap-1 bg-purple-500/20 px-2 py-0.5 rounded-full">
+                              <BadgeCheck className="w-3 h-3 text-purple-400" />
+                              <span className="text-xs text-purple-400 font-medium">Verificada</span>
+                            </div>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500">@{enterprise.username}</p>
-                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">{enterprise.description}</p>
-                        <div className="flex items-center flex-wrap gap-2 mt-2">
-                          <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                        
+                        {/* Username */}
+                        <p className="text-sm text-gray-400 mb-2">@{enterprise.username}</p>
+                        
+                        {/* Descripción */}
+                        <p className="text-sm text-gray-300 mb-3 line-clamp-2 leading-relaxed">{enterprise.description}</p>
+                        
+                        {/* Tags de categoría e industria */}
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs">
                             {enterprise.category}
                           </Badge>
-                          <Badge variant="outline" className="text-xs">
+                          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
                             {enterprise.industry}
                           </Badge>
                           {enterprise.location && (
-                            <span className="text-xs text-gray-500">📍 {enterprise.location}</span>
+                            <span className="text-xs text-gray-400 flex items-center gap-1">
+                              📍 {enterprise.location}
+                            </span>
                           )}
                         </div>
-                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                          <span>{enterprise.followers_count.toLocaleString()} seguidores</span>
-                          <span>{enterprise.posts_count} publicaciones</span>
+                        
+                        {/* Estadísticas */}
+                        <div className="flex items-center gap-6 text-sm text-gray-400 mb-4 flex-wrap">
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span>{enterprise.followers_count.toLocaleString()} seguidores</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span>{enterprise.posts_count} publicaciones</span>
+                          </div>
                           {enterprise.rating > 0 && (
-                            <span className="flex items-center">
-                              ⭐ {enterprise.rating.toFixed(1)} ({enterprise.reviews_count})
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <span>⭐ {enterprise.rating.toFixed(1)}</span>
+                              <span className="text-xs">({enterprise.reviews_count})</span>
+                            </div>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 ml-4">
-                      <Button
-                        variant={enterprise.is_following ? "secondary" : "default"}
-                        size="sm"
-                        onClick={() => handleFollowEnterprise(enterprise)}
-                        className={enterprise.is_following ? "text-xs" : "text-xs bg-purple-600 hover:bg-purple-700"}
-                      >
-                        {enterprise.is_following ? 'Siguiendo' : 'Seguir'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/enterprise/${enterprise.id}`)}
-                        className="text-xs"
-                      >
-                        Ver perfil
-                      </Button>
+                  </div>
+
+                  {/* Sección de botones separada */}
+                  <div className="border-t border-white/10 bg-purple-500/5 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      {/* Información adicional */}
+                      <div className="flex-shrink-0">
+                        <Badge variant="outline" className="text-xs border-purple-500/30 text-purple-400">
+                          Empresa
+                        </Badge>
+                      </div>
+                      
+                      {/* Botones de acción */}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant={enterprise.is_following ? "secondary" : "default"}
+                          size="sm"
+                          onClick={() => handleFollowEnterprise(enterprise)}
+                          className={cn(
+                            "text-xs font-medium transition-all",
+                            enterprise.is_following 
+                              ? "bg-gray-600 hover:bg-gray-700 text-white" 
+                              : "bg-purple-600 hover:bg-purple-700 text-white"
+                          )}
+                        >
+                          {enterprise.is_following ? 'Siguiendo' : 'Seguir'}
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/enterprise/${enterprise.id}`)}
+                          className="text-xs border-white/20 hover:border-purple-500/50 hover:bg-purple-500/10 text-white hover:text-purple-400 transition-all"
+                        >
+                          Ver perfil
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

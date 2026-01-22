@@ -13,7 +13,7 @@ export const backgroundColors: BackgroundColor[] = [
   {
     id: 'cyber-green',
     name: 'Cyber Verde',
-    gradient: '#1a1a2e',
+    gradient: '#000000',
     preview: '#00ff88'
   },
   {

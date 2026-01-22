@@ -4,8 +4,27 @@ URLs principales del proyecto SOS-HABILIDOSO
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from decouple import config
 from . import views
 from .admin import custom_admin_site
+
+# Verificar si drf-spectacular está habilitado
+ENABLE_API_DOCS = config('ENABLE_API_DOCS', default=False, cast=bool)
+
+# Importar vistas de documentación solo si está habilitado
+if ENABLE_API_DOCS:
+    try:
+        from drf_spectacular.views import (
+            SpectacularAPIView,
+            SpectacularSwaggerView,
+            SpectacularRedocView
+        )
+        SPECTACULAR_AVAILABLE = True
+    except ImportError:
+        SPECTACULAR_AVAILABLE = False
+        print("Warning: drf-spectacular está habilitado pero no se pudo importar")
+else:
+    SPECTACULAR_AVAILABLE = False
 
 urlpatterns = [
     # Vista raíz de la API
@@ -15,6 +34,9 @@ urlpatterns = [
     
     # Admin
     path('admin/', custom_admin_site.urls),
+    
+    # API Root - Vista específica para /api/
+    path('api/', views.api_root, name='api_root_specific'),
     
     # API Endpoints
     path('api/reality/', include('apps.reality.urls')),
@@ -33,7 +55,17 @@ urlpatterns = [
     path('api/donations/', include('apps.donations.urls')),
     path('api/enterprises/', include('apps.enterprises.urls')),
     path('api/payments/', include('apps.payments.urls')),
+    path('api/site-settings/', include('apps.site_settings.urls')),
 ]
+
+# Agregar URLs de documentación si está habilitado y disponible
+if ENABLE_API_DOCS and SPECTACULAR_AVAILABLE:
+    urlpatterns += [
+        # API Documentation
+        path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+        path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+        path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    ]
 
 # Servir archivos media en desarrollo
 if settings.DEBUG:

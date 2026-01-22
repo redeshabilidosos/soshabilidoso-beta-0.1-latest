@@ -13,14 +13,30 @@ def api_root(request):
         'message': 'Bienvenido a SOS-HABILIDOSO API',
         'version': '1.0.0',
         'status': 'active',
+        'server_time': '2026-01-21T13:15:00Z',
         'endpoints': {
             'authentication': '/api/auth/',
             'users': '/api/users/',
             'posts': '/api/posts/',
+            'communities': '/api/communities/',
             'messaging': '/api/messaging/',
-            'admin': '/admin/',
+            'notifications': '/api/notifications/',
+            'reels': '/api/reels/',
+            'advertising': '/api/advertising/',
+            'classifieds': '/api/classifieds/',
+            'learning': '/api/learning/',
+            'media': '/api/media/',
+            'stories': '/api/stories/',
+            'donations': '/api/donations/',
+            'enterprises': '/api/enterprises/',
+            'payments': '/api/payments/',
+            'site_settings': '/api/site-settings/',
+            'reality': '/api/reality/',
         },
-        'docs': 'Documentación próximamente disponible'
+        'admin': '/admin/',
+        'health_check': '/health/',
+        'debug_routes': '/debug/routes/',
+        'docs': 'API Documentation temporalmente deshabilitada'
     })
 
 @require_http_methods(["GET"])

@@ -66,19 +66,29 @@ mysqlCheck.on('close', (code) => {
   // 2. Iniciar Backend (Django)
   log('[2/3] 🐍 Iniciando Backend Django (Python 3.12)...', 'cyan');
   log('   Puerto: 8000', 'blue');
-  log('   Base de datos: habilidosos_db (MySQL)', 'blue');
+  log('   Base de datos: habilidosos_clean (MySQL)', 'blue');
   log('', 'reset');
   
   const path = require('path');
   const backendDir = path.join(__dirname, '..', 'backend');
-  const pythonPath = isWindows 
-    ? path.join(backendDir, 'venv312', 'Scripts', 'python.exe')
-    : path.join(backendDir, 'venv312', 'bin', 'python');
   
-  const backend = spawn(pythonPath, ['manage.py', 'runserver', '127.0.0.1:8000'], {
-    cwd: backendDir,
-    stdio: 'inherit'
-  });
+  let backend;
+  
+  if (isWindows) {
+    // En Windows, usar el Python del entorno virtual directamente
+    const pythonPath = path.join(backendDir, 'venv312', 'Scripts', 'python.exe');
+    backend = spawn(pythonPath, ['manage.py', 'runserver', '127.0.0.1:8000'], {
+      cwd: backendDir,
+      stdio: 'inherit'
+    });
+  } else {
+    // En Unix/Linux/Mac
+    const pythonPath = path.join(backendDir, 'venv312', 'bin', 'python');
+    backend = spawn(pythonPath, ['manage.py', 'runserver', '127.0.0.1:8000'], {
+      cwd: backendDir,
+      stdio: 'inherit'
+    });
+  }
   
   // Esperar un poco antes de iniciar el frontend
   setTimeout(() => {

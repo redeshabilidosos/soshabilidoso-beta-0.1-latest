@@ -169,3 +169,10 @@ custom_admin_site.register(EnterpriseClassifiedPayment, EnterpriseClassifiedPaym
 custom_admin_site.register(AdvertisingPayment, AdvertisingPaymentAdmin)
 custom_admin_site.register(DonationTransaction, DonationTransactionAdmin)
 custom_admin_site.register(PlatformSettings, PlatformSettingsAdmin)
+
+# ============================================================
+# CONFIGURACIONES DEL SITIO
+# ============================================================
+from apps.site_settings.models import SiteSettings
+from apps.site_settings.admin import SiteSettingsAdmin
+custom_admin_site.register(SiteSettings, SiteSettingsAdmin)

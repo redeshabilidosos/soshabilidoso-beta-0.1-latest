@@ -53,7 +53,7 @@ const mockCommunityData = {
     posts: 8932,
     isJoined: false,
     isOwner: false,
-    createdAt: '2023-08-10',
+    createdAt: '2026-01-10',
     location: 'Colombia',
     isVerified: true,
     isPremium: false,

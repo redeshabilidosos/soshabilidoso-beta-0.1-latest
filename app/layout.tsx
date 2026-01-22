@@ -1,5 +1,5 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { RootLayoutClient } from './RootLayoutClient';
 import { Poppins } from 'next/font/google'; // Importar Poppins
 
@@ -10,12 +10,49 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: 'HABILIDO-SOS | Red Social de Fútbol',
+  title: 'SOS Habilidoso | Red Social de Fútbol',
   description: 'La red social futurista para amantes del fútbol. Conecta, comparte y celebra tu pasión por el deporte rey.',
   keywords: 'fútbol, red social, deportes, habilidades, goles, highlights',
-  icons: {
-    icon: '/logo.png', // Establecer el favicon
+  applicationName: 'SOS Habilidoso',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'SOS Habilidoso',
   },
+  formatDetection: {
+    telephone: false,
+  },
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/logo sos@logo.png', type: 'image/png' },
+      { url: '/logo-favicon.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon512_rounded.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    shortcut: '/logo sos@logo.png',
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'SOS Habilidoso',
+    title: 'SOS Habilidoso | Red Social de Fútbol',
+    description: 'La red social futurista para amantes del fútbol',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'SOS Habilidoso | Red Social de Fútbol',
+    description: 'La red social futurista para amantes del fútbol',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#000000ff',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

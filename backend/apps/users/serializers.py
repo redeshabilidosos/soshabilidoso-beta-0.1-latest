@@ -181,8 +181,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class FollowSerializer(serializers.ModelSerializer):
     """Serializer para seguimientos"""
-    follower = UserSearchSerializer(read_only=True)
-    following = UserSearchSerializer(read_only=True)
+    follower = UserBasicSerializer(read_only=True)
+    following = UserBasicSerializer(read_only=True)
     
     class Meta:
         model = Follow
@@ -192,8 +192,8 @@ class FollowSerializer(serializers.ModelSerializer):
 
 class FriendRequestSerializer(serializers.ModelSerializer):
     """Serializer para solicitudes de amistad"""
-    sender = UserSearchSerializer(read_only=True)
-    receiver = UserSearchSerializer(read_only=True)
+    sender = UserBasicSerializer(read_only=True)
+    receiver = UserBasicSerializer(read_only=True)
     
     class Meta:
         model = FriendRequest
@@ -203,8 +203,8 @@ class FriendRequestSerializer(serializers.ModelSerializer):
 
 class FriendshipSerializer(serializers.ModelSerializer):
     """Serializer para amistades"""
-    user1 = UserSearchSerializer(read_only=True)
-    user2 = UserSearchSerializer(read_only=True)
+    user1 = UserBasicSerializer(read_only=True)
+    user2 = UserBasicSerializer(read_only=True)
     
     class Meta:
         model = Friendship

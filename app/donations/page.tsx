@@ -10,6 +10,7 @@ import { DonationFilters } from '@/components/donations/donation-filters';
 import { Input } from '@/components/ui/input';
 import { Heart, Search, RefreshCw } from 'lucide-react';
 import { getAthletes, transformAthleteForCard } from '@/lib/api/donations';
+import { useForceBlackBackground } from '@/hooks/use-force-black-background';
 
 const sports = ['Todos', 'Fútbol', 'Natación', 'Baloncesto', 'Gimnasia', 'Atletismo', 'Tenis', 'Ciclismo', 'Boxeo'];
 
@@ -21,6 +22,9 @@ export default function DonationsPage() {
   const [athletes, setAthletes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Aplicar fondo negro con estrellas
+  useForceBlackBackground();
 
   useEffect(() => {
     if (!authLoading && !user) {

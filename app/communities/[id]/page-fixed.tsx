@@ -571,7 +571,7 @@ export default function CommunityProfilePage() {
 
           {/* Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+            <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
               <TabsTrigger value="posts" className="flex items-center space-x-2">
                 <MessageSquare className="w-4 h-4" />
                 <span>Posts</span>

@@ -209,10 +209,10 @@ export default function ProfilePage() {
     <div className="min-h-screen">
       <Sidebar />
       
-      <main className="pb-24 xl:ml-64 xl:pb-0">
+      <main className="pb-24 lg:ml-64 lg:pb-0 pt-28 md:pt-12 lg:pt-6 relative z-10 min-h-screen">
         <div className="max-w-4xl mx-auto p-4 space-y-6">
           {/* Cover Photo & Profile */}
-          <div className="glass-card overflow-visible">
+          <div className="glass-card overflow-visible relative z-20">
             {/* Cover Photo */}
             <div className="relative h-48 lg:h-64 overflow-hidden rounded-t-lg">
               <img

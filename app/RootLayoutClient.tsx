@@ -6,6 +6,7 @@ import { Providers } from '@/components/providers/providers';
 import { SplashScreen } from '@/components/ui/splash-screen';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { BackgroundColorProvider } from '@/components/providers/background-color-provider';
+import { useForceSidebarBlack } from '@/hooks/use-force-sidebar-black';
 
 // Lazy loading de componentes pesados - cargados después del contenido principal
 const ParticleBackground = lazy(() => 
@@ -17,6 +18,9 @@ const StarBackground = lazy(() =>
 const FloatingChatButton = lazy(() => import('@/components/ui/floating-chat-button'));
 const FloatingLogoAndMenuButton = lazy(() => 
   import('@/components/ui/floating-logo-and-menu-button').then(m => ({ default: m.FloatingLogoAndMenuButton }))
+);
+const InstallPWAPrompt = lazy(() => 
+  import('@/components/ui/install-pwa-prompt').then(m => ({ default: m.InstallPWAPrompt }))
 );
 
 interface RootLayoutClientProps {
@@ -30,6 +34,9 @@ export const RootLayoutClient = memo(function RootLayoutClient({ children }: Roo
   const [loadBackgrounds, setLoadBackgrounds] = useState(false);
   const [hasCheckedSplash, setHasCheckedSplash] = useState(false);
   const pathname = usePathname();
+  
+  // Forzar fondo negro del sidebar globalmente
+  useForceSidebarBlack();
   
   // Ocultar botones flotantes en la página de mensajes
   const hideFloatingButtons = pathname?.startsWith('/messages');
@@ -72,14 +79,27 @@ export const RootLayoutClient = memo(function RootLayoutClient({ children }: Roo
       <Providers>
         <BackgroundColorProvider />
         {isMounted && loadBackgrounds && (
-          <div className="fixed inset-0 z-[-2] h-screen w-screen pointer-events-none">
+          <div 
+            className="fixed pointer-events-none" 
+            style={{
+              inset: '0px',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100vw',
+              height: '100vh',
+              zIndex: 1,
+              position: 'fixed'
+            }}
+          >
             <Suspense fallback={null}>
               <ParticleBackground />
               <StarBackground />
             </Suspense>
           </div>
         )}
-        <div className="min-h-screen relative">
+        <div className="min-h-screen relative" style={{ zIndex: 10 }}>
           <ProtectedRoute>
             {children}
           </ProtectedRoute>
@@ -87,6 +107,7 @@ export const RootLayoutClient = memo(function RootLayoutClient({ children }: Roo
             <Suspense fallback={null}>
               <FloatingChatButton />
               <FloatingLogoAndMenuButton />
+              <InstallPWAPrompt />
             </Suspense>
           )}
         </div>

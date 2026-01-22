@@ -5,15 +5,17 @@ import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { 
   ArrowLeft, BookOpen, Clock, CheckCircle2, Play, ChevronRight,
-  ChevronLeft, Trophy, Video, FileText, List, Award
+  ChevronLeft, Trophy, Video, FileText, List, Award, Sparkles
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { MobileNav } from "@/components/navigation/mobile-nav";
 import { toast } from "sonner";
+import { useForceBlackBackground } from "@/hooks/use-force-black-background";
 
 // API URL
 const API_URL = 'http://127.0.0.1:8000/api';
@@ -26,6 +28,19 @@ export default function TemaPage() {
   const [tema, setTema] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [completando, setCompletando] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+
+  // Aplicar fondo negro con estrellas
+  useForceBlackBackground();
+
+  useEffect(() => {
+    // Agregar atributo al body para identificar la página
+    document.body.setAttribute('data-page', 'capacitaciones');
+    
+    return () => {
+      document.body.removeAttribute('data-page');
+    };
+  }, []);
 
   useEffect(() => {
     const loadTema = async () => {
@@ -48,8 +63,8 @@ export default function TemaPage() {
           
           setTema({
             titulo: data.titulo,
-            seccion: data.seccion?.nombre || 'Sección',
-            seccionId: data.seccion?.slug || 'seccion',
+            seccion: data.seccion_nombre || 'Sección',
+            seccionId: data.seccion_slug || 'seccion',
             nivel: data.nivel,
             duracion: data.duracion,
             videoUrl: videoUrl,
@@ -85,16 +100,17 @@ export default function TemaPage() {
         return;
       }
       
-      const response = await fetch(`${API_URL}/learning/temas/${temaId}/completar/`, {
+      const response = await fetch(`${API_URL}/learning/temas/${temaId}/marcar_completado/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         }
       });
       
       if (response.ok) {
         setTema({ ...tema, completado: true });
-        toast.success("¡Tema completado! 🎉");
+        setShowCompletionModal(true);
       } else {
         toast.error('Error al marcar como completado');
       }
@@ -103,6 +119,16 @@ export default function TemaPage() {
       toast.error('Error al marcar como completado');
     } finally {
       setCompletando(false);
+    }
+  };
+
+  const handleSiguienteTema = () => {
+    setShowCompletionModal(false);
+    if (tema.temaSiguiente) {
+      router.push(`/capacitaciones/temas/${tema.temaSiguiente.id}`);
+    } else {
+      // Si no hay siguiente tema, volver a la sección
+      router.push(`/capacitaciones/secciones/${tema.seccionId}`);
     }
   };
 
@@ -124,21 +150,11 @@ export default function TemaPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-black text-white relative overflow-hidden">
-      {/* Fondo */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <div className="stars"></div>
-        <div className="stars2"></div>
-        <div className="stars3"></div>
-      </div>
-
+    <div className="min-h-screen">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <MobileNav />
-        
-        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full xl:ml-64">
-          <div className="w-full max-w-5xl px-4 md:px-6 py-6 pb-24 md:pb-8 relative z-10">
+      <main className="pb-24 lg:ml-64 lg:pb-0 pt-28 md:pt-12 lg:pt-6 relative z-10 min-h-screen">
+        <div className="max-w-6xl mx-auto p-4 space-y-6">
             
             {/* Header */}
             <div className="mb-6">
@@ -361,9 +377,24 @@ export default function TemaPage() {
                           )}
                         </Button>
                       ) : (
-                        <div className="text-center py-2">
-                          <Award className="w-8 h-8 text-yellow-400 mx-auto mb-1" />
-                          <p className="text-xs text-[#00ff88] font-medium">¡Completado!</p>
+                        <div className="space-y-2">
+                          <div className="text-center py-2">
+                            <Award className="w-8 h-8 text-yellow-400 mx-auto mb-1" />
+                            <p className="text-xs text-[#00ff88] font-medium">¡Completado!</p>
+                          </div>
+                          
+                          {tema.temaSiguiente && (
+                            <Button
+                              onClick={handleSiguienteTema}
+                              className="w-full bg-[#00ff88] text-black hover:bg-[#00ff88]/80 text-xs"
+                              size="sm"
+                            >
+                              <span className="flex items-center gap-1">
+                                <span>Siguiente tema</span>
+                                <ChevronRight className="w-3 h-3 flex-shrink-0" />
+                              </span>
+                            </Button>
+                          )}
                         </div>
                       )}
 
@@ -403,7 +434,120 @@ export default function TemaPage() {
 
           </div>
         </main>
+
+        <MobileNav />
+
+        {/* Modal de Felicitaciones */}
+        <Dialog open={showCompletionModal} onOpenChange={setShowCompletionModal}>
+          <DialogContent className="max-w-md mx-auto bg-black/95 border-[#00ff88]/30 backdrop-blur-md">
+            <div className="text-center py-6">
+              {/* Animación de confeti */}
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 260, 
+                  damping: 20,
+                  duration: 0.6 
+                }}
+                className="mb-6"
+              >
+                <div className="relative">
+                  <Trophy className="w-20 h-20 text-yellow-400 mx-auto" />
+                  {/* Partículas animadas */}
+                  {[...Array(8)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ scale: 0, x: 0, y: 0 }}
+                      animate={{ 
+                        scale: [0, 1, 0],
+                        x: [0, (i % 2 === 0 ? 1 : -1) * (20 + i * 10)],
+                        y: [0, -20 - i * 5]
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        delay: 0.3 + i * 0.1,
+                        repeat: Infinity,
+                        repeatDelay: 2
+                      }}
+                      className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor: i % 3 === 0 ? '#00ff88' : i % 3 === 1 ? '#fbbf24' : '#8b5cf6'
+                      }}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Texto de felicitaciones */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  ¡Felicitaciones!
+                </h2>
+                <p className="text-gray-300 mb-6">
+                  Has completado este tema exitosamente
+                </p>
+              </motion.div>
+
+              {/* Información del tema completado */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 }}
+                className="bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-lg p-4 mb-6"
+              >
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <CheckCircle2 className="w-5 h-5 text-[#00ff88]" />
+                  <span className="font-semibold text-white">{tema?.titulo}</span>
+                </div>
+                <p className="text-sm text-gray-400">{tema?.seccion}</p>
+              </motion.div>
+
+              {/* Botones de acción */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                className="space-y-3"
+              >
+                {tema?.temaSiguiente ? (
+                  <Button
+                    onClick={handleSiguienteTema}
+                    className="w-full bg-[#00ff88] text-black hover:bg-[#00ff88]/80 font-semibold"
+                  >
+                    <span className="flex items-center gap-2">
+                      Pasar al siguiente tema
+                      <ChevronRight className="w-4 h-4" />
+                    </span>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => router.push(`/capacitaciones/secciones/${tema?.seccionId}`)}
+                    className="w-full bg-[#00ff88] text-black hover:bg-[#00ff88]/80 font-semibold"
+                  >
+                    <span className="flex items-center gap-2">
+                      Volver a la sección
+                      <Trophy className="w-4 h-4" />
+                    </span>
+                  </Button>
+                )}
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCompletionModal(false)}
+                  className="w-full border-white/20 text-white hover:bg-white/10"
+                >
+                  Continuar revisando
+                </Button>
+              </motion.div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
-    </div>
-  );
-}
+    );
+  }

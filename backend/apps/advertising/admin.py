@@ -251,7 +251,21 @@ class AdVideoViewAdmin(admin.ModelAdmin):
 
 
 # Registrar los modelos en el admin
-admin.site.register(Advertisement, AdvertisementAdmin)
-admin.site.register(AdImpression, AdImpressionAdmin)
-admin.site.register(AdClick, AdClickAdmin)
-admin.site.register(AdVideoView, AdVideoViewAdmin)
+# TEMPORALMENTE DESHABILITADO debido a incompatibilidad Django 4.2.16 + Python 3.14
+# admin.site.register(Advertisement, AdvertisementAdmin)
+# admin.site.register(AdImpression, AdImpressionAdmin)
+# admin.site.register(AdClick, AdClickAdmin)
+# admin.site.register(AdVideoView, AdVideoViewAdmin)
+
+# Registro simplificado temporal
+@admin.register(Advertisement)
+class SimpleAdvertisementAdmin(admin.ModelAdmin):
+    list_display = ['title', 'advertiser_name', 'status', 'is_active']
+    list_filter = ['status', 'is_active']
+    search_fields = ['title', 'advertiser_name']
+    readonly_fields = ['impressions', 'clicks', 'total_spent']
+
+# Solo registrar los modelos básicos sin configuraciones complejas
+admin.site.register(AdImpression)
+admin.site.register(AdClick) 
+admin.site.register(AdVideoView)

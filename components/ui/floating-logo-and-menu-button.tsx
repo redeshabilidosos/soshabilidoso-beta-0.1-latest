@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RegisterHabilidososMenuContent } from './register-habilidosos-menu-content';
 import { X, Trophy } from 'lucide-react';
 import { CyberButton } from './cyber-button';
+import { getSiteSettings } from '@/lib/services/site-settings';
 
 export function FloatingLogoAndMenuButton() {
   const { user } = useAuth();
@@ -20,15 +21,41 @@ export function FloatingLogoAndMenuButton() {
   const [isRegisterButtonExpanded, setIsRegisterButtonExpanded] = useState(false);
   const [isRegisterButtonShaking, setIsRegisterButtonShaking] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showRegisterButton, setShowRegisterButton] = useState(true);
 
   const pathname = usePathname();
   const isOnRegisterPage = pathname === '/register-habilidosos';
 
   useEffect(() => {
     setMounted(true);
+    
+    // Consultar la configuración del sitio
+    const fetchSettings = async () => {
+      try {
+        console.log('🔄 FloatingButton: Consultando configuraciones...');
+        const settings = await getSiteSettings();
+        console.log('📊 FloatingButton: Configuración recibida:', settings);
+        console.log('🎯 FloatingButton: show_register_habilidosos_button =', settings.show_register_habilidosos_button);
+        setShowRegisterButton(settings.show_register_habilidosos_button);
+      } catch (error) {
+        console.error('❌ FloatingButton: Error al obtener configuraciones, ocultando botón por seguridad');
+        // En caso de error, ocultar el botón por seguridad
+        setShowRegisterButton(false);
+      }
+    };
+    
+    fetchSettings();
+    
+    // Actualizar cada 5 segundos para reflejar cambios rápidamente
+    const interval = setInterval(fetchSettings, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
 
-  if (!user || !isVisible) {
+  console.log('🔍 FloatingButton: Renderizando con showRegisterButton =', showRegisterButton);
+
+  if (!user || !isVisible || !showRegisterButton) {
+    console.log('❌ FloatingButton: No se muestra. user:', !!user, 'isVisible:', isVisible, 'showRegisterButton:', showRegisterButton);
     return null;
   }
 

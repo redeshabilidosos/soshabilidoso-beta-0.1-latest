@@ -101,7 +101,7 @@ export default function EnterpriseProfilePage() {
     return (
       <div className="min-h-screen">
         <Sidebar />
-        <main className="pb-24 xl:ml-64 xl:pb-0">
+        <main className="pb-24 lg:ml-64 lg:pb-0">
           <div className="container mx-auto px-4 py-6 max-w-5xl">
             <div className="text-center py-20">
               <h2 className="text-xl text-white mb-4">Empresa no encontrada</h2>
@@ -120,7 +120,7 @@ export default function EnterpriseProfilePage() {
   return (
     <div className="min-h-screen">
       <Sidebar />
-      <main className="pb-24 xl:ml-64 xl:pb-0">
+      <main className="pb-24 lg:ml-64 lg:pb-0">
         <div className="container mx-auto px-4 py-6 max-w-5xl">
           <div className="flex items-center justify-between mb-6">
             <button

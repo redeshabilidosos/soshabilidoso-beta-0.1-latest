@@ -8,6 +8,7 @@ import { MobileNav } from '@/components/navigation/mobile-nav';
 import { AthleteProfileDetail } from '@/components/donations/athlete-profile-detail';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { getAthleteById, transformAthleteForDetail } from '@/lib/api/donations';
+import { useForceBlackBackground } from '@/hooks/use-force-black-background';
 
 export default function AthleteProfilePage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -16,6 +17,9 @@ export default function AthleteProfilePage() {
   const [athlete, setAthlete] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Aplicar fondo negro con estrellas
+  useForceBlackBackground();
 
   useEffect(() => {
     if (!authLoading && !user) {

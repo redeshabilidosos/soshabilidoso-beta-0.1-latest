@@ -12,8 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sidebar } from "@/components/navigation/sidebar";
+import { MobileNav } from "@/components/navigation/mobile-nav";
 import { communitiesService, CommunityCategory, Community } from "@/lib/services/communities.service";
 import { useToast } from "@/hooks/use-toast";
+import { useForceBlackBackground } from "@/hooks/use-force-black-background";
 
 export default function CategoryPage() {
   const router = useRouter();
@@ -27,6 +30,9 @@ export default function CategoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+
+  // Aplicar fondo negro con estrellas
+  useForceBlackBackground();
 
   useEffect(() => {
     if (slug) {
@@ -109,7 +115,7 @@ export default function CategoryPage() {
       onClick={() => router.push(`/communities/${community.id}`)}
       className="cursor-pointer"
     >
-      <Card className="bg-black/60 border-white/10 hover:border-[#00ff88]/50 transition-all overflow-hidden">
+      <Card className="glass-card hover:border-neon-green/50 transition-all overflow-hidden">
         <div 
           className="h-32 relative"
           style={{ 
@@ -150,7 +156,7 @@ export default function CategoryPage() {
                   <Badge 
                     key={sub.id} 
                     variant="outline" 
-                    className="text-xs cursor-pointer hover:bg-[#00ff88]/20"
+                    className="text-xs cursor-pointer hover:bg-neon-green/20"
                     onClick={(e) => {
                       e.stopPropagation();
                       router.push(`/communities/${sub.id}`);
@@ -177,8 +183,8 @@ export default function CategoryPage() {
               variant={community.is_member ? "outline" : "default"}
               onClick={(e) => handleJoinCommunity(community.id, e)}
               className={community.is_member 
-                ? "border-[#00ff88] text-[#00ff88] hover:bg-[#00ff88]/10" 
-                : "bg-[#00ff88] text-black hover:bg-[#00ff88]/80"}
+                ? "border-neon-green text-neon-green hover:bg-neon-green/10" 
+                : "bg-neon-green text-black hover:bg-neon-green/80"}
             >
               {community.is_member ? "✓ Suscrito" : "Unirse"}
             </Button>
@@ -196,7 +202,7 @@ export default function CategoryPage() {
       onClick={() => router.push(`/communities/${community.id}`)}
       className="cursor-pointer"
     >
-      <Card className="bg-black/40 border-white/10 hover:border-[#00ff88]/30 transition-all">
+      <Card className="glass-card hover:border-neon-green/30 transition-all">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             <div 
@@ -218,7 +224,7 @@ export default function CategoryPage() {
               variant={community.is_member ? "outline" : "ghost"}
               onClick={(e) => handleJoinCommunity(community.id, e)}
               className={community.is_member 
-                ? "shrink-0 border-[#00ff88] text-[#00ff88] text-xs px-2" 
+                ? "shrink-0 border-neon-green text-neon-green text-xs px-2" 
                 : "shrink-0"}
             >
               {community.is_member ? (
@@ -240,15 +246,15 @@ export default function CategoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00ff88]"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-neon-green"></div>
       </div>
     );
   }
 
   if (!category) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+      <div className="min-h-screen flex items-center justify-center text-white">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Categoría no encontrada</h2>
           <Button onClick={() => router.push('/communities')}>
@@ -260,195 +266,191 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden">
-      {/* Fondo de estrellas animadas con CSS */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <div className="stars"></div>
-        <div className="stars2"></div>
-        <div className="stars3"></div>
-      </div>
+    <div className="min-h-screen">
+      <Sidebar />
       
-      {/* Contenido */}
-      <div className="relative z-10">
-      {/* Header */}
-      <div 
-        className="py-12 px-4"
-        style={{ 
-          background: `linear-gradient(180deg, ${category.color}20 0%, transparent 100%)`
-        }}
-      >
-        <div className="max-w-6xl mx-auto">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="mb-4 hover:bg-white/10"
+      <main className="pb-24 lg:ml-64 lg:pb-0 pt-28 md:pt-12 lg:pt-6 relative z-10 min-h-screen">
+        <div className="max-w-6xl mx-auto p-4 space-y-6">
+          {/* Header */}
+          <div 
+            className="glass-card p-6 rounded-2xl"
+            style={{ 
+              background: `linear-gradient(180deg, ${category.color}20 0%, rgba(255,255,255,0.05) 100%)`
+            }}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Regresar
-          </Button>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-4 mb-6"
-          >
-            <div 
-              className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl"
-              style={{ backgroundColor: `${category.color}30` }}
+            <Button
+              variant="ghost"
+              onClick={() => router.back()}
+              className="mb-4 hover:bg-white/10"
             >
-              {category.icon}
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold">{category.name}</h1>
-              <p className="text-gray-400">{category.description}</p>
-              <div className="flex gap-4 mt-2 text-sm text-gray-500">
-                <span>{mainCommunities.length} comunidades</span>
-                <span>{subcommunities.length} subcomunidades</span>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Regresar
+            </Button>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-4 mb-6"
+            >
+              <div 
+                className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl"
+                style={{ backgroundColor: category.color }}
+              >
+                {category.icon}
               </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-2">{category.name}</h1>
+                <p className="text-gray-300">{category.description}</p>
+                <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
+                  <span>{mainCommunities.length + subcommunities.length} comunidades</span>
+                  <span>•</span>
+                  <span>{mainCommunities.reduce((acc, c) => acc + (c.member_count || 0), 0)} miembros</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Buscar comunidades..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400"
+              />
             </div>
-          </motion.div>
-
-          {/* Search */}
-          <div className="max-w-md relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <Input
-              placeholder={`Buscar en ${category.name}...`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-black/50 border-white/20"
-            />
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-4 pb-12">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-black/50 border border-white/10 mb-6">
-            <TabsTrigger value="all">
-              Todas ({mainCommunities.length + subcommunities.length})
-            </TabsTrigger>
-            <TabsTrigger value="main">
-              Principales ({filteredMain.length})
-            </TabsTrigger>
-            <TabsTrigger value="sub">
-              Subcomunidades ({filteredSub.length})
-            </TabsTrigger>
-          </TabsList>
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 bg-white/10">
+              <TabsTrigger value="all">
+                Todas ({mainCommunities.length + subcommunities.length})
+              </TabsTrigger>
+              <TabsTrigger value="main">
+                Principales ({filteredMain.length})
+              </TabsTrigger>
+              <TabsTrigger value="sub">
+                Subcomunidades ({filteredSub.length})
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="all" className="space-y-8">
-            {/* Main Communities */}
-            {filteredMain.length > 0 && (
-              <section>
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <Grid3X3 className="w-5 h-5" style={{ color: category.color }} />
-                  Comunidades Principales
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredMain.map((community) => (
-                    <MainCommunityCard key={community.id} community={community} />
-                  ))}
-                  
-                  {/* Tarjeta de Comunidad Educativa Capacitaciones */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    whileHover={{ scale: 1.01 }}
-                    onClick={() => router.push('/capacitaciones')}
-                    className="cursor-pointer"
-                  >
-                    <Card className="bg-black/60 border-white/10 hover:border-[#00ff88]/50 transition-all overflow-hidden h-full">
-                      <div 
-                        className="h-32 relative"
-                        style={{ 
-                          background: `linear-gradient(135deg, #3b82f620, #8b5cf640)`
-                        }}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                        <div className="absolute bottom-4 left-4 right-4">
-                          <div className="flex items-end gap-3">
-                            <div 
-                              className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl border-2 border-black bg-gradient-to-br from-blue-500 to-purple-600"
-                            >
-                              📚
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-bold text-white text-lg">Comunidad Educativa Capacitaciones</h3>
-                              <p className="text-sm text-gray-300">Aprende y crece con nosotros</p>
+            <TabsContent value="all" className="space-y-8">
+              {/* Main Communities */}
+              {filteredMain.length > 0 && (
+                <section>
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
+                    <Grid3X3 className="w-5 h-5" style={{ color: category.color }} />
+                    Comunidades Principales
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {filteredMain.map((community) => (
+                      <MainCommunityCard key={community.id} community={community} />
+                    ))}
+                    
+                    {/* Tarjeta de Comunidad Educativa Capacitaciones */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      whileHover={{ scale: 1.01 }}
+                      onClick={() => router.push('/capacitaciones')}
+                      className="cursor-pointer"
+                    >
+                      <Card className="glass-card hover:border-neon-green/50 transition-all overflow-hidden h-full">
+                        <div 
+                          className="h-32 relative"
+                          style={{ 
+                            background: `linear-gradient(135deg, #3b82f620, #8b5cf640)`
+                          }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                          <div className="absolute bottom-4 left-4 right-4">
+                            <div className="flex items-end gap-3">
+                              <div 
+                                className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl border-2 border-black bg-gradient-to-br from-blue-500 to-purple-600"
+                              >
+                                📚
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="font-bold text-white text-lg">Comunidad Educativa Capacitaciones</h3>
+                                <p className="text-sm text-gray-300">Aprende y crece con nosotros</p>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <CardContent className="p-4">
-                        <p className="text-sm text-gray-400 line-clamp-2 mb-4">
-                          Accede a cursos, talleres y capacitaciones exclusivas para mejorar tus habilidades deportivas y profesionales.
-                        </p>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">
-                            Cursos y talleres disponibles
-                          </span>
-                          <Button
-                            size="sm"
-                            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push('/capacitaciones');
-                            }}
-                          >
-                            Ver Capacitaciones
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </div>
-              </section>
-            )}
+                        <CardContent className="p-4">
+                          <p className="text-sm text-gray-400 line-clamp-2 mb-4">
+                            Accede a cursos, talleres y capacitaciones exclusivas para mejorar tus habilidades deportivas y profesionales.
+                          </p>
+                          
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">
+                              Cursos y talleres disponibles
+                            </span>
+                            <Button
+                              size="sm"
+                              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push('/capacitaciones');
+                              }}
+                            >
+                              Ver Capacitaciones
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  </div>
+                </section>
+              )}
 
-            {/* Subcommunities */}
-            {filteredSub.length > 0 && (
-              <section>
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <List className="w-5 h-5" style={{ color: category.color }} />
-                  Subcomunidades
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {filteredSub.map((community) => (
-                    <SubcommunityCard key={community.id} community={community} />
-                  ))}
-                </div>
-              </section>
-            )}
-          </TabsContent>
+              {/* Subcommunities */}
+              {filteredSub.length > 0 && (
+                <section>
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
+                    <List className="w-5 h-5" style={{ color: category.color }} />
+                    Subcomunidades
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {filteredSub.map((community) => (
+                      <SubcommunityCard key={community.id} community={community} />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </TabsContent>
 
-          <TabsContent value="main">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredMain.map((community) => (
-                <MainCommunityCard key={community.id} community={community} />
-              ))}
-            </div>
-            {filteredMain.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                No hay comunidades principales en esta categoría
+            <TabsContent value="main">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredMain.map((community) => (
+                  <MainCommunityCard key={community.id} community={community} />
+                ))}
               </div>
-            )}
-          </TabsContent>
+              {filteredMain.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  No hay comunidades principales en esta categoría
+                </div>
+              )}
+            </TabsContent>
 
-          <TabsContent value="sub">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {filteredSub.map((community) => (
-                <SubcommunityCard key={community.id} community={community} />
-              ))}
-            </div>
-            {filteredSub.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                No hay subcomunidades en esta categoría
+            <TabsContent value="sub">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredSub.map((community) => (
+                  <SubcommunityCard key={community.id} community={community} />
+                ))}
               </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-      </div>
+              {filteredSub.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  No hay subcomunidades en esta categoría
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
+
+      <MobileNav />
     </div>
   );
 }

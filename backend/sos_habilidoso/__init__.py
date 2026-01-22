@@ -1,9 +1,7 @@
-# SOS-HABILIDOSO Django Project
+"""
+Inicialización del proyecto SOS-HABILIDOSO
+"""
+import pymysql
 
-# Habilitar PyMySQL como reemplazo de MySQLdb si está disponible
-try:
-    import pymysql
-    pymysql.install_as_MySQLdb()
-except Exception:
-    # Si PyMySQL no está instalado aún, se omitirá sin romper la app
-    pass
+# Configurar PyMySQL como driver de MySQL antes de que Django lo necesite
+pymysql.install_as_MySQLdb()

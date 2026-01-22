@@ -198,7 +198,7 @@ export function AdCard({ ad, position = 0, variant = 'feed' }: AdCardProps) {
         <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
           <img
             src={ad.carousel_images[currentCarouselIndex]}
-            alt={`${ad.title} - Imagen ${currentCarouselIndex + 1}`}
+            alt={`${ad.title || 'Anuncio'} - Imagen ${currentCarouselIndex + 1}`}
             className="w-full h-full object-cover"
           />
           
@@ -243,7 +243,7 @@ export function AdCard({ ad, position = 0, variant = 'feed' }: AdCardProps) {
         <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
           <img
             src={ad.media_url}
-            alt={ad.title}
+            alt={ad.title || 'Imagen del anuncio'}
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
         </div>
@@ -275,25 +275,25 @@ export function AdCard({ ad, position = 0, variant = 'feed' }: AdCardProps) {
         {ad.advertiser_logo_url ? (
           <img
             src={ad.advertiser_logo_url}
-            alt={ad.advertiser_name}
+            alt={ad.advertiser_name || 'Logo del anunciante'}
             className="w-10 h-10 rounded-full object-cover ring-2 ring-neon-green/30"
           />
         ) : (
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-green to-neon-blue flex items-center justify-center">
             <span className="text-white font-bold text-sm">
-              {ad.advertiser_name.charAt(0).toUpperCase()}
+              {ad.advertiser_name?.charAt(0)?.toUpperCase() || 'A'}
             </span>
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h4 className="text-white font-medium truncate">{ad.advertiser_name}</h4>
+          <h4 className="text-white font-medium truncate">{ad.advertiser_name || 'Anunciante'}</h4>
           <p className="text-gray-400 text-xs">Patrocinado</p>
         </div>
       </div>
 
       {/* Título y descripción */}
       <div className="mb-3">
-        <h3 className="text-white font-semibold mb-1 line-clamp-2">{ad.title}</h3>
+        <h3 className="text-white font-semibold mb-1 line-clamp-2">{ad.title || 'Anuncio'}</h3>
         {ad.description && (
           <p className="text-gray-300 text-sm line-clamp-2">{ad.description}</p>
         )}

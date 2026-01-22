@@ -323,7 +323,7 @@ export function LiveStreamsDropdown() {
                 >
                   {filterType === 'all' && 'Todas'}
                   {filterType === 'meeting' && 'Reuniones'}
-                  {filterType === 'reel' && 'Reels'}
+                  {filterType === 'reel' && 'Clips'}
                   {filterType === 'community_event' && 'Eventos'}
                   {filterType === 'match' && 'Partidos'}
                 </CyberButton>

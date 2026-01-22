@@ -19,6 +19,7 @@ interface Comment {
   isLiked: boolean;
   createdAt: string;
   replies?: Comment[];
+  parent?: string | null;
 }
 
 interface ReelCommentsProps {
@@ -26,7 +27,7 @@ interface ReelCommentsProps {
   onClose: () => void;
   reelId: string;
   comments: Comment[];
-  onAddComment: (content: string) => void;
+  onAddComment: (content: string, parentId?: string) => void;
   onLikeComment: (commentId: string) => void;
 }
 
@@ -44,7 +45,7 @@ export function ReelComments({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newComment.trim()) {
-      onAddComment(newComment.trim());
+      onAddComment(newComment.trim(), replyingTo);
       setNewComment('');
       setReplyingTo(null);
     }
@@ -133,17 +134,24 @@ export function ReelComments({
                         )}
                       </button>
                       <button
-                        onClick={() => setReplyingTo(comment.id)}
-                        className="flex items-center space-x-1 text-gray-400 hover:text-white transition-colors"
+                        onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                        className={cn(
+                          "flex items-center space-x-1 transition-colors",
+                          replyingTo === comment.id 
+                            ? "text-neon-green" 
+                            : "text-gray-400 hover:text-white"
+                        )}
                       >
                         <Reply className="w-4 h-4" />
-                        <span className="text-xs">Responder</span>
+                        <span className="text-xs">
+                          {replyingTo === comment.id ? 'Cancelar' : 'Responder'}
+                        </span>
                       </button>
                     </div>
 
                     {/* Replies */}
                     {comment.replies && comment.replies.length > 0 && (
-                      <div className="ml-6 mt-3 space-y-2">
+                      <div className="ml-6 mt-3 space-y-2 border-l-2 border-white/10 pl-4">
                         {comment.replies.map((reply) => (
                           <div key={reply.id} className="flex space-x-2">
                             <Image
@@ -159,6 +167,9 @@ export function ReelComments({
                                   <span className="text-white font-medium text-xs">
                                     {reply.user.displayName}
                                   </span>
+                                  <span className="text-gray-400 text-xs">
+                                    @{reply.user.username}
+                                  </span>
                                   <span className="text-gray-500 text-xs">
                                     {formatTimeAgo(reply.createdAt)}
                                   </span>
@@ -166,6 +177,24 @@ export function ReelComments({
                                 <p className="text-white text-xs leading-relaxed">
                                   {reply.content}
                                 </p>
+                              </div>
+                              
+                              {/* Reply Actions */}
+                              <div className="flex items-center space-x-4 mt-1 ml-3">
+                                <button
+                                  onClick={() => onLikeComment(reply.id)}
+                                  className="flex items-center space-x-1 text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                  <Heart 
+                                    className={cn(
+                                      "w-3 h-3",
+                                      reply.isLiked ? "text-red-500 fill-current" : ""
+                                    )} 
+                                  />
+                                  {reply.likes > 0 && (
+                                    <span className="text-xs">{reply.likes}</span>
+                                  )}
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -187,7 +216,11 @@ export function ReelComments({
                 type="text"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder={replyingTo ? "Escribe una respuesta..." : "Añade un comentario..."}
+                placeholder={
+                  replyingTo 
+                    ? `Respondiendo a ${comments.find(c => c.id === replyingTo)?.user.displayName || 'usuario'}...`
+                    : "Añade un comentario..."
+                }
                 className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green focus:border-transparent"
                 maxLength={500}
               />
@@ -207,13 +240,16 @@ export function ReelComments({
           </form>
           
           {replyingTo && (
-            <div className="flex items-center justify-between mt-2 px-2">
-              <span className="text-gray-400 text-sm">
-                Respondiendo a comentario
-              </span>
+            <div className="flex items-center justify-between mt-2 px-2 py-2 bg-neon-green/10 rounded-lg border border-neon-green/20">
+              <div className="flex items-center space-x-2">
+                <Reply className="w-4 h-4 text-neon-green" />
+                <span className="text-neon-green text-sm">
+                  Respondiendo a {comments.find(c => c.id === replyingTo)?.user.displayName}
+                </span>
+              </div>
               <button
                 onClick={() => setReplyingTo(null)}
-                className="text-gray-400 hover:text-white text-sm"
+                className="text-gray-400 hover:text-white text-sm px-2 py-1 rounded hover:bg-white/10 transition-colors"
               >
                 Cancelar
               </button>

@@ -13,6 +13,7 @@ import { messagingService, ChatRoom, Message } from '@/lib/services/messaging.se
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { UserProfileDialog } from '@/components/ui/user-profile-dialog';
+import EmojiPicker from 'emoji-picker-react';
 
 interface ChatWindowProps {
   chatId: string;
@@ -74,11 +75,28 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
     const savedBg = localStorage.getItem(`chat_bg_${chatId}`);
     if (savedColor) setBubbleColor(savedColor);
     if (savedBg) setChatBackground(savedBg);
+    
+    // Enfocar el input cuando se carga el chat
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
   }, [chatId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Cerrar emoji picker al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showEmojiPicker && !event.target?.closest('.emoji-picker-container')) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showEmojiPicker]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -113,14 +131,21 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
       const message = await messagingService.sendMessage(chatId, newMessage.trim());
       setMessages(prev => [...prev, message]);
       setNewMessage('');
+      // Mantener el foco en el input después de enviar
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setSending(false);
-      // Asegurar que el input mantenga el foco después de enviar
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e as any);
     }
   };
 
@@ -549,7 +574,7 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
             </div>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-0">
             {messages.map((message, index) => {
               const isOwn = message.sender.id === userId;
               const showAvatar = !isOwn && (index === 0 || messages[index - 1]?.sender.id !== message.sender.id);
@@ -564,8 +589,8 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
                   className={cn(
                     "flex items-end gap-2 group relative",
                     isOwn ? "justify-end" : "justify-start",
-                    isLastInGroup ? "mb-3" : "mb-0.5",
-                    hasReactions && isLastInGroup ? "mb-5" : ""
+                    isLastInGroup ? "mb-1" : "mb-0",
+                    hasReactions && isLastInGroup ? "mb-1.5" : ""
                   )}
                 >
                   {!isOwn && (
@@ -594,7 +619,7 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
                     {message.content && (
                       <div
                         className={cn(
-                          "px-4 py-2.5 shadow-lg relative",
+                          "px-3 py-2 shadow-lg relative",
                           isOwn 
                             ? cn(
                                 bubbleStyle.bg, 
@@ -614,7 +639,7 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
                           selectedMessageForReaction === message.id ? null : message.id
                         )}
                       >
-                        <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">
+                        <p className="text-[15px] leading-snug whitespace-pre-wrap break-words">
                           {message.content}
                         </p>
                         
@@ -712,16 +737,18 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
               ref={inputRef}
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
               placeholder="Escribe un mensaje..."
-              className="w-full px-4 py-3 bg-white/10 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-neon-green/50 focus:bg-white/15 transition-all text-[15px]"
+              className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-neon-green/50 focus:bg-white/15 transition-all text-[15px]"
               disabled={sending}
+              autoFocus
             />
             <button
               type="button"
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-yellow-400"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-yellow-400"
             >
-              <Smile className="w-5 h-5" />
+              <Smile className="w-4 h-4" />
             </button>
           </div>
           
@@ -744,22 +771,25 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
         </form>
 
         {showEmojiPicker && (
-          <div className="absolute bottom-full left-0 right-0 mb-2 mx-3 p-3 bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/10 animate-in slide-in-from-bottom-2 duration-200">
-            <div className="flex flex-wrap gap-2 justify-center">
-              {['😀', '😂', '❤️', '🔥', '👍', '👏', '🎉', '😍', '🤔', '😢', '😮', '🙏', '💪', '⚽', '🏆', '✨'].map(emoji => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => {
-                    setNewMessage(prev => prev + emoji);
+          <div className="absolute bottom-full left-0 right-0 mb-2 mx-3 animate-in slide-in-from-bottom-2 duration-200 emoji-picker-container">
+            <div className="flex justify-center">
+              <div className="bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+                <EmojiPicker
+                  onEmojiClick={(emojiData) => {
+                    setNewMessage(prev => prev + emojiData.emoji);
                     setShowEmojiPicker(false);
                     inputRef.current?.focus();
                   }}
-                  className="text-2xl p-2 hover:bg-white/10 rounded-lg transition-all hover:scale-125"
-                >
-                  {emoji}
-                </button>
-              ))}
+                  theme="dark"
+                  width={350}
+                  height={400}
+                  searchDisabled={false}
+                  skinTonesDisabled={false}
+                  previewConfig={{
+                    showPreview: false
+                  }}
+                />
+              </div>
             </div>
           </div>
         )}

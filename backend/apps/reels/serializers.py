@@ -54,8 +54,16 @@ class ReelCreateSerializer(serializers.ModelSerializer):
 
 class ReelCommentSerializer(serializers.ModelSerializer):
     author = UserBasicSerializer(read_only=True)
+    likes_count = serializers.ReadOnlyField()
+    is_liked = serializers.SerializerMethodField()
     
     class Meta:
         model = ReelComment
-        fields = ['id', 'author', 'content', 'parent', 'created_at']
+        fields = ['id', 'author', 'content', 'parent', 'likes_count', 'is_liked', 'created_at']
         read_only_fields = ['id', 'author', 'created_at']
+    
+    def get_is_liked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.is_liked_by(request.user)
+        return False

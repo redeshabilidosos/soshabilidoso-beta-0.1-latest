@@ -15,7 +15,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-producti
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver').split(',')
 
 # Application definition
 DJANGO_APPS = [
@@ -35,6 +35,14 @@ THIRD_PARTY_APPS = [
     'channels',
 ]
 
+# Habilitar drf-spectacular de manera condicional
+ENABLE_API_DOCS = config('ENABLE_API_DOCS', default=False, cast=bool)
+if ENABLE_API_DOCS:
+    THIRD_PARTY_APPS += [
+        'drf_spectacular',
+        'drf_spectacular_sidecar',
+    ]
+
 LOCAL_APPS = [
     'apps.authentication',
     'apps.users',
@@ -53,6 +61,7 @@ LOCAL_APPS = [
     'apps.donations',
     'apps.enterprises',
     'apps.payments',
+    'apps.site_settings',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -189,6 +198,10 @@ REST_FRAMEWORK = {
     ],
 }
 
+# Configurar drf-spectacular solo si está habilitado
+if ENABLE_API_DOCS:
+    REST_FRAMEWORK['DEFAULT_SCHEMA_CLASS'] = 'drf_spectacular.openapi.AutoSchema'
+
 # JWT Settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=config('JWT_ACCESS_TOKEN_LIFETIME', default=60, cast=int)),
@@ -281,3 +294,161 @@ LOGGING = {
         },
     },
 }
+
+# ================================================================================
+# DRF-SPECTACULAR CONFIGURATION - API DOCUMENTATION
+# ================================================================================
+
+# Solo configurar drf-spectacular si está habilitado
+if ENABLE_API_DOCS:
+    SPECTACULAR_SETTINGS = {
+        'TITLE': 'SOS-HABILIDOSO API',
+        'DESCRIPTION': '''
+        API REST completa para la plataforma social SOS-HABILIDOSO.
+        
+        Esta API proporciona endpoints para:
+        - 🔐 Autenticación y gestión de usuarios
+        - 📱 Feed social y publicaciones
+        - 🎥 Reels y contenido multimedia
+        - 🏛️ Eventos culturales
+        - 📢 Clasificados y anuncios
+        - 🎓 Sistema de aprendizaje
+        - 👥 Comunidades y grupos
+        - 💬 Mensajería y notificaciones
+        - 💰 Donaciones y pagos
+        - 🏢 Perfiles empresariales
+        - ⚙️ Configuración del sitio
+        
+        ## Autenticación
+        La API utiliza JWT (JSON Web Tokens) para la autenticación.
+        
+        ### Obtener token:
+        ```
+        POST /api/auth/login/
+        {
+            "username": "tu_usuario",
+            "password": "tu_contraseña"
+        }
+        ```
+        
+        ### Usar token:
+        ```
+        Authorization: Bearer <tu_access_token>
+        ```
+        
+        ## Códigos de respuesta
+        - 200: Éxito
+        - 201: Creado exitosamente
+        - 400: Error en los datos enviados
+        - 401: No autenticado
+        - 403: Sin permisos
+        - 404: No encontrado
+        - 500: Error del servidor
+        ''',
+        'VERSION': '1.0.0',
+        'SERVE_INCLUDE_SCHEMA': False,
+        
+        # Usar sidecar para servir archivos estáticos
+        'SWAGGER_UI_DIST': 'SIDECAR',
+        'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+        'REDOC_DIST': 'SIDECAR',
+        
+        # Configuración de la interfaz
+        'SWAGGER_UI_SETTINGS': {
+            'deepLinking': True,
+            'persistAuthorization': True,
+            'displayOperationId': True,
+            'displayRequestDuration': True,
+            'filter': True,
+            'tryItOutEnabled': True,
+            'supportedSubmitMethods': ['get', 'post', 'put', 'patch', 'delete'],
+        },
+        
+        # Configuración de ReDoc
+        'REDOC_UI_SETTINGS': {
+            'nativeScrollbars': True,
+            'theme': {
+                'colors': {
+                    'primary': {
+                        'main': '#00ff88'  # Color verde de SOS-HABILIDOSO
+                    }
+                }
+            }
+        },
+        
+        # Configuración del esquema
+        'SCHEMA_PATH_PREFIX': '/api/',
+        'COMPONENT_SPLIT_REQUEST': True,
+        'SORT_OPERATIONS': False,
+        
+        # Configuración de autenticación en la documentación
+        'AUTHENTICATION_WHITELIST': [
+            'rest_framework_simplejwt.authentication.JWTAuthentication',
+        ],
+        
+        # Configuración de tags
+        'TAGS': [
+            {'name': 'Authentication', 'description': 'Endpoints de autenticación y registro'},
+            {'name': 'Users', 'description': 'Gestión de usuarios y perfiles'},
+            {'name': 'Posts', 'description': 'Publicaciones del feed social'},
+            {'name': 'Reels', 'description': 'Videos cortos y contenido multimedia'},
+            {'name': 'Cultural Events', 'description': 'Eventos culturales y actividades'},
+            {'name': 'Classifieds', 'description': 'Clasificados y anuncios'},
+            {'name': 'Learning', 'description': 'Sistema de aprendizaje y cursos'},
+            {'name': 'Communities', 'description': 'Comunidades y grupos'},
+            {'name': 'Messaging', 'description': 'Mensajería y chat'},
+            {'name': 'Notifications', 'description': 'Sistema de notificaciones'},
+            {'name': 'Donations', 'description': 'Donaciones y crowdfunding'},
+            {'name': 'Enterprises', 'description': 'Perfiles empresariales'},
+            {'name': 'Payments', 'description': 'Procesamiento de pagos'},
+            {'name': 'Media', 'description': 'Gestión de archivos multimedia'},
+            {'name': 'Stories', 'description': 'Historias temporales'},
+            {'name': 'Site Settings', 'description': 'Configuración del sitio'},
+            {'name': 'Reality', 'description': 'Datos de realidad aumentada'},
+        ],
+        
+        # Configuración de servidores
+        'SERVERS': [
+            {
+                'url': 'http://127.0.0.1:8000',
+                'description': 'Servidor de desarrollo local'
+            },
+            {
+                'url': 'https://api.soshabilidoso.com',
+                'description': 'Servidor de producción'
+            }
+        ],
+        
+        # Configuración de contacto
+        'CONTACT': {
+            'name': 'Equipo SOS-HABILIDOSO',
+            'email': 'api@soshabilidoso.com',
+            'url': 'https://soshabilidoso.com'
+        },
+        
+        # Licencia
+        'LICENSE': {
+            'name': 'Propietario',
+            'url': 'https://soshabilidoso.com/license'
+        },
+        
+        # Configuración adicional
+        'EXTERNAL_DOCS': {
+            'description': 'Documentación completa',
+            'url': 'https://docs.soshabilidoso.com'
+        },
+        
+        # Configuración de ejemplos
+        'ENUM_NAME_OVERRIDES': {
+            'ValidationErrorEnum': 'django.core.exceptions.ValidationError',
+        },
+        
+        # Configuración de componentes
+        'COMPONENT_NO_READ_ONLY_REQUIRED': True,
+        'PREPROCESSING_HOOKS': [
+            'drf_spectacular.hooks.preprocess_exclude_path_format',
+        ],
+        'POSTPROCESSING_HOOKS': [
+            'drf_spectacular.hooks.postprocess_schema_enums',
+        ],
+    }

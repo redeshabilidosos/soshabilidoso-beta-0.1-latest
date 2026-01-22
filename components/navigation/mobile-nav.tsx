@@ -38,7 +38,7 @@ const leftNavigation = [
 ];
 
 const rightNavigation = [
-  { name: 'Reels', href: '/reels', icon: Play },
+  { name: 'Clips', href: '/reels', icon: Play },
   { name: 'Notificaciones', href: '/notifications', icon: Bell },
 ];
 

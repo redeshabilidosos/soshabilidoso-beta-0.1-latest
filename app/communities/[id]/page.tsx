@@ -40,6 +40,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { UserProfileDialog } from '@/components/ui/user-profile-dialog';
 import { toast } from 'sonner';
+import { useForceBlackBackground } from '@/hooks/use-force-black-background';
 
 interface Community {
   id: string;
@@ -85,6 +86,9 @@ export default function CommunityPage() {
   const params = useParams();
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
+  
+  // Forzar fondo negro en páginas de comunidades
+  useForceBlackBackground();
   
   const communityId = Array.isArray(params.id) ? params.id[0] : (params.id as string);
 
@@ -734,7 +738,7 @@ export default function CommunityPage() {
             </div>
 
             {/* Grid de contenido */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6 relative z-10 max-w-full overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 relative z-10 max-w-full overflow-hidden">
               {/* Sidebar izquierdo - Info */}
               <div className="lg:col-span-1 space-y-4">
                 {/* Descripción */}

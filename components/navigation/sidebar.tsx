@@ -30,7 +30,7 @@ const navigation = [
   { name: 'Perfil', href: '/profile', icon: User },
   { name: 'Buscar', href: '/users', icon: Search },
   { name: 'Notificaciones', href: '/notifications', icon: Bell },
-  { name: 'Reels', href: '/reels', icon: Play },
+  { name: 'Clips', href: '/reels', icon: Play },
   { name: 'En Vivo', href: '/live', icon: Radio },
   { name: 'Comunidades', href: '/communities', icon: Group },
   { name: 'Clasificados', href: '/classifieds', icon: Briefcase },
@@ -113,14 +113,15 @@ export const Sidebar = memo(function Sidebar() {
   const sidebarContent = (
     <aside 
       id="main-sidebar"
-      className="hidden lg:flex flex-col w-64 h-screen p-4 bg-white/5 backdrop-blur-md border-r border-neon-green/20 rounded-r-2xl"
+      className="hidden lg:flex flex-col w-64 h-screen p-4 bg-black/95 backdrop-blur-md border-r border-neon-green/20 rounded-r-2xl"
       style={{ 
         position: 'fixed',
         top: 0,
         left: 0,
         zIndex: 9999,
         overflowY: 'auto',
-        overflowX: 'hidden'
+        overflowX: 'hidden',
+        backgroundColor: '#000000 !important'
       }}
     >
       <div className="flex flex-col h-full">

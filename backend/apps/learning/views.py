@@ -17,6 +17,7 @@ class SeccionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Seccion.objects.filter(is_active=True)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     lookup_field = 'slug'
+    pagination_class = None  # Desactivar paginación para secciones
     
     def get_serializer_class(self):
         if self.action == 'retrieve':

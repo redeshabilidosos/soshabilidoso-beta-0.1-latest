@@ -165,7 +165,8 @@ export default function ReelsPage() {
             username: reel.author.username,
             displayName: reel.author.display_name || reel.author.username,
             avatar: reel.author.avatar || '/logo.png',
-            isVerified: false
+            isVerified: reel.author.is_verified || false,
+            isFollowing: reel.author.is_following || false
           },
           likes: reel.like_count || 0,
           comments: reel.comment_count || 0,
@@ -279,7 +280,8 @@ export default function ReelsPage() {
 
   const handleComment = (reelId: string) => {
     console.log('Comment on reel:', reelId);
-    // Aquí implementarías la lógica para abrir el modal de comentarios
+    // La funcionalidad de comentarios se maneja en el componente ReelCard
+    // Este callback se mantiene para compatibilidad
   };
 
   const handleShare = (reel: any) => {
@@ -293,9 +295,64 @@ export default function ReelsPage() {
     }
   };
 
-  const handleFollow = (userId: string) => {
-    console.log('Follow user:', userId);
-    // Aquí implementarías la lógica para seguir al usuario
+  const handleFollow = async (userId: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        toast.error('Debes iniciar sesión');
+        return;
+      }
+
+      // Encontrar el username del usuario en los reels
+      const targetReel = reels.find(reel => reel.user.id === userId);
+      if (!targetReel) {
+        toast.error('Usuario no encontrado');
+        return;
+      }
+
+      const username = targetReel.user.username;
+
+      // Llamar a la API para seguir/dejar de seguir usando username
+      const isCurrentlyFollowing = targetReel.user.isFollowing;
+      const endpoint = `http://127.0.0.1:8000/api/users/${isCurrentlyFollowing ? 'unfollow' : 'follow'}/${username}/`;
+      const method = isCurrentlyFollowing ? 'DELETE' : 'POST';
+
+      const response = await fetch(endpoint, {
+        method: method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al seguir usuario');
+      }
+
+      const data = await response.json();
+      console.log('✅ Usuario seguido/no seguido:', data);
+      
+      // Actualizar el estado local
+      setReels(prev => 
+        prev.map(reel => {
+          if (reel.user.id === userId) {
+            return {
+              ...reel,
+              user: {
+                ...reel.user,
+                isFollowing: !reel.user.isFollowing
+              }
+            };
+          }
+          return reel;
+        })
+      );
+
+      toast.success(isCurrentlyFollowing ? 'Usuario no seguido' : 'Usuario seguido');
+    } catch (error) {
+      console.error('❌ Error al seguir usuario:', error);
+      toast.error('Error al seguir usuario');
+    }
   };
 
   const handleView = async (reelId: string) => {
@@ -369,7 +426,7 @@ export default function ReelsPage() {
       <Sidebar />
       
       {/* Main Content */}
-      <main className="xl:ml-64">
+      <main className="lg:ml-64">
         <ReelsViewer
           reels={reels}
           currentIndex={currentIndex}

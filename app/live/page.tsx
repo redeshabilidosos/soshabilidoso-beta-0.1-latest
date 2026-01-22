@@ -9,9 +9,9 @@ import {
   Radio, Users, Eye, Play, Clock, 
   GraduationCap, Gamepad2, Key, Search
 } from 'lucide-react';
-import { ClassStreamModal } from '@/components/streaming/class-stream-modal';
-import { ViewerStreamModal } from '@/components/streaming/viewer-stream-modal';
-import { AuthenticatedLayout } from '@/components/layout/authenticated-layout';
+import { StreamingModal } from '@/components/streaming/streaming-modal';
+import { Sidebar } from '@/components/navigation/sidebar';
+import { MobileNav } from '@/components/navigation/mobile-nav';
 import Link from 'next/link';
 
 interface LiveStream {
@@ -32,7 +32,6 @@ interface LiveStream {
 export default function LivePage() {
   const [streams, setStreams] = useState<LiveStream[]>([]);
   const [filter, setFilter] = useState<'all' | 'class' | 'stream'>('all');
-  const [showClassModal, setShowClassModal] = useState(false);
   const [showStreamModal, setShowStreamModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -69,9 +68,13 @@ export default function LivePage() {
   });
 
   return (
-    <AuthenticatedLayout>
-      <div className="p-4 lg:pl-8">
-        <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen">
+      <Sidebar />
+      <MobileNav />
+      
+      <main className="pb-24 lg:ml-64 lg:pb-0 pt-28 md:pt-12 lg:pt-6 relative z-10 min-h-screen">
+        <div className="p-4 lg:pl-8">
+          <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
@@ -83,7 +86,7 @@ export default function LivePage() {
             </div>
             
             <div className="flex items-center space-x-3">
-              <CyberButton onClick={() => setShowClassModal(true)} className="bg-neon-green/20 border-neon-green/50">
+              <CyberButton onClick={() => setShowStreamModal(true)} className="bg-neon-green/20 border-neon-green/50">
                 <GraduationCap className="w-4 h-4 mr-2" />
                 Crear Clase
               </CyberButton>
@@ -146,7 +149,7 @@ export default function LivePage() {
                 <h3 className="text-xl font-semibold text-white mb-2">No hay transmisiones en vivo</h3>
                 <p className="text-gray-400 mb-6">Sé el primero en iniciar una transmisión</p>
                 <div className="flex justify-center space-x-3">
-                  <CyberButton onClick={() => setShowClassModal(true)}>
+                  <CyberButton onClick={() => setShowStreamModal(true)}>
                     <GraduationCap className="w-4 h-4 mr-2" />
                     Crear Clase
                   </CyberButton>
@@ -212,11 +215,11 @@ export default function LivePage() {
               ))}
             </div>
           )}
+          </div>
         </div>
-      </div>
+      </main>
 
-      <ClassStreamModal isOpen={showClassModal} onClose={() => setShowClassModal(false)} />
-      <ViewerStreamModal isOpen={showStreamModal} onClose={() => setShowStreamModal(false)} />
-    </AuthenticatedLayout>
+      <StreamingModal isOpen={showStreamModal} onClose={() => setShowStreamModal(false)} />
+    </div>
   );
 }

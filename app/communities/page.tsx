@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, memo, useRef, startTransition } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Users, Search, ChevronRight, ChevronLeft, Sparkles, 
   TrendingUp, Grid3X3, List, ArrowLeft,
@@ -17,6 +17,8 @@ import { useToast } from "@/hooks/use-toast";
 import { DynamicCommunityForm } from "@/components/communities/dynamic-community-form";
 import { useAuth } from "@/components/providers/providers";
 import { useCachedUser } from "@/lib/hooks/use-cached-auth";
+import { LoadingScreen } from "@/components/communities/loading-screen";
+import { useForceBlackBackground } from "@/hooks/use-force-black-background";
 
 import { Sidebar } from "@/components/navigation/sidebar";
 import { MobileNav } from "@/components/navigation/mobile-nav";
@@ -27,6 +29,9 @@ export default function CommunitiesPage() {
   const { user } = useAuth();
   const cachedUser = useCachedUser();
   const effectiveUser = user || cachedUser;
+  
+  // Forzar fondo negro en comunidades
+  useForceBlackBackground();
   
   const [categories, setCategories] = useState<CommunityCategory[]>([]);
   const [featuredCommunities, setFeaturedCommunities] = useState<Community[]>([]);
@@ -42,6 +47,7 @@ export default function CommunitiesPage() {
   const [isSubcommunity, setIsSubcommunity] = useState(false);
   const [creatingCommunity, setCreatingCommunity] = useState(false);
   const dataLoadedRef = useRef(false);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
   
   // Estados de paginación
   const [categoriesPage, setCategoriesPage] = useState(1);
@@ -81,7 +87,10 @@ export default function CommunitiesPage() {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      // Mantener loading true hasta que termine la animación de carga
+      setTimeout(() => {
+        setLoading(false);
+      }, 100);
     }
   }, [toast]);
 
@@ -299,24 +308,19 @@ export default function CommunitiesPage() {
     </motion.div>
   ), [handleNavigate]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00ff88]"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+    <>
+      <AnimatePresence>
+        {(loading || showLoadingScreen) && (
+          <LoadingScreen 
+            onLoadingComplete={() => setShowLoadingScreen(false)} 
+            isDataLoaded={!loading}
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="min-h-screen bg-black text-white relative overflow-hidden" style={{ backgroundColor: '#000000' }}>
       <Sidebar />
-      
-      {/* Fondo de estrellas animadas con CSS */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <div className="stars"></div>
-        <div className="stars2"></div>
-        <div className="stars3"></div>
-      </div>
       
       {/* Contenido */}
       <main className="relative z-10 lg:ml-64 pb-24 lg:pb-0">
@@ -332,30 +336,38 @@ export default function CommunitiesPage() {
             <div className="relative inline-block mb-8">
               {/* Partículas flotantes */}
               <div className="absolute inset-0 pointer-events-none">
-                {[...Array(12)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute w-2 h-2 rounded-full"
-                    style={{
-                      background: i % 3 === 0 ? '#00ff88' : i % 3 === 1 ? '#00ffff' : '#ff00ff',
-                      left: `${10 + (i * 7)}%`,
-                      top: `${20 + (i % 4) * 20}%`,
-                      boxShadow: `0 0 10px ${i % 3 === 0 ? '#00ff88' : i % 3 === 1 ? '#00ffff' : '#ff00ff'}`,
-                    }}
-                    animate={{
-                      y: [0, -20, 0],
-                      x: [0, i % 2 === 0 ? 10 : -10, 0],
-                      opacity: [0.3, 1, 0.3],
-                      scale: [0.8, 1.2, 0.8],
-                    }}
-                    transition={{
-                      duration: 2 + (i * 0.3),
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: i * 0.2,
-                    }}
-                  />
-                ))}
+                {[...Array(12)].map((_, i) => {
+                  const angle = (i * 30) * (Math.PI / 180); // 30 grados entre cada partícula
+                  const radius = 100; // Radio del círculo alrededor del logo
+                  const x = Math.cos(angle) * radius;
+                  const y = Math.sin(angle) * radius;
+                  
+                  return (
+                    <motion.div
+                      key={i}
+                      className="absolute w-2 h-2 rounded-full"
+                      style={{
+                        background: i % 3 === 0 ? '#00ff88' : i % 3 === 1 ? '#00ffff' : '#ff00ff',
+                        left: '50%',
+                        top: '50%',
+                        boxShadow: `0 0 10px ${i % 3 === 0 ? '#00ff88' : i % 3 === 1 ? '#00ffff' : '#ff00ff'}`,
+                      }}
+                      animate={{
+                        x: [x, x + Math.cos(angle + 0.5) * 15, x],
+                        y: [y, y + Math.sin(angle + 0.5) * 15, y],
+                        opacity: [0.3, 1, 0.3],
+                        scale: [0.8, 1.2, 0.8],
+                        rotate: [0, 360, 0],
+                      }}
+                      transition={{
+                        duration: 3 + (i * 0.2),
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: i * 0.1,
+                      }}
+                    />
+                  );
+                })}
               </div>
               
               {/* Logo con efecto de levitación y giro al click */}
@@ -731,6 +743,7 @@ export default function CommunitiesPage() {
           </motion.div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

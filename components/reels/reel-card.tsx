@@ -32,6 +32,7 @@ interface Reel {
     displayName: string;
     avatar: string;
     isVerified: boolean;
+    isFollowing?: boolean;
   };
   likes: number;
   comments: number;
@@ -84,36 +85,63 @@ export function ReelCard({
       user: reel.user.username
     });
   }, [reel.id, reel.videoUrl, reel.user.username]);
-  const [comments, setComments] = useState([
-    {
-      id: '1',
-      user: {
-        id: '1',
-        username: 'fitness_lover',
-        displayName: 'Fitness Lover',
-        avatar: '/api/placeholder/40/40?text=FL',
-        isVerified: false
-      },
-      content: '¡Excelente rutina! Me encanta que sea en casa 💪',
-      likes: 12,
-      isLiked: false,
-      createdAt: '2024-01-20T10:30:00Z'
-    },
-    {
-      id: '2',
-      user: {
-        id: '2',
-        username: 'healthy_life',
-        displayName: 'Healthy Life',
-        avatar: '/api/placeholder/40/40?text=HL',
-        isVerified: true
-      },
-      content: '¿Cuántas repeticiones recomiendas para principiantes?',
-      likes: 8,
-      isLiked: true,
-      createdAt: '2024-01-20T11:15:00Z'
+  // Estado para comentarios reales
+  const [comments, setComments] = useState<any[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+
+  // Cargar comentarios reales cuando se abren
+  const loadComments = async () => {
+    if (loadingComments) return;
+    
+    setLoadingComments(true);
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
+
+      const response = await fetch(`http://127.0.0.1:8000/api/reels/${reel.id}/comments/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const mappedComments = data.results?.map((comment: any) => ({
+          id: comment.id,
+          user: {
+            id: comment.author.id,
+            username: comment.author.username,
+            displayName: comment.author.display_name || comment.author.username,
+            avatar: comment.author.avatar || '/logo.png',
+            isVerified: comment.author.is_verified || false
+          },
+          content: comment.content,
+          likes: comment.likes_count || 0,
+          isLiked: comment.is_liked || false,
+          createdAt: comment.created_at,
+          parent: comment.parent,
+          replies: [] // Se llenarán después
+        })) || [];
+        
+        // Organizar comentarios y respuestas
+        const mainComments = mappedComments.filter((comment: any) => !comment.parent);
+        const replies = mappedComments.filter((comment: any) => comment.parent);
+        
+        // Agregar respuestas a sus comentarios padre
+        mainComments.forEach((comment: any) => {
+          comment.replies = replies.filter((reply: any) => reply.parent === comment.id);
+        });
+        
+        setComments(mainComments);
+      } else {
+        console.error('❌ Error cargando comentarios:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Error cargando comentarios:', error);
+    } finally {
+      setLoadingComments(false);
     }
-  ]);
+  };
 
   // Auto play/pause based on active state
   useEffect(() => {
@@ -284,40 +312,141 @@ export function ReelCard({
 
   const handleCommentClick = () => {
     setShowComments(true);
+    loadComments(); // Cargar comentarios reales
     onComment(); // Llamar la función original también
   };
 
-  const handleAddComment = (content: string) => {
-    const newComment = {
-      id: Date.now().toString(),
-      user: {
-        id: 'current_user',
-        username: 'tu_usuario',
-        displayName: 'Tu Usuario',
-        avatar: '/api/placeholder/40/40?text=TU',
-        isVerified: false
-      },
-      content,
-      likes: 0,
-      isLiked: false,
-      createdAt: new Date().toISOString()
-    };
-    setComments(prev => [newComment, ...prev]);
+  const handleAddComment = async (content: string, parentId?: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        console.error('No hay token de autenticación');
+        return;
+      }
+
+      // Enviar comentario a la API
+      const response = await fetch(`http://127.0.0.1:8000/api/reels/${reel.id}/comments/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: content,
+          parent: parentId || null
+        }),
+      });
+
+      if (response.ok) {
+        const newCommentData = await response.json();
+        const newComment = {
+          id: newCommentData.id,
+          user: {
+            id: newCommentData.author.id,
+            username: newCommentData.author.username,
+            displayName: newCommentData.author.display_name || newCommentData.author.username,
+            avatar: newCommentData.author.avatar || '/logo.png',
+            isVerified: newCommentData.author.is_verified || false
+          },
+          content: newCommentData.content,
+          likes: newCommentData.likes_count || 0,
+          isLiked: newCommentData.is_liked || false,
+          createdAt: newCommentData.created_at,
+          parent: newCommentData.parent
+        };
+        
+        if (parentId) {
+          // Es una respuesta, agregar a las respuestas del comentario padre
+          setComments(prev => 
+            prev.map(comment => {
+              if (comment.id === parentId) {
+                return {
+                  ...comment,
+                  replies: [...(comment.replies || []), newComment]
+                };
+              }
+              return comment;
+            })
+          );
+        } else {
+          // Es un comentario principal, agregar al inicio
+          setComments(prev => [newComment, ...prev]);
+        }
+        
+        console.log('✅ Comentario agregado:', newComment);
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Error al agregar comentario:', response.status, errorData);
+      }
+    } catch (error) {
+      console.error('❌ Error al agregar comentario:', error);
+    }
   };
 
-  const handleLikeComment = (commentId: string) => {
-    setComments(prev => 
-      prev.map(comment => {
-        if (comment.id === commentId) {
-          return {
-            ...comment,
-            isLiked: !comment.isLiked,
-            likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1
-          };
-        }
-        return comment;
-      })
-    );
+  const handleLikeComment = async (commentId: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        console.error('No hay token de autenticación');
+        return;
+      }
+
+      // Actualizar UI optimistamente
+      setComments(prev => 
+        prev.map(comment => {
+          if (comment.id === commentId) {
+            return {
+              ...comment,
+              isLiked: !comment.isLiked,
+              likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1
+            };
+          }
+          return comment;
+        })
+      );
+
+      // Enviar like a la API
+      const response = await fetch(`http://127.0.0.1:8000/api/reels/${reel.id}/comments/${commentId}/like/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Like en comentario actualizado:', data);
+      } else {
+        // Revertir cambio si falla
+        setComments(prev => 
+          prev.map(comment => {
+            if (comment.id === commentId) {
+              return {
+                ...comment,
+                isLiked: !comment.isLiked,
+                likes: comment.isLiked ? comment.likes + 1 : comment.likes - 1
+              };
+            }
+            return comment;
+          })
+        );
+      }
+    } catch (error) {
+      console.error('❌ Error al dar like al comentario:', error);
+      // Revertir cambio si falla
+      setComments(prev => 
+        prev.map(comment => {
+          if (comment.id === commentId) {
+            return {
+              ...comment,
+              isLiked: !comment.isLiked,
+              likes: comment.isLiked ? comment.likes + 1 : comment.likes - 1
+            };
+          }
+          return comment;
+        })
+      );
+    }
   };
 
   return (
@@ -491,10 +620,15 @@ export function ReelCard({
               </div>
               <button
                 onClick={onFollow}
-                className="bg-neon-green text-black px-3 py-1.5 rounded-full text-xs font-bold hover:bg-neon-green/80 transition-colors flex items-center space-x-1 shadow-lg"
+                className={cn(
+                  "px-3 py-1.5 rounded-full text-xs font-bold transition-colors flex items-center space-x-1 shadow-lg",
+                  reel.user.isFollowing 
+                    ? "bg-gray-600 text-white hover:bg-gray-700" 
+                    : "bg-neon-green text-black hover:bg-neon-green/80"
+                )}
               >
                 <UserPlus className="w-3 h-3" />
-                <span>Seguir</span>
+                <span>{reel.user.isFollowing ? 'Siguiendo' : 'Seguir'}</span>
               </button>
             </div>
 

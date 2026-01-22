@@ -13,70 +13,114 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { MobileNav } from "@/components/navigation/mobile-nav";
+import { useForceBlackBackground } from "@/hooks/use-force-black-background";
 
-// Datos de ejemplo - En producción vendrían del backend
-const seccionesDetalle: { [key: string]: any } = {
-  "tecnicas-practicas": {
-    nombre: "Técnicas y Prácticas",
-    descripcion: "Métodos y ejercicios para desarrollar habilidades individuales y colectivas en el fútbol",
-    color: "#00ff88",
-    temas: [
-      { id: "control-balon", titulo: "Control y Dominio del Balón", descripcion: "Técnicas con diferentes superficies del pie", duracion: "45 min", nivel: "basico", completado: true },
-      { id: "conduccion-regate", titulo: "Conducción y Regate", descripcion: "Cambios de ritmo y dirección", duracion: "40 min", nivel: "basico", completado: true },
-      { id: "pase", titulo: "Técnicas de Pase", descripcion: "Pase corto, largo, con efecto y al espacio", duracion: "35 min", nivel: "intermedio", completado: true },
-      { id: "tiro-remate", titulo: "Tiro y Remate", descripcion: "Potencia, colocación y volea", duracion: "50 min", nivel: "intermedio", completado: false },
-      { id: "cabeceo", titulo: "Técnica de Cabeceo", descripcion: "Cabeceo ofensivo y defensivo", duracion: "30 min", nivel: "intermedio", completado: false },
-      { id: "tecnica-defensiva", titulo: "Técnica Defensiva", descripcion: "Entrada, marcaje y anticipación", duracion: "45 min", nivel: "avanzado", completado: false },
-      { id: "tecnica-portero", titulo: "Técnica del Portero", descripcion: "Posición, blocaje y despejes", duracion: "55 min", nivel: "avanzado", completado: false },
-    ]
-  },
-  "reglamentos-fifa": {
-    nombre: "Reglamentos FIFA",
-    descripcion: "Leyes del Juego establecidas por la FIFA - reglas universales del deporte",
-    color: "#f59e0b",
-    temas: [
-      { id: "reglas-basicas", titulo: "Reglas Fundamentales", descripcion: "11 jugadores, duración, objetivo del juego", duracion: "30 min", nivel: "basico", completado: true },
-      { id: "terreno-juego", titulo: "El Terreno de Juego", descripcion: "Dimensiones, marcas y equipamiento", duracion: "25 min", nivel: "basico", completado: true },
-      { id: "infracciones", titulo: "Infracciones y Sanciones", descripcion: "Faltas, tarjetas y tiros libres", duracion: "35 min", nivel: "intermedio", completado: false },
-      { id: "fuera-juego", titulo: "Fuera de Juego (Offside)", descripcion: "Posición adelantada y excepciones", duracion: "40 min", nivel: "intermedio", completado: false },
-      { id: "reanudaciones", titulo: "Reanudaciones del Juego", descripcion: "Saques, córners y penales", duracion: "30 min", nivel: "basico", completado: false },
-      { id: "var", titulo: "VAR y Tecnología", descripcion: "Video Assistant Referee", duracion: "25 min", nivel: "avanzado", completado: false },
-    ]
-  }
-};
+interface Tema {
+  id: string;
+  slug: string;
+  titulo: string;
+  descripcion: string;
+  nivel: string;
+  duracion: string;
+  completado: boolean;
+}
 
-// Datos por defecto para secciones no definidas
-const defaultSeccion = {
-  nombre: "Sección",
-  descripcion: "Contenido educativo",
-  color: "#00ff88",
-  temas: [
-    { id: "tema-1", titulo: "Tema 1", descripcion: "Descripción del tema", duracion: "30 min", nivel: "basico", completado: false },
-    { id: "tema-2", titulo: "Tema 2", descripcion: "Descripción del tema", duracion: "30 min", nivel: "basico", completado: false },
-  ]
-};
+interface Seccion {
+  id: string;
+  slug: string;
+  nombre: string;
+  descripcion: string;
+  color: string;
+  icono: string;
+  temas: Tema[];
+  temas_total: number;
+  temas_completados: number;
+}
 
 export default function SeccionPage() {
   const router = useRouter();
   const params = useParams();
-  const seccionId = params.id as string;
+  const seccionSlug = params.id as string;
   
-  const [seccion, setSeccion] = useState<any>(null);
+  const [seccion, setSeccion] = useState<Seccion | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Aplicar fondo negro con estrellas
+  useForceBlackBackground();
 
   useEffect(() => {
-    // Cargar datos de la sección
+    // Agregar atributo al body para identificar la página
+    document.body.setAttribute('data-page', 'capacitaciones');
+    
+    return () => {
+      document.body.removeAttribute('data-page');
+    };
+  }, []);
+
+  useEffect(() => {
     const loadSeccion = async () => {
       setLoading(true);
-      // TODO: Cargar desde API
-      const data = seccionesDetalle[seccionId] || { ...defaultSeccion, nombre: seccionId };
-      setSeccion(data);
-      setLoading(false);
+      setError(null);
+      
+      try {
+        // Obtener token de autenticación
+        const token = localStorage.getItem('access_token');
+        const headers: any = {
+          'Content-Type': 'application/json',
+        };
+        
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        // Cargar datos de la sección desde la API
+        const response = await fetch(`http://127.0.0.1:8000/api/learning/secciones/${seccionSlug}/`, {
+          headers
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: Sección no encontrada`);
+        }
+        
+        const data = await response.json();
+        
+        // Transformar los datos para que coincidan con la interfaz
+        const seccionData: Seccion = {
+          id: data.id,
+          slug: data.slug,
+          nombre: data.nombre,
+          descripcion: data.descripcion,
+          color: data.color || '#00ff88',
+          icono: data.icono || 'BookOpen',
+          temas: data.temas.map((tema: any) => ({
+            id: tema.id,
+            slug: tema.slug,
+            titulo: tema.titulo,
+            descripcion: tema.descripcion,
+            nivel: tema.nivel,
+            duracion: tema.duracion,
+            completado: tema.completado || false
+          })),
+          temas_total: data.temas_total,
+          temas_completados: data.temas_completados || 0
+        };
+        
+        setSeccion(seccionData);
+      } catch (err: any) {
+        console.error('Error cargando sección:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     };
-    loadSeccion();
-  }, [seccionId]);
 
-  if (loading || !seccion) {
+    if (seccionSlug) {
+      loadSeccion();
+    }
+  }, [seccionSlug]);
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00ff88]"></div>
@@ -84,8 +128,40 @@ export default function SeccionPage() {
     );
   }
 
-  const temasCompletados = seccion.temas.filter((t: any) => t.completado).length;
-  const porcentaje = Math.round((temasCompletados / seccion.temas.length) * 100);
+  if (error || !seccion) {
+    return (
+      <div className="min-h-screen">
+        <Sidebar />
+        
+        <main className="pb-24 lg:ml-64 lg:pb-0 pt-28 md:pt-12 lg:pt-6 relative z-10 min-h-screen">
+          <div className="max-w-6xl mx-auto p-4 space-y-6">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/capacitaciones')}
+              className="mb-4 hover:bg-white/10"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver a Capacitaciones
+            </Button>
+            
+            <Card className="bg-red-500/10 border-red-500/20">
+              <CardContent className="p-6 text-center">
+                <h2 className="text-xl font-bold text-red-400 mb-2">Sección no encontrada</h2>
+                <p className="text-gray-400 mb-4">{error || 'La sección solicitada no existe'}</p>
+                <Button onClick={() => router.push('/capacitaciones')}>
+                  Volver a Capacitaciones
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        
+        <MobileNav />
+      </div>
+    );
+  }
+
+  const porcentaje = seccion.temas_total > 0 ? Math.round((seccion.temas_completados / seccion.temas_total) * 100) : 0;
 
   const getNivelColor = (nivel: string) => {
     switch (nivel) {
@@ -97,21 +173,11 @@ export default function SeccionPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-black text-white relative overflow-hidden">
-      {/* Fondo de estrellas */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <div className="stars"></div>
-        <div className="stars2"></div>
-        <div className="stars3"></div>
-      </div>
-
+    <div className="min-h-screen">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <MobileNav />
-        
-        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full xl:ml-64">
-          <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 pb-24 md:pb-8 relative z-10">
+      <main className="pb-24 lg:ml-64 lg:pb-0 pt-28 md:pt-12 lg:pt-6 relative z-10 min-h-screen">
+        <div className="max-w-6xl mx-auto p-4 space-y-6">
             
             {/* Header */}
             <div className="mb-6 max-w-4xl">
@@ -150,7 +216,7 @@ export default function SeccionPage() {
                         <span className="text-sm">Progreso de la sección</span>
                       </div>
                       <span className="text-sm font-bold" style={{ color: seccion.color }}>
-                        {temasCompletados}/{seccion.temas.length} temas
+                        {seccion.temas_completados}/{seccion.temas_total} temas
                       </span>
                     </div>
                     <Progress value={porcentaje} className="h-2 bg-white/10" />
@@ -173,7 +239,7 @@ export default function SeccionPage() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 * index }}
                   whileHover={{ scale: 1.01 }}
-                  onClick={() => router.push(`/capacitaciones/temas/${tema.id}`)}
+                  onClick={() => router.push(`/capacitaciones/temas/${tema.slug}`)}
                   className="cursor-pointer"
                 >
                   <Card className={`border-white/10 transition-all hover:border-white/30 ${
@@ -214,14 +280,32 @@ export default function SeccionPage() {
                         </div>
                         
                         {/* Acción */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className={tema.completado ? "text-[#00ff88]" : "text-gray-400"}
-                        >
-                          {tema.completado ? "Repasar" : "Iniciar"}
-                          <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={tema.completado ? "text-[#00ff88]" : "text-gray-400"}
+                          >
+                            {tema.completado ? "Repasar" : "Iniciar"}
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                          </Button>
+                          
+                          {/* Icono de completado visible */}
+                          {tema.completado && (
+                            <motion.div
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ 
+                                type: "spring", 
+                                stiffness: 260, 
+                                damping: 20 
+                              }}
+                              className="flex items-center justify-center w-8 h-8 rounded-full bg-[#00ff88]/20 border border-[#00ff88]/30"
+                            >
+                              <CheckCircle2 className="w-5 h-5 text-[#00ff88]" />
+                            </motion.div>
+                          )}
+                        </div>           
                       </div>
                     </CardContent>
                   </Card>
@@ -231,7 +315,8 @@ export default function SeccionPage() {
 
           </div>
         </main>
+
+        <MobileNav />
       </div>
-    </div>
-  );
-}
+    );
+  }

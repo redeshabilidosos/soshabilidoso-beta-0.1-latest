@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';
 import { Sidebar } from '@/components/navigation/sidebar';
@@ -12,10 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { UserPlus, Trophy, CalendarDays, MapPin, Mail, Phone, GraduationCap, ShieldCheck, Upload, CircleDot } from 'lucide-react'; // Importar iconos de género
+import { UserPlus, Trophy, CalendarDays, MapPin, Mail, Phone, GraduationCap, ShieldCheck, Upload, CircleDot, Lock } from 'lucide-react'; // Importar iconos de género
 import { cn } from '@/lib/utils';
 import Image from 'next/image'; // Importar el componente Image
 import { RegistrationStatusDialog } from '@/components/ui/registration-status-dialog'; // Importar el nuevo componente
+import { getSiteSettings } from '@/lib/services/site-settings';
 
 // Opciones para selectores
 const positions = [
@@ -87,6 +88,8 @@ const municipiosPorSubregion = {
 export default function RegisterHabilidososPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const [isPageEnabled, setIsPageEnabled] = useState(true);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
   const [formData, setFormData] = useState({
     names: '',
     lastnames: '',
@@ -125,6 +128,24 @@ export default function RegisterHabilidososPage() {
   const [epsCertificateFile, setEpsCertificateFile] = useState<File | null>(null); // Estado para el archivo
   const [avatarPhotoFile, setAvatarPhotoFile] = useState<File | null>(null); // Estado para la foto de perfil
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null); // Preview de la foto
+
+  // Verificar si la página está habilitada
+  useEffect(() => {
+    const checkAccess = async () => {
+      const settings = await getSiteSettings();
+      setIsPageEnabled(settings.show_register_habilidosos_button && settings.reality_form_enabled);
+      setIsCheckingAccess(false);
+      
+      // Si está deshabilitado, redirigir al feed después de 3 segundos
+      if (!settings.show_register_habilidosos_button || !settings.reality_form_enabled) {
+        setTimeout(() => {
+          router.push('/feed');
+        }, 3000);
+      }
+    };
+    
+    checkAccess();
+  }, [router]);
 
   const calculateAge = (birthDateString: string): number | null => {
     if (!birthDateString) return null;
@@ -330,6 +351,43 @@ export default function RegisterHabilidososPage() {
   };
 
   const availableMunicipalities = formData.subregion ? municipiosPorSubregion[formData.subregion as keyof typeof municipiosPorSubregion] : [];
+
+  // Mostrar pantalla de carga mientras verifica el acceso
+  if (isCheckingAccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neon-green mx-auto mb-4"></div>
+          <p className="text-white">Verificando acceso...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar pantalla de acceso denegado si está deshabilitado
+  if (!isPageEnabled) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="max-w-md mx-auto p-8 glass-card text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="w-24 h-24 rounded-full bg-red-500/20 flex items-center justify-center">
+              <Lock size={48} className="text-red-400" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-white">Registro Temporalmente Cerrado</h1>
+          <p className="text-gray-300">
+            El formulario de registro para el Reality Show "Un Golazo a tus Sueños" está temporalmente cerrado.
+          </p>
+          <p className="text-gray-400 text-sm">
+            Serás redirigido al feed en unos segundos...
+          </p>
+          <CyberButton onClick={() => router.push('/feed')} className="w-full">
+            Volver al Feed
+          </CyberButton>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">

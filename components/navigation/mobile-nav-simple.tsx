@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils';
 // Navegación principal (siempre visible)
 const mainNavigation = [
   { name: 'Inicio', href: '/feed', icon: Home },
-  { name: 'Reels', href: '/reels', icon: Play },
+  { name: 'Clips', href: '/reels', icon: Play },
   { name: 'Buscar', href: '/search', icon: Search },
   { name: 'Comunidades', href: '/communities', icon: Group },
 ];

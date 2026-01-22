@@ -87,7 +87,7 @@ class AdvertisingService {
   async recordClick(adId: string, impressionId?: string): Promise<{ success: boolean; redirect_url?: string }> {
     try {
       const response = await fetch(
-        `${API_URL}/advertising/ads/${adId}/record_click/`,
+        `${API_URL}/advertising/${adId}/record_click/`,
         {
           method: 'POST',
           headers: this.getAuthHeaders(),
@@ -117,7 +117,7 @@ class AdvertisingService {
   ): Promise<{ success: boolean }> {
     try {
       const response = await fetch(
-        `${API_URL}/advertising/ads/${adId}/record_video_view/`,
+        `${API_URL}/advertising/${adId}/record_video_view/`,
         {
           method: 'POST',
           headers: this.getAuthHeaders(),

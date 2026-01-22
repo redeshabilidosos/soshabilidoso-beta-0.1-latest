@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { 
   BookOpen, Trophy, Clock, ChevronRight, ArrowLeft,
   GraduationCap, Users, Target, Award, Play, CheckCircle2,
-  Dumbbell, Scale, Building2, Mic, Globe, UserCheck
+  Dumbbell, Scale, Building2, Mic, Globe, UserCheck, Sparkles
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,121 +15,151 @@ import { Badge } from "@/components/ui/badge";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { MobileNav } from "@/components/navigation/mobile-nav";
 import { useAuth } from "@/components/providers/providers";
+import { useForceBlackBackground } from "@/hooks/use-force-black-background";
 
-// Datos de las secciones de capacitación
-const seccionesData = [
-  {
-    id: "tecnicas-practicas",
-    nombre: "Técnicas y Prácticas",
-    descripcion: "Métodos y ejercicios para desarrollar habilidades individuales y colectivas",
-    icono: Dumbbell,
-    color: "#00ff88",
-    temasTotal: 7,
-    duracionTotal: "4h 30min"
-  },
-  {
-    id: "escuelas-formacion",
-    nombre: "Escuelas de Formación",
-    descripcion: "Centros especializados para jóvenes futbolistas con entrenamiento estructurado",
-    icono: GraduationCap,
-    color: "#3b82f6",
-    temasTotal: 5,
-    duracionTotal: "3h 15min"
-  },
-  {
-    id: "reglamentos-fifa",
-    nombre: "Reglamentos FIFA",
-    descripcion: "Leyes del Juego establecidas por la FIFA - reglas universales del deporte",
-    icono: Scale,
-    color: "#f59e0b",
-    temasTotal: 6,
-    duracionTotal: "2h 45min"
-  },
-  {
-    id: "reglamentos-arbitros",
-    nombre: "Reglamentos de Árbitros",
-    descripcion: "Normativas específicas que rigen la labor del cuerpo arbitral",
-    icono: UserCheck,
-    color: "#ef4444",
-    temasTotal: 4,
-    duracionTotal: "2h 00min"
-  },
-  {
-    id: "estructura-sede",
-    nombre: "Estructura de Sede Deportiva",
-    descripcion: "Infraestructura física necesaria para operar un centro de formación",
-    icono: Building2,
-    color: "#8b5cf6",
-    temasTotal: 6,
-    duracionTotal: "3h 00min"
-  },
-  {
-    id: "conferencias-coaches",
-    nombre: "Conferencias para Coaches",
-    descripcion: "Sesiones formativas para entrenadores y staff técnico",
-    icono: Mic,
-    color: "#ec4899",
-    temasTotal: 6,
-    duracionTotal: "4h 00min"
-  },
-  {
-    id: "representacion-jugadores",
-    nombre: "Representación de Jugadores",
-    descripcion: "Gestión de contratos, imagen y carrera de deportistas",
-    icono: Users,
-    color: "#14b8a6",
-    temasTotal: 4,
-    duracionTotal: "2h 30min"
-  },
-  {
-    id: "educacion-idiomas",
-    nombre: "Educación de Idiomas",
-    descripcion: "Programa de enseñanza de lenguas para futbolistas internacionales",
-    icono: Globe,
-    color: "#f97316",
-    temasTotal: 5,
-    duracionTotal: "5h 00min"
-  }
-];
+// API URL
+const API_URL = 'http://127.0.0.1:8000/api';
+
+// Mapeo de iconos por slug de sección
+const iconosSeccion: { [key: string]: any } = {
+  "tecnicas-practicas": Dumbbell,
+  "escuelas-formacion": GraduationCap,
+  "reglamentos-fifa": Scale,
+  "tactica-estrategia": Target,
+  "preparacion-fisica": Dumbbell,
+  "reglamentos-arbitros": UserCheck,
+  "estructura-sede": Building2,
+  "conferencias-coaches": Mic,
+  "representacion-jugadores": Users,
+  "educacion-idiomas": Globe,
+};
+
+// Colores por sección
+const coloresSeccion: { [key: string]: string } = {
+  "tecnicas-practicas": "#00ff88",
+  "escuelas-formacion": "#3b82f6",
+  "reglamentos-fifa": "#f59e0b",
+  "tactica-estrategia": "#ef4444",
+  "preparacion-fisica": "#10b981",
+  "reglamentos-arbitros": "#ef4444",
+  "estructura-sede": "#8b5cf6",
+  "conferencias-coaches": "#ec4899",
+  "representacion-jugadores": "#14b8a6",
+  "educacion-idiomas": "#f97316",
+};
+
+interface Seccion {
+  id: string;
+  slug: string;
+  nombre: string;
+  descripcion: string;
+  color: string;
+  icono: string;
+  temas_total: number;
+  temas_completados: number;
+  duracion_total: string;
+  orden: number;
+}
 
 export default function CapacitacionesPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [progresoUsuario, setProgresoUsuario] = useState<{[key: string]: number}>({});
+  const [secciones, setSecciones] = useState<Seccion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [estadisticas, setEstadisticas] = useState<any>(null);
+
+  // Aplicar fondo negro con estrellas
+  useForceBlackBackground();
 
   useEffect(() => {
-    // Simular carga de progreso del usuario
-    const loadProgreso = async () => {
+    let isMounted = true;
+    
+    const loadDatos = async () => {
+      if (!isMounted) return;
+      
       setLoading(true);
-      // TODO: Cargar desde API
-      // Por ahora datos de ejemplo
-      setProgresoUsuario({
-        "tecnicas-practicas": 3,
-        "escuelas-formacion": 0,
-        "reglamentos-fifa": 2,
-        "reglamentos-arbitros": 0,
-        "estructura-sede": 1,
-        "conferencias-coaches": 0,
-        "representacion-jugadores": 0,
-        "educacion-idiomas": 0
-      });
-      setLoading(false);
+      try {
+        const token = localStorage.getItem('access_token');
+        const headers: any = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const seccionesResponse = await fetch(`${API_URL}/learning/secciones/`, { headers });
+        
+        if (seccionesResponse.ok && isMounted) {
+          const seccionesData = await seccionesResponse.json();
+          
+          const seccionesFormateadas: Seccion[] = seccionesData.map((seccion: any) => ({
+            id: seccion.id,
+            slug: seccion.slug,
+            nombre: seccion.nombre,
+            descripcion: seccion.descripcion,
+            color: coloresSeccion[seccion.slug] || seccion.color || "#00ff88",
+            icono: seccion.icono || "BookOpen",
+            temas_total: seccion.temas_total || 0,
+            temas_completados: seccion.temas_completados || 0,
+            duracion_total: seccion.duracion_total || "0min",
+            orden: seccion.orden || 0
+          }));
+          
+          seccionesFormateadas.sort((a, b) => a.orden - b.orden);
+          setSecciones(seccionesFormateadas);
+          
+          if (token && isMounted) {
+            try {
+              const estadisticasResponse = await fetch(`${API_URL}/learning/progreso/estadisticas/`, { headers });
+              if (estadisticasResponse.ok) {
+                const estadisticasData = await estadisticasResponse.json();
+                setEstadisticas(estadisticasData);
+              }
+            } catch (error) {
+              // Error silencioso para estadísticas
+            }
+          }
+        }
+      } catch (error) {
+        // Error silencioso
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     };
-    loadProgreso();
-  }, []);
+    
+    loadDatos();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   const calcularProgresoTotal = () => {
-    const totalTemas = seccionesData.reduce((acc, s) => acc + s.temasTotal, 0);
-    const temasCompletados = Object.values(progresoUsuario).reduce((acc, v) => acc + v, 0);
-    return Math.round((temasCompletados / totalTemas) * 100);
+    if (estadisticas) {
+      return estadisticas.porcentaje_progreso || 0;
+    }
+    
+    const totalTemas = secciones.reduce((acc, s) => acc + s.temas_total, 0);
+    const temasCompletados = secciones.reduce((acc, s) => acc + s.temas_completados, 0);
+    return totalTemas > 0 ? Math.round((temasCompletados / totalTemas) * 100) : 0;
   };
 
-  const getEstadoSeccion = (seccionId: string, temasTotal: number) => {
-    const completados = progresoUsuario[seccionId] || 0;
-    if (completados === 0) return "no_iniciado";
-    if (completados >= temasTotal) return "completado";
+  const getEstadoSeccion = (temasCompletados: number, temasTotal: number) => {
+    if (temasCompletados === 0) return "no_iniciado";
+    if (temasCompletados >= temasTotal) return "completado";
     return "en_progreso";
+  };
+
+  const getNivelUsuario = () => {
+    if (estadisticas) {
+      return estadisticas.nivel || "Principiante";
+    }
+    
+    const progreso = calcularProgresoTotal();
+    if (progreso >= 80) return "Experto";
+    if (progreso >= 50) return "Intermedio";
+    if (progreso >= 20) return "Aprendiz";
+    return "Principiante";
   };
 
   if (loading) {
@@ -141,62 +171,104 @@ export default function CapacitacionesPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-black text-white relative overflow-hidden">
-      {/* Fondo de estrellas */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <div className="stars"></div>
-        <div className="stars2"></div>
-        <div className="stars3"></div>
-      </div>
-
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <MobileNav />
-        
-        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full xl:ml-64">
-          <div className="w-full max-w-7xl px-4 md:px-6 lg:pl-6 lg:pr-10 xl:pl-8 xl:pr-16 py-6 pb-24 md:pb-8 relative z-10">
-            
-            {/* Header */}
-            <div className="mb-8">
-              <Button
-                variant="ghost"
-                onClick={() => router.push('/communities')}
-                className="mb-4 hover:bg-white/10"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Regresar a Comunidades
-              </Button>
-              
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                    <GraduationCap className="w-8 h-8 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl md:text-3xl font-bold">Comunidad Educativa</h1>
-                    <p className="text-gray-400">Capacitaciones y Formación Deportiva</p>
-                  </div>
+      <main className="relative z-10 lg:ml-64 pb-24 lg:pb-0">
+        {/* Header con degradado */}
+        <div className="bg-gradient-to-b from-[#00ff88]/10 to-transparent py-12 px-4">
+          <div className="max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center mb-8"
+            >
+              {/* Logo Animado con Levitación y Partículas */}
+              <div className="relative inline-block mb-8">
+                {/* Partículas flotantes */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {[...Array(12)].map((_, i) => {
+                    const angle = (i * 30) * (Math.PI / 180);
+                    const radius = 80;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    
+                    return (
+                      <motion.div
+                        key={i}
+                        className="absolute w-2 h-2 rounded-full"
+                        style={{
+                          background: i % 3 === 0 ? '#00ff88' : i % 3 === 1 ? '#00ffff' : '#ff00ff',
+                          left: '50%',
+                          top: '50%',
+                          boxShadow: `0 0 10px ${i % 3 === 0 ? '#00ff88' : i % 3 === 1 ? '#00ffff' : '#ff00ff'}`,
+                        }}
+                        animate={{
+                          x: [x, x + Math.cos(angle + 0.5) * 10, x],
+                          y: [y, y + Math.sin(angle + 0.5) * 10, y],
+                          opacity: [0.3, 1, 0.3],
+                          scale: [0.8, 1.2, 0.8],
+                          rotate: [0, 360, 0],
+                        }}
+                        transition={{
+                          duration: 3 + (i * 0.2),
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          delay: i * 0.1,
+                        }}
+                      />
+                    );
+                  })}
                 </div>
                 
-                {/* Stats rápidas */}
-                <div className="flex gap-4">
-                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-center">
-                    <p className="text-2xl font-bold text-[#00ff88]">{calcularProgresoTotal()}%</p>
-                    <p className="text-xs text-gray-400">Progreso Total</p>
-                  </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-center">
-                    <p className="text-2xl font-bold text-blue-400">{seccionesData.length}</p>
-                    <p className="text-xs text-gray-400">Secciones</p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
+                {/* Ícono de capacitaciones con efecto de levitación */}
+                <motion.div
+                  className="w-32 h-32 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center relative z-10 cursor-pointer"
+                  style={{
+                    filter: "drop-shadow(0 0 3px rgba(0,255,136,0.6))",
+                    transformStyle: "preserve-3d",
+                  }}
+                  animate={{
+                    y: [0, -15, 0],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  whileHover={{
+                    scale: 1.1,
+                    filter: "drop-shadow(0 0 8px rgba(0,255,136,0.8))",
+                  }}
+                  whileTap={{
+                    rotateY: 360,
+                  }}
+                >
+                  <GraduationCap className="w-16 h-16 text-white" />
+                </motion.div>
+              </div>
+              
+              <h1 className="text-4xl font-bold mb-2">
+                <Sparkles className="w-8 h-8 inline mr-2 text-[#00ff88]" />
+                Comunidad Educativa
+              </h1>
+              <p className="text-gray-400">Capacitaciones y Formación Deportiva</p>
+            </motion.div>
+          </div>
+        </div>
 
+        <div className="max-w-6xl mx-auto p-4 space-y-6">
+            
+            {/* Botón de regreso */}
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/communities')}
+              className="mb-4 hover:bg-white/10"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Regresar a Comunidades
+            </Button>
+            
             {/* Barra de progreso general */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -212,12 +284,15 @@ export default function CapacitacionesPage() {
                       <div>
                         <h3 className="font-semibold">Tu Progreso de Aprendizaje</h3>
                         <p className="text-sm text-gray-400">
-                          {Object.values(progresoUsuario).reduce((a, b) => a + b, 0)} de {seccionesData.reduce((a, s) => a + s.temasTotal, 0)} temas completados
+                          {estadisticas ? 
+                            `${estadisticas.temas_completados} de ${estadisticas.temas_totales} temas completados` :
+                            `${secciones.reduce((a, s) => a + s.temas_completados, 0)} de ${secciones.reduce((a, s) => a + s.temas_total, 0)} temas completados`
+                          }
                         </p>
                       </div>
                     </div>
                     <Badge className="bg-[#00ff88]/20 text-[#00ff88] border-[#00ff88]/30">
-                      Nivel: Principiante
+                      Nivel: {getNivelUsuario()}
                     </Badge>
                   </div>
                   <Progress value={calcularProgresoTotal()} className="h-3 bg-white/10" />
@@ -237,21 +312,20 @@ export default function CapacitacionesPage() {
               </h2>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {seccionesData.map((seccion, index) => {
-                  const IconComponent = seccion.icono;
-                  const completados = progresoUsuario[seccion.id] || 0;
-                  const porcentaje = Math.round((completados / seccion.temasTotal) * 100);
-                  const estado = getEstadoSeccion(seccion.id, seccion.temasTotal);
+                {secciones.map((seccion, index) => {
+                  const IconComponent = iconosSeccion[seccion.slug] || BookOpen;
+                  const porcentaje = seccion.temas_total > 0 ? Math.round((seccion.temas_completados / seccion.temas_total) * 100) : 0;
+                  const estado = getEstadoSeccion(seccion.temas_completados, seccion.temas_total);
                   
                   return (
                     <motion.div
-                      key={seccion.id}
+                      key={seccion.slug}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 * index }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => router.push(`/capacitaciones/secciones/${seccion.id}`)}
+                      onClick={() => router.push(`/capacitaciones/secciones/${seccion.slug}`)}
                       className="cursor-pointer"
                     >
                       <Card className="bg-black/60 border-white/10 hover:border-white/30 transition-all h-full overflow-hidden group">
@@ -298,26 +372,23 @@ export default function CapacitacionesPage() {
                           <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
                             <span className="flex items-center gap-1">
                               <BookOpen className="w-3 h-3" />
-                              {seccion.temasTotal} temas
+                              {seccion.temas_total} temas
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              {seccion.duracionTotal}
+                              {seccion.duracion_total}
                             </span>
                           </div>
                           
                           {/* Progreso */}
                           <div className="space-y-1">
                             <div className="flex justify-between text-xs">
-                              <span className="text-gray-400">{completados}/{seccion.temasTotal} completados</span>
+                              <span className="text-gray-400">{seccion.temas_completados}/{seccion.temas_total} completados</span>
                               <span style={{ color: seccion.color }}>{porcentaje}%</span>
                             </div>
                             <Progress 
                               value={porcentaje} 
                               className="h-1.5 bg-white/10"
-                              style={{ 
-                                ['--progress-color' as any]: seccion.color 
-                              }}
                             />
                           </div>
                           
@@ -352,12 +423,12 @@ export default function CapacitacionesPage() {
               
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {[
-                  { nombre: "Primer Paso", descripcion: "Completa tu primer tema", icono: "🎯", desbloqueado: true },
+                  { nombre: "Primer Paso", descripcion: "Completa tu primer tema", icono: "🎯", desbloqueado: (estadisticas?.temas_completados || 0) > 0 },
                   { nombre: "Técnico", descripcion: "Completa Técnicas y Prácticas", icono: "⚽", desbloqueado: false },
                   { nombre: "Árbitro", descripcion: "Domina los reglamentos", icono: "🏆", desbloqueado: false },
                   { nombre: "Coach", descripcion: "Completa conferencias", icono: "📋", desbloqueado: false },
                   { nombre: "Políglota", descripcion: "Completa idiomas", icono: "🌍", desbloqueado: false },
-                  { nombre: "Maestro", descripcion: "Completa todo", icono: "👑", desbloqueado: false },
+                  { nombre: "Maestro", descripcion: "Completa todo", icono: "👑", desbloqueado: (estadisticas?.porcentaje_progreso || 0) >= 100 },
                 ].map((logro, i) => (
                   <Card 
                     key={i}
@@ -379,7 +450,8 @@ export default function CapacitacionesPage() {
 
           </div>
         </main>
+
+        <MobileNav />
       </div>
-    </div>
-  );
-}
+    );
+  }

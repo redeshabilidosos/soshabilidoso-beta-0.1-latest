@@ -27,7 +27,8 @@ import {
   ShoppingBag,
   Store,
   Rocket,
-  UserSearch
+  UserSearch,
+  CalendarDays
 } from 'lucide-react';
 import { CreateClassifiedDialog } from '@/components/classifieds/create-classified-dialog';
 import { ClassifiedDetailDialog } from '@/components/classifieds/classified-detail-dialog';
@@ -40,6 +41,7 @@ import { PublishMainView } from '@/components/classifieds/publish-main-view';
 import { PublicationFormDialog } from '@/components/classifieds/publication-form-dialog';
 import { JobSearchSection } from '@/components/classifieds/job-search-section';
 import { EnterprisesSection } from '@/components/classifieds/enterprises-section';
+import { CulturalAgendaSection } from '@/components/classifieds/cultural-agenda-section';
 
 // Mock data para clasificados
 const mockClassifieds = [
@@ -323,8 +325,8 @@ export default function ClassifiedsPage() {
     <div className="min-h-screen">
       <Sidebar />
       
-      <main className="pb-24 xl:ml-64 xl:pb-0">
-        <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <main className="pb-24 xl:ml-64 xl:pb-0 min-h-screen">
+        <div className="container mx-auto px-4 py-6 max-w-6xl pb-32 xl:pb-6">
           {/* Header */}
           <div className="mb-6 space-y-4">
             <div>
@@ -340,34 +342,40 @@ export default function ClassifiedsPage() {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5 h-auto">
-              <TabsTrigger value="browse" className="flex items-center space-x-1 text-xs sm:text-sm py-2">
-                <Search className="w-4 h-4" />
-                <span className="hidden sm:inline">Explorar</span>
-              </TabsTrigger>
-              <TabsTrigger value="my-ads" className="flex items-center space-x-1 text-xs sm:text-sm py-2">
-                <User className="w-4 h-4" />
-                <span className="hidden sm:inline">Mis Anuncios</span>
-              </TabsTrigger>
-              <TabsTrigger value="jobs" className="flex items-center space-x-1 text-xs sm:text-sm py-2">
-                <UserSearch className="w-4 h-4" />
-                <span className="hidden sm:inline">Empleos</span>
-              </TabsTrigger>
-              <TabsTrigger value="enterprises" className="flex items-center space-x-1 text-xs sm:text-sm py-2">
-                <Rocket className="w-4 h-4" />
-                <span className="hidden sm:inline">Empresas</span>
-              </TabsTrigger>
-              <TabsTrigger value="create" className="flex items-center space-x-1 text-xs sm:text-sm py-2">
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Publicar</span>
-              </TabsTrigger>
-            </TabsList>
+            <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm pb-4 -mx-4 px-4">
+              <TabsList className="grid w-full grid-cols-6 h-auto gap-1">
+                <TabsTrigger value="browse" className="flex items-center justify-center space-x-1 text-xs py-2 px-1">
+                  <Search className="w-4 h-4" />
+                  <span className="hidden sm:inline">Explorar</span>
+                </TabsTrigger>
+                <TabsTrigger value="my-ads" className="flex items-center justify-center space-x-1 text-xs py-2 px-1">
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline">Mis Anuncios</span>
+                </TabsTrigger>
+                <TabsTrigger value="jobs" className="flex items-center justify-center space-x-1 text-xs py-2 px-1">
+                  <UserSearch className="w-4 h-4" />
+                  <span className="hidden sm:inline">Empleos</span>
+                </TabsTrigger>
+                <TabsTrigger value="enterprises" className="flex items-center justify-center space-x-1 text-xs py-2 px-1">
+                  <Rocket className="w-4 h-4" />
+                  <span className="hidden sm:inline">Conexiones</span>
+                </TabsTrigger>
+                <TabsTrigger value="cultural-agenda" className="flex items-center justify-center space-x-1 text-xs py-2 px-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-400/30">
+                  <CalendarDays className="w-4 h-4 text-purple-400" />
+                  <span className="hidden sm:inline text-purple-300">Agenda Cultural</span>
+                </TabsTrigger>
+                <TabsTrigger value="create" className="flex items-center justify-center space-x-1 text-xs py-2 px-1">
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Publicar</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-            <TabsContent value="browse" className="space-y-6">
+            <TabsContent value="browse" className="space-y-6 pb-8">
               {/* Search and Filters */}
               <Card className="glass-card">
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row gap-4">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <Input
@@ -380,7 +388,7 @@ export default function ClassifiedsPage() {
                     <CyberButton
                       variant="outline"
                       onClick={() => setShowFilters(!showFilters)}
-                      className="flex items-center space-x-2"
+                      className="flex items-center justify-center space-x-2 min-w-[100px]"
                     >
                       <Filter className="w-4 h-4" />
                       <span>Filtros</span>
@@ -395,7 +403,7 @@ export default function ClassifiedsPage() {
                         variant={selectedCategory === category.value ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => setSelectedCategory(category.value)}
-                        className={selectedCategory === category.value ? 'bg-neon-green text-black' : ''}
+                        className={`text-xs ${selectedCategory === category.value ? 'bg-neon-green text-black' : ''}`}
                       >
                         {category.name} ({category.count})
                       </CyberButton>
@@ -405,17 +413,17 @@ export default function ClassifiedsPage() {
               </Card>
 
               {/* Classifieds Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
                 {filteredClassifieds.map((item) => (
                   <Card key={item.id} className="glass-card hover:border-neon-green/30 transition-all duration-300 group">
                     <div className="relative">
-                      <div className="h-48 bg-gradient-to-r from-gray-800 to-gray-700 rounded-t-lg flex items-center justify-center">
-                        <Briefcase className="w-12 h-12 text-gray-400" />
+                      <div className="h-40 sm:h-48 bg-gradient-to-r from-gray-800 to-gray-700 rounded-t-lg flex items-center justify-center">
+                        <Briefcase className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" />
                       </div>
                       
                       {item.featured && (
                         <div className="absolute top-2 left-2">
-                          <Badge className="bg-neon-green text-black">
+                          <Badge className="bg-neon-green text-black text-xs">
                             <Star className="w-3 h-3 mr-1" />
                             Destacado
                           </Badge>
@@ -436,14 +444,14 @@ export default function ClassifiedsPage() {
                       </div>
                     </div>
                     
-                    <CardContent className="p-4">
+                    <CardContent className="p-3 sm:p-4">
                       <div className="mb-3">
-                        <h3 className="font-semibold text-white mb-1 line-clamp-1">{item.title}</h3>
-                        <p className="text-sm text-gray-400 line-clamp-2">{item.description}</p>
+                        <h3 className="font-semibold text-white mb-1 line-clamp-1 text-sm sm:text-base">{item.title}</h3>
+                        <p className="text-xs sm:text-sm text-gray-400 line-clamp-2">{item.description}</p>
                       </div>
 
                       <div className="mb-3">
-                        <div className="text-xl font-bold text-neon-green mb-1">
+                        <div className="text-lg sm:text-xl font-bold text-neon-green mb-1">
                           {formatPrice(item.price, item.currency)}
                           {item.negotiable && (
                             <span className="text-xs text-gray-400 ml-2">Negociable</span>
@@ -451,7 +459,7 @@ export default function ClassifiedsPage() {
                         </div>
                         <div className="flex items-center text-xs text-gray-400 space-x-2">
                           <MapPin className="w-3 h-3" />
-                          <span>{item.location}</span>
+                          <span className="truncate">{item.location}</span>
                         </div>
                       </div>
 
@@ -468,17 +476,18 @@ export default function ClassifiedsPage() {
                         </div>
                         <span className="flex items-center space-x-1">
                           <Clock className="w-3 h-3" />
-                          <span>{getTimeAgo(item.createdAt)}</span>
+                          <span className="hidden sm:inline">{getTimeAgo(item.createdAt)}</span>
+                          <span className="sm:hidden">Hace {Math.floor(Math.random() * 24)}h</span>
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-6 h-6 bg-neon-green/20 rounded-full flex items-center justify-center">
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <div className="w-6 h-6 bg-neon-green/20 rounded-full flex items-center justify-center flex-shrink-0">
                             <User className="w-3 h-3 text-neon-green" />
                           </div>
-                          <div>
-                            <p className="text-xs text-white">{item.seller.name}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs text-white truncate">{item.seller.name}</p>
                             <div className="flex items-center space-x-1">
                               <Star className="w-3 h-3 text-yellow-400 fill-current" />
                               <span className="text-xs text-gray-400">{item.seller.rating}</span>
@@ -488,8 +497,10 @@ export default function ClassifiedsPage() {
                         <CyberButton 
                           size="sm"
                           onClick={() => handleViewDetails(item)}
+                          className="ml-2 text-xs px-2 py-1"
                         >
-                          Ver Detalles
+                          <span className="hidden sm:inline">Ver Detalles</span>
+                          <span className="sm:hidden">Ver</span>
                         </CyberButton>
                       </div>
                     </CardContent>
@@ -498,21 +509,21 @@ export default function ClassifiedsPage() {
               </div>
             </TabsContent>
 
-            <TabsContent value="my-ads" className="space-y-6">
+            <TabsContent value="my-ads" className="space-y-6 pb-8">
               <Card className="glass-card">
-                <CardHeader>
+                <CardHeader className="p-4 sm:p-6">
                   <CardTitle className="text-white flex items-center space-x-2">
                     <User className="w-5 h-5 text-neon-green" />
                     <span>Mis Anuncios</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 sm:p-6">
                   <div className="text-center py-8">
                     <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-white mb-2">
                       No tienes anuncios publicados
                     </h3>
-                    <p className="text-gray-400 mb-4">
+                    <p className="text-gray-400 mb-4 text-sm sm:text-base">
                       Publica tu primer anuncio y comienza a vender
                     </p>
                     <CyberButton onClick={() => setIsEnhancedCreateOpen(true)}>
@@ -523,19 +534,23 @@ export default function ClassifiedsPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="create" className="space-y-6">
+            <TabsContent value="create" className="space-y-6 pb-8">
               <PublishMainView 
                 onCreatePublication={handleCreatePublication}
                 onBrowseRequested={handleBrowseRequested}
               />
             </TabsContent>
 
-            <TabsContent value="jobs" className="space-y-6">
+            <TabsContent value="jobs" className="space-y-6 pb-8">
               <JobSearchSection onCreateJob={() => setActiveTab('create')} />
             </TabsContent>
 
-            <TabsContent value="enterprises" className="space-y-6">
+            <TabsContent value="enterprises" className="space-y-6 pb-8">
               <EnterprisesSection onCreateProject={() => setActiveTab('create')} />
+            </TabsContent>
+
+            <TabsContent value="cultural-agenda" className="space-y-6 pb-8">
+              <CulturalAgendaSection onCreateEvent={() => setActiveTab('create')} />
             </TabsContent>
           </Tabs>
         </div>

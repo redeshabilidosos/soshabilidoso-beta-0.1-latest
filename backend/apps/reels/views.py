@@ -50,13 +50,46 @@ class ReelViewSet(viewsets.ModelViewSet):
         
         return Response({'views_count': reel.views_count})
     
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get', 'post'])
     def comments(self, request, pk=None):
-        """Obtener comentarios de un reel"""
+        """Obtener o crear comentarios de un reel"""
         reel = self.get_object()
-        comments = reel.comments.filter(parent=None)
-        serializer = ReelCommentSerializer(comments, many=True)
-        return Response(serializer.data)
+        
+        if request.method == 'GET':
+            comments = reel.comments.filter(parent=None).order_by('-created_at')
+            serializer = ReelCommentSerializer(comments, many=True, context={'request': request})
+            return Response({'results': serializer.data})
+        
+        elif request.method == 'POST':
+            serializer = ReelCommentSerializer(data=request.data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save(author=request.user, reel=reel)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['post'], url_path='comments/(?P<comment_id>[^/.]+)/like')
+    def like_comment(self, request, comment_id=None, pk=None):
+        """Dar/quitar like a un comentario de reel"""
+        try:
+            reel = self.get_object()
+            comment = ReelComment.objects.get(id=comment_id, reel=reel)
+            
+            if comment.likes.filter(id=request.user.id).exists():
+                comment.likes.remove(request.user)
+                liked = False
+            else:
+                comment.likes.add(request.user)
+                liked = True
+            
+            return Response({
+                'liked': liked,
+                'likes_count': comment.likes_count
+            })
+        except ReelComment.DoesNotExist:
+            return Response(
+                {'error': 'Comentario no encontrado'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 class ReelCommentViewSet(viewsets.ModelViewSet):
     serializer_class = ReelCommentSerializer

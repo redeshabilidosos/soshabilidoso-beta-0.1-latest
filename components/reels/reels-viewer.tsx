@@ -16,6 +16,7 @@ interface Reel {
     displayName: string;
     avatar: string;
     isVerified: boolean;
+    isFollowing?: boolean;
   };
   likes: number;
   comments: number;
