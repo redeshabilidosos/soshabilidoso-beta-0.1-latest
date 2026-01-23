@@ -15,6 +15,7 @@ class Reel(models.Model):
     # Estadísticas
     views_count = models.IntegerField(default=0)
     likes = models.ManyToManyField(User, related_name='liked_reels', blank=True)
+    share_count = models.IntegerField(default=0, help_text="Número de veces compartido")
     
     # Metadata
     duration = models.IntegerField(default=0, help_text="Duración en segundos")

@@ -1,25 +1,27 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, lazy, Suspense, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';
 import { useCachedUser } from '@/lib/hooks/use-cached-auth';
-import { Sidebar } from '@/components/navigation/sidebar';
-import { MobileNav } from '@/components/navigation/mobile-nav';
-import { PostCard } from '@/components/ui/post-card';
 import { CyberButton } from '@/components/ui/cyber-button';
 import { Plus, TrendingUp } from 'lucide-react';
-import { RealtimeIndicator } from '@/components/ui/realtime-indicator';
-import { MeetingNotifications } from '@/components/communities/meeting-notifications';
 import { Post } from '@/types/user';
-import { NewPostDialog } from '@/components/ui/new-post-dialog';
-import { AdCard } from '@/components/advertising/ad-card';
-import { advertisingService, Advertisement } from '@/lib/services/advertising.service';
+import { Advertisement } from '@/lib/services/advertising.service';
 import { Toaster } from 'sonner';
 import { toast } from 'sonner';
-import { StoriesSlider, UserStories } from '@/components/ui/stories-slider';
-import { NewStoryDialog } from '@/components/ui/new-story-dialog';
-import { storiesService } from '@/lib/services/stories.service';
+import { UserStories } from '@/components/ui/stories-slider';
+
+// Lazy loading de componentes pesados
+const Sidebar = lazy(() => import('@/components/navigation/sidebar').then(mod => ({ default: mod.Sidebar })));
+const MobileNav = lazy(() => import('@/components/navigation/mobile-nav').then(mod => ({ default: mod.MobileNav })));
+const PostCard = lazy(() => import('@/components/ui/post-card').then(mod => ({ default: mod.PostCard })));
+const RealtimeIndicator = lazy(() => import('@/components/ui/realtime-indicator').then(mod => ({ default: mod.RealtimeIndicator })));
+const MeetingNotifications = lazy(() => import('@/components/communities/meeting-notifications').then(mod => ({ default: mod.MeetingNotifications })));
+const NewPostDialog = lazy(() => import('@/components/ui/new-post-dialog').then(mod => ({ default: mod.NewPostDialog })));
+const AdCard = lazy(() => import('@/components/advertising/ad-card').then(mod => ({ default: mod.AdCard })));
+const StoriesSlider = lazy(() => import('@/components/ui/stories-slider').then(mod => ({ default: mod.StoriesSlider })));
+const NewStoryDialog = lazy(() => import('@/components/ui/new-story-dialog').then(mod => ({ default: mod.NewStoryDialog })));
 
 export default function FeedPage() {
   const { user } = useAuth();
@@ -221,6 +223,8 @@ export default function FeedPage() {
       
       try {
         setIsLoadingStories(true);
+        // Import dinámico del servicio
+        const { storiesService } = await import('@/lib/services/stories.service');
         const backendStories = await storiesService.getFriendsStories();
         
         // Mapear historias del backend al formato del frontend
@@ -321,6 +325,8 @@ export default function FeedPage() {
       adsLoadedRef.current = true;
       
       try {
+        // Import dinámico del servicio
+        const { advertisingService } = await import('@/lib/services/advertising.service');
         // Cargar varios anuncios para rotar en el feed
         const response = await advertisingService.getFeedAds(0, 5);
         if (response.ads.length > 0) {
@@ -446,7 +452,11 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen">
-      <Sidebar />
+      <Suspense fallback={
+        <div className="fixed left-0 top-0 h-screen w-64 bg-black/50 backdrop-blur-sm animate-pulse" />
+      }>
+        <Sidebar />
+      </Suspense>
       
       <main className="pb-24 lg:ml-64 lg:pb-0">
         <div className="max-w-4xl mx-auto p-4 space-y-6">
@@ -458,11 +468,13 @@ export default function FeedPage() {
                 <div className="flex items-center space-x-2">
                   <TrendingUp className="text-neon-green" size={20} />
                   <h1 className="text-lg font-bold text-white">Feed Principal</h1>
-                  <RealtimeIndicator 
-                    isConnected={isConnected} 
-                    showLabel={false}
-                    size="sm"
-                  />
+                  <Suspense fallback={<div className="w-2 h-2 bg-gray-500 rounded-full" />}>
+                    <RealtimeIndicator 
+                      isConnected={isConnected} 
+                      showLabel={false}
+                      size="sm"
+                    />
+                  </Suspense>
                 </div>
                 <CyberButton 
                   size="sm"
@@ -485,11 +497,13 @@ export default function FeedPage() {
                   <h1 className="text-2xl font-bold text-white flex items-center space-x-2">
                     <TrendingUp className="text-neon-green" />
                     <span>Feed Principal</span>
-                    <RealtimeIndicator 
-                      isConnected={isConnected} 
-                      showLabel={true}
-                      size="lg"
-                    />
+                    <Suspense fallback={<div className="w-3 h-3 bg-gray-500 rounded-full" />}>
+                      <RealtimeIndicator 
+                        isConnected={isConnected} 
+                        showLabel={true}
+                        size="lg"
+                      />
+                    </Suspense>
                   </h1>
                   <p className="text-gray-400">
                     Descubre las últimas novedades de tu comunidad futbolística
@@ -506,27 +520,35 @@ export default function FeedPage() {
             </div>
 
             {/* Stories Slider */}
-            <StoriesSlider 
-              userStories={userStories}
-              currentUserId={displayUser.id}
-              currentUser={{
-                id: displayUser.id,
-                username: displayUser.username,
-                displayName: displayUser.displayName || displayUser.username,
-                avatar: displayUser.avatar || displayUser.avatarUrl || ''
-              }}
-              onAddStory={() => setIsNewStoryDialogOpen(true)}
-              onStoryViewed={(storyId) => {
-                // Marcar historia como vista
-                setUserStories(prev => prev.map(us => ({
-                  ...us,
-                  stories: us.stories.map(s => 
-                    s.id === storyId ? { ...s, viewed: true } : s
-                  ),
-                  hasUnviewed: us.stories.some(s => s.id !== storyId && !s.viewed)
-                })));
-              }}
-            />
+            <Suspense fallback={
+              <div className="flex space-x-3 overflow-x-auto pb-2">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="flex-shrink-0 w-20 h-28 bg-gray-800 rounded-lg animate-pulse" />
+                ))}
+              </div>
+            }>
+              <StoriesSlider 
+                userStories={userStories}
+                currentUserId={displayUser.id}
+                currentUser={{
+                  id: displayUser.id,
+                  username: displayUser.username,
+                  displayName: displayUser.displayName || displayUser.username,
+                  avatar: displayUser.avatar || displayUser.avatarUrl || ''
+                }}
+                onAddStory={() => setIsNewStoryDialogOpen(true)}
+                onStoryViewed={(storyId) => {
+                  // Marcar historia como vista
+                  setUserStories(prev => prev.map(us => ({
+                    ...us,
+                    stories: us.stories.map(s => 
+                      s.id === storyId ? { ...s, viewed: true } : s
+                    ),
+                    hasUnviewed: us.stories.some(s => s.id !== storyId && !s.viewed)
+                  })));
+                }}
+              />
+            </Suspense>
           </div>
 
           {/* Posts Feed */}
@@ -558,17 +580,30 @@ export default function FeedPage() {
                 return (
                   <div key={post.id}>
                     <div id={`post-${post.id}`}>
-                      <PostCard post={post} onPostUpdated={handlePostUpdated} onPostDeleted={handlePostDeleted} />
+                      <Suspense fallback={
+                        <div className="glass-card p-6 animate-pulse">
+                          <div className="h-20 bg-gray-800 rounded mb-4" />
+                          <div className="h-40 bg-gray-800 rounded" />
+                        </div>
+                      }>
+                        <PostCard post={post} onPostUpdated={handlePostUpdated} onPostDeleted={handlePostDeleted} />
+                      </Suspense>
                     </div>
                     
                     {/* Mostrar anuncio cada AD_FREQUENCY posts */}
                     {adToShow && (
                       <div className="mt-6">
-                        <AdCard 
-                          ad={adToShow} 
-                          position={index} 
-                          variant="feed" 
-                        />
+                        <Suspense fallback={
+                          <div className="glass-card p-6 animate-pulse">
+                            <div className="h-32 bg-gray-800 rounded" />
+                          </div>
+                        }>
+                          <AdCard 
+                            ad={adToShow} 
+                            position={index} 
+                            variant="feed" 
+                          />
+                        </Suspense>
                       </div>
                     )}
                   </div>
@@ -586,60 +621,70 @@ export default function FeedPage() {
         </div>
       </main>
 
-      <MobileNav />
+      <Suspense fallback={
+        <div className="fixed bottom-0 left-0 right-0 h-16 bg-black/50 backdrop-blur-sm animate-pulse" />
+      }>
+        <MobileNav />
+      </Suspense>
       
       {/* Meeting Notifications */}
-      <MeetingNotifications userSubscriptions={userSubscriptions} />
+      <Suspense fallback={null}>
+        <MeetingNotifications userSubscriptions={userSubscriptions} />
+      </Suspense>
       
-      <NewPostDialog 
-        isOpen={isNewPostDialogOpen} 
-        onClose={() => setIsNewPostDialogOpen(false)} 
-        onPostCreated={handlePostCreated}
-      />
+      <Suspense fallback={null}>
+        <NewPostDialog 
+          isOpen={isNewPostDialogOpen} 
+          onClose={() => setIsNewPostDialogOpen(false)} 
+          onPostCreated={handlePostCreated}
+        />
+      </Suspense>
       
-      <NewStoryDialog
-        isOpen={isNewStoryDialogOpen}
-        onClose={() => setIsNewStoryDialogOpen(false)}
-        currentUser={{
-          id: String(displayUser.id),
-          username: displayUser.username,
-          displayName: displayUser.displayName || displayUser.username,
-          avatar: displayUser.avatar || displayUser.avatarUrl || ''
-        }}
-        onStoryCreated={(newStory) => {
-          // Agregar la nueva historia al usuario actual
-          setUserStories(prev => {
-            // Buscar el usuario actual en la lista (comparar como strings)
-            const currentUserIndex = prev.findIndex(us => 
-              String(us.user.id) === String(displayUser.id)
-            );
-            
-            if (currentUserIndex >= 0) {
-              // Usuario encontrado, agregar historia a su lista
-              const updated = [...prev];
-              updated[currentUserIndex] = {
-                ...updated[currentUserIndex],
-                stories: [newStory, ...updated[currentUserIndex].stories],
-                hasUnviewed: false // Las propias historias no se marcan como no vistas
-              };
-              return updated;
-            }
-            
-            // Si el usuario no está en la lista, agregarlo al inicio
-            return [{
-              user: {
-                id: String(displayUser.id),
-                username: displayUser.username,
-                displayName: displayUser.displayName || displayUser.username,
-                avatar: displayUser.avatar || displayUser.avatarUrl || ''
-              },
-              stories: [newStory],
-              hasUnviewed: false
-            }, ...prev];
-          });
-          setIsNewStoryDialogOpen(false);
-        }}
-      />
+      <Suspense fallback={null}>
+        <NewStoryDialog
+          isOpen={isNewStoryDialogOpen}
+          onClose={() => setIsNewStoryDialogOpen(false)}
+          currentUser={{
+            id: String(displayUser.id),
+            username: displayUser.username,
+            displayName: displayUser.displayName || displayUser.username,
+            avatar: displayUser.avatar || displayUser.avatarUrl || ''
+          }}
+          onStoryCreated={(newStory) => {
+            // Agregar la nueva historia al usuario actual
+            setUserStories(prev => {
+              // Buscar el usuario actual en la lista (comparar como strings)
+              const currentUserIndex = prev.findIndex(us => 
+                String(us.user.id) === String(displayUser.id)
+              );
+              
+              if (currentUserIndex >= 0) {
+                // Usuario encontrado, agregar historia a su lista
+                const updated = [...prev];
+                updated[currentUserIndex] = {
+                  ...updated[currentUserIndex],
+                  stories: [newStory, ...updated[currentUserIndex].stories],
+                  hasUnviewed: false // Las propias historias no se marcan como no vistas
+                };
+                return updated;
+              }
+              
+              // Si el usuario no está en la lista, agregarlo al inicio
+              return [{
+                user: {
+                  id: String(displayUser.id),
+                  username: displayUser.username,
+                  displayName: displayUser.displayName || displayUser.username,
+                  avatar: displayUser.avatar || displayUser.avatarUrl || ''
+                },
+                stories: [newStory],
+                hasUnviewed: false
+              }, ...prev];
+            });
+            setIsNewStoryDialogOpen(false);
+          }}
+        />
+      </Suspense>
       
       <Toaster richColors />
     </div>

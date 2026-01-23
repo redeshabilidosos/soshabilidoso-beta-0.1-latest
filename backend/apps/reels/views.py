@@ -50,6 +50,18 @@ class ReelViewSet(viewsets.ModelViewSet):
         
         return Response({'views_count': reel.views_count})
     
+    @action(detail=True, methods=['post'])
+    def share(self, request, pk=None):
+        """Incrementar contador de compartidos"""
+        reel = self.get_object()
+        reel.share_count += 1
+        reel.save()
+        
+        return Response({
+            'share_count': reel.share_count,
+            'share_url': f"{request.build_absolute_uri('/reels')}?id={reel.id}"
+        })
+    
     @action(detail=True, methods=['get', 'post'])
     def comments(self, request, pk=None):
         """Obtener o crear comentarios de un reel"""

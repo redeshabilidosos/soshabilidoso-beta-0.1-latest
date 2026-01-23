@@ -75,7 +75,7 @@ const mockMeetings: Meeting[] = [
     maxParticipants: 30,
     status: 'live',
     isRecurring: true,
-    meetingUrl: 'https://meet.sos-habilidoso.com/room/abc123',
+    meetingUrl: 'https://meet.soshabilidoso.com/room/abc123',
     tags: ['Backend', 'Q&A', 'Node.js']
   },
   {

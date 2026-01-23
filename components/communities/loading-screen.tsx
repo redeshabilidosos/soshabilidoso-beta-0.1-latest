@@ -99,8 +99,8 @@ export function LoadingScreen({ onLoadingComplete, isDataLoaded = false }: Loadi
           }}
         >
           <motion.img
-            src="/logo sos@3x.png"
-            alt="SOS Habilidoso"
+            src="/logososbetav1.png"
+            alt="sos habilidoso logo beta"
             className="h-48 md:h-64 object-contain"
             style={{
               transformStyle: "preserve-3d",

@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';
-import { Sidebar } from '@/components/navigation/sidebar';
-import { MobileNav } from '@/components/navigation/mobile-nav';
 import { CyberButton } from '@/components/ui/cyber-button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+
+// Lazy loading de componentes pesados
+const Sidebar = lazy(() => import('@/components/navigation/sidebar').then(mod => ({ default: mod.Sidebar })));
+const MobileNav = lazy(() => import('@/components/navigation/mobile-nav').then(mod => ({ default: mod.MobileNav })));
 
 import {
   Users,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { CyberButton } from '@/components/ui/cyber-button';
@@ -15,7 +15,9 @@ import {
   Play,
   Loader2,
   Music,
-  Hash
+  Hash,
+  Scissors,
+  AlertCircle
 } from 'lucide-react';
 
 interface UploadReelModalProps {
@@ -31,17 +33,29 @@ export function UploadReelModal({ isOpen, onClose, onReelUploaded }: UploadReelM
   const [hashtags, setHashtags] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [useCamera, setUseCamera] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [showTrimmer, setShowTrimmer] = useState(false);
+  const [trimStart, setTrimStart] = useState(0);
+  const [trimEnd, setTrimEnd] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleFileSelect = (file: File) => {
+    setVideoError(null);
+    
     if (!file.type.startsWith('video/')) {
+      setVideoError('Por favor selecciona un archivo de video');
       toast.error('Por favor selecciona un archivo de video');
       return;
     }
 
     // Validar tamaño (máximo 100MB)
-    if (file.size > 100 * 1024 * 1024) {
+    const maxSize = 100 * 1024 * 1024; // 100MB
+    if (file.size > maxSize) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      setVideoError(`¡Ups! Tu video es muy pesado (${sizeMB}MB). El tamaño máximo es 100MB`);
       toast.error('El video es muy grande. Máximo 100MB');
       return;
     }
@@ -49,6 +63,22 @@ export function UploadReelModal({ isOpen, onClose, onReelUploaded }: UploadReelM
     setVideoFile(file);
     const preview = URL.createObjectURL(file);
     setVideoPreview(preview);
+    
+    // Obtener duración del video
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      const duration = video.duration;
+      setVideoDuration(duration);
+      setTrimEnd(duration);
+      
+      // Si el video es muy largo, sugerir recorte
+      if (duration > 60) {
+        toast.info('Tu video es largo. Puedes recortarlo antes de publicar');
+      }
+    };
+    video.src = preview;
   };
 
   const handleUpload = async () => {
@@ -127,25 +157,24 @@ export function UploadReelModal({ isOpen, onClose, onReelUploaded }: UploadReelM
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl glass-card border-neon-green/20 p-0">
-        <div className="relative">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-white/10">
-            <h2 className="text-xl font-bold text-white flex items-center space-x-2">
-              <Video className="w-6 h-6 text-neon-green" />
-              <span>Subir Reel</span>
-            </h2>
-            <button
-              onClick={handleClose}
-              disabled={isUploading}
-              className="p-2 hover:bg-white/10 rounded-full transition-colors disabled:opacity-50"
-            >
-              <X className="w-5 h-5 text-white" />
-            </button>
-          </div>
+      <DialogContent className="max-w-2xl max-h-[90vh] glass-card border-neon-green/20 p-0 flex flex-col">
+        {/* Header - Fixed */}
+        <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
+          <h2 className="text-xl font-bold text-white flex items-center space-x-2">
+            <Video className="w-6 h-6 text-neon-green" />
+            <span>Subir Reel</span>
+          </h2>
+          <button
+            onClick={handleClose}
+            disabled={isUploading}
+            className="p-2 hover:bg-white/10 rounded-full transition-colors disabled:opacity-50"
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-4">
+        {/* Content - Scrollable */}
+        <div className="overflow-y-auto flex-1 p-6 space-y-4">
             {!videoPreview ? (
               <div className="space-y-4">
                 {/* Upload Options */}
@@ -278,7 +307,6 @@ export function UploadReelModal({ isOpen, onClose, onReelUploaded }: UploadReelM
               </div>
             )}
           </div>
-        </div>
       </DialogContent>
     </Dialog>
   );

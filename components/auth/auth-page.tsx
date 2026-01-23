@@ -160,8 +160,8 @@ export function AuthPage() {
         {/* Logo centrado como título - visible en desktop */}
         <div className="hidden lg:flex flex-col items-center justify-center mb-10">
           <SimpleLogo
-            logoSrc="/logo sos@3x.png"
-            logoAlt="SOS-HABILIDOSO Logo"
+            logoSrc="/logososbetav1.png"
+            logoAlt="sos habilidoso logo beta"
             logoWidth={280}
             logoHeight={280}
           />
@@ -170,8 +170,8 @@ export function AuthPage() {
         {/* Logo para móvil - arriba del formulario */}
         <div className="lg:hidden flex flex-col items-center justify-center mb-8 pt-6">
           <SimpleLogo
-            logoSrc="/logo sos@3x.png"
-            logoAlt="SOS-HABILIDOSO Logo"
+            logoSrc="/logososbetav1.png"
+            logoAlt="sos habilidoso logo beta"
             logoWidth={220}
             logoHeight={220}
           />

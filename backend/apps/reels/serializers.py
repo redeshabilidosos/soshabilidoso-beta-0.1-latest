@@ -20,15 +20,16 @@ class ReelSerializer(serializers.ModelSerializer):
     like_count = serializers.ReadOnlyField()
     is_liked = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
+    is_following = serializers.SerializerMethodField()
     
     class Meta:
         model = Reel
         fields = [
             'id', 'author', 'video', 'thumbnail', 'caption', 'hashtags',
-            'views_count', 'like_count', 'is_liked', 'comment_count',
-            'duration', 'created_at'
+            'views_count', 'like_count', 'is_liked', 'comment_count', 'share_count',
+            'duration', 'created_at', 'is_following'
         ]
-        read_only_fields = ['id', 'author', 'views_count', 'created_at']
+        read_only_fields = ['id', 'author', 'views_count', 'share_count', 'created_at']
     
     def get_is_liked(self, obj):
         request = self.context.get('request')
@@ -38,6 +39,16 @@ class ReelSerializer(serializers.ModelSerializer):
     
     def get_comment_count(self, obj):
         return obj.comments.count()
+    
+    def get_is_following(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            from apps.users.models import Follow
+            return Follow.objects.filter(
+                follower=request.user,
+                following=obj.author
+            ).exists()
+        return False
 
 class ReelCreateSerializer(serializers.ModelSerializer):
     class Meta:

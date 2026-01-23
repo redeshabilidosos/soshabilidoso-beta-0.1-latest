@@ -129,8 +129,8 @@ export const Sidebar = memo(function Sidebar() {
         <div className="mb-4">
           <Link href="/feed" className="flex items-center justify-center" prefetch={true}>
             <Image
-              src="/logo-sos.png"
-              alt="SOS-HABILIDOSO Logo"
+              src="/logososbetav1.png"
+              alt="logososbetav1.png"
               width={200}
               height={68}
               className="object-contain"

@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';
-import { ReelsViewer } from '@/components/reels/reels-viewer';
-import { Sidebar } from '@/components/navigation/sidebar';
-import { MobileNav } from '@/components/navigation/mobile-nav';
 import { toast } from 'sonner';
+
+// Lazy loading de componentes pesados
+const ReelsViewer = lazy(() => import('@/components/reels/reels-viewer').then(mod => ({ default: mod.ReelsViewer })));
+const Sidebar = lazy(() => import('@/components/navigation/sidebar').then(mod => ({ default: mod.Sidebar })));
+const MobileNav = lazy(() => import('@/components/navigation/mobile-nav').then(mod => ({ default: mod.MobileNav })));
 
 // Mock data para los reels (fallback)
 const mockReels = [
@@ -166,11 +168,11 @@ export default function ReelsPage() {
             displayName: reel.author.display_name || reel.author.username,
             avatar: reel.author.avatar || '/logo.png',
             isVerified: reel.author.is_verified || false,
-            isFollowing: reel.author.is_following || false
+            isFollowing: reel.is_following || false
           },
           likes: reel.like_count || 0,
           comments: reel.comment_count || 0,
-          shares: 0,
+          shares: reel.share_count || 0,
           views: reel.views_count || 0,
           isLiked: reel.is_liked || false,
           createdAt: reel.created_at,
@@ -213,6 +215,23 @@ export default function ReelsPage() {
       fetchReels(1);
     }
   }, [user, authLoading, router, fetchReels]);
+
+  // Detectar ID en URL y posicionar el reel correcto
+  useEffect(() => {
+    if (reels.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const reelId = urlParams.get('id');
+      
+      if (reelId) {
+        const reelIndex = reels.findIndex(r => r.id === reelId);
+        if (reelIndex !== -1) {
+          setCurrentIndex(reelIndex);
+          // Limpiar el parámetro de la URL sin recargar
+          window.history.replaceState({}, '', '/reels');
+        }
+      }
+    }
+  }, [reels]);
 
   // Cargar más reels cuando se acerque al final
   const loadMore = useCallback(() => {
@@ -284,14 +303,46 @@ export default function ReelsPage() {
     // Este callback se mantiene para compatibilidad
   };
 
-  const handleShare = (reel: any) => {
+  const handleShare = async (reel: any) => {
     console.log('Share reel:', reel);
-    if (navigator.share) {
-      navigator.share({
-        title: reel.title,
-        text: reel.description,
-        url: window.location.href
-      });
+    
+    try {
+      // Incrementar contador de compartidos en el backend
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        await fetch(`http://127.0.0.1:8000/api/reels/${reel.id}/share/`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        // Actualizar contador local
+        setReels(prev => 
+          prev.map(r => 
+            r.id === reel.id 
+              ? { ...r, shares: r.shares + 1 }
+              : r
+          )
+        );
+      }
+      
+      // Compartir con URL única del reel
+      const shareUrl = `${window.location.origin}/reels?id=${reel.id}`;
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: reel.title,
+          text: reel.description,
+          url: shareUrl
+        });
+      } else {
+        // Fallback: copiar al portapapeles
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('Enlace copiado al portapapeles');
+      }
+    } catch (error) {
+      console.error('Error al compartir:', error);
     }
   };
 
@@ -423,20 +474,30 @@ export default function ReelsPage() {
   return (
     <div className="min-h-screen bg-black">
       {/* Desktop Sidebar */}
-      <Sidebar />
+      <Suspense fallback={
+        <div className="fixed left-0 top-0 h-screen w-64 bg-black/50 backdrop-blur-sm animate-pulse" />
+      }>
+        <Sidebar />
+      </Suspense>
       
       {/* Main Content */}
       <main className="lg:ml-64">
-        <ReelsViewer
-          reels={reels}
-          currentIndex={currentIndex}
-          onIndexChange={handleIndexChange}
-          onLike={handleLike}
-          onComment={handleComment}
-          onShare={handleShare}
-          onFollow={handleFollow}
-          onView={handleView}
-        />
+        <Suspense fallback={
+          <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className="w-10 h-10 border-3 border-neon-green border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        }>
+          <ReelsViewer
+            reels={reels}
+            currentIndex={currentIndex}
+            onIndexChange={handleIndexChange}
+            onLike={handleLike}
+            onComment={handleComment}
+            onShare={handleShare}
+            onFollow={handleFollow}
+            onView={handleView}
+          />
+        </Suspense>
         
         {/* Loading indicator */}
         {isFetchingMore && (
@@ -447,7 +508,11 @@ export default function ReelsPage() {
       </main>
 
       {/* Mobile Navigation */}
-      <MobileNav />
+      <Suspense fallback={
+        <div className="fixed bottom-0 left-0 right-0 h-16 bg-black/50 backdrop-blur-sm animate-pulse" />
+      }>
+        <MobileNav />
+      </Suspense>
     </div>
   );
 }
