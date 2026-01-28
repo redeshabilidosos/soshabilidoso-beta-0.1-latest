@@ -11,7 +11,7 @@ export interface BackgroundColor {
 
 export const backgroundColors: BackgroundColor[] = [
   {
-    id: 'cyber-green',
+    id: 'cyber-black ',
     name: 'Cyber Verde',
     gradient: '#000000',
     preview: '#00ff88'

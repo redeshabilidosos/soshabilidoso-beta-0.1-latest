@@ -134,6 +134,32 @@ class CommunityViewSet(viewsets.ModelViewSet):
         
         return queryset.order_by('-created_at')
     
+    @action(detail=False, methods=['get'])
+    def suggested(self, request):
+        """Obtener comunidades sugeridas para el usuario"""
+        user = request.user
+        
+        # Obtener comunidades a las que el usuario ya pertenece
+        user_communities = CommunityMembership.objects.filter(
+            user=user,
+            is_active=True
+        ).values_list('community_id', flat=True)
+        
+        # Sugerir comunidades populares que el usuario no ha unido
+        suggested = Community.objects.filter(
+            is_active=True
+        ).exclude(
+            id__in=user_communities
+        ).order_by('-subscribers_count', '-created_at')[:10]
+        
+        serializer = self.get_serializer(suggested, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def subscribe(self, request, id=None):
+        """Suscribirse a una comunidad (alias de join)"""
+        return self.join(request, id)
+    
     @action(detail=True, methods=['post'])
     def join(self, request, id=None):
         """Unirse o seguir una comunidad/página"""

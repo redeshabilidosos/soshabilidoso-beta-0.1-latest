@@ -8,12 +8,48 @@ import { Textarea } from '@/components/ui/textarea';
 import { Heart, MessageCircle, Share, Trophy, X, User as UserIcon, Play, Mic, Radio, Laugh, ThumbsDown, Zap } from 'lucide-react';
 import { Post, Comment } from '@/types/user';
 import { useAuth } from '@/components/providers/providers';
-import { ReactionButton } from './reaction-button';
 import { SharePostDialog } from './share-post-dialog';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { UserProfileDialog } from './user-profile-dialog'; // Importar el nuevo componente
 import { ConfirmDialog } from './confirm-dialog'; // Importar el diálogo de confirmación
+import { EmojiPickerButton } from '@/components/ui/emoji-picker-button';
+
+// Componente de botón de reacción con emoji
+const EmojiReactionButton = React.memo(function EmojiReactionButton({
+  emoji,
+  count,
+  active,
+  onClick,
+  label,
+}: {
+  emoji: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all duration-200 ${
+        active
+          ? 'text-neon-green'
+          : 'text-gray-400 hover:text-white'
+      }`}
+      aria-label={label}
+      title={label}
+    >
+      <span className={`text-xl transition-all duration-300 inline-block ${active ? 'animate-reaction-pop' : ''}`}>
+        {emoji}
+      </span>
+      <span className="text-sm font-medium">{count > 0 ? count : ''}</span>
+    </button>
+  );
+});
 
 interface PostDetailDialogProps {
   isOpen: boolean;
@@ -46,6 +82,8 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
   const [loadingComments, setLoadingComments] = useState(false); // Estado de carga de comentarios
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false); // Estado del diálogo de confirmación
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null); // ID del comentario a eliminar
+  const [newCommentInputValue, setNewCommentInputValue] = useState(''); // Valor del input de comentario
+  const commentInputRef = React.useRef<HTMLInputElement>(null); // Ref para el input de comentario
 
   useEffect(() => {
     if (isOpen) {
@@ -377,6 +415,26 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
     setIsUserProfileDialogOpen(true);
   };
 
+  const handleCommentEmojiSelect = (emoji: string) => {
+    const input = commentInputRef.current;
+    if (!input) return;
+
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const text = newCommentContent;
+    const before = text.substring(0, start);
+    const after = text.substring(end);
+    
+    setNewCommentContent(before + emoji + after);
+    
+    // Restaurar el foco y posición del cursor
+    setTimeout(() => {
+      input.focus();
+      const newPosition = start + emoji.length;
+      input.setSelectionRange(newPosition, newPosition);
+    }, 0);
+  };
+
   const handleEditComment = (commentId: string, currentContent: string) => {
     setEditingCommentId(commentId);
     setEditContent(currentContent);
@@ -462,8 +520,8 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-3xl lg:max-w-4xl h-[90vh] flex flex-col glass-card border-neon-green/20 p-0">
-          <DialogHeader className="p-6 pb-0">
+        <DialogContent className="sm:max-w-3xl lg:max-w-4xl h-[90vh] flex flex-col glass-card border-neon-green/20 p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-0 pr-16">
             <DialogTitle className="text-white flex items-center space-x-2">
               <MessageCircle size={20} className="text-neon-green" />
               <span>Detalles de la Publicación</span>
@@ -471,12 +529,11 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
             <DialogDescription className="text-gray-400">
               Explora la publicación completa y sus interacciones.
             </DialogDescription>
-
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 pt-4 scrollbar-hide">
+          <div className="flex-1 overflow-y-auto p-6 pt-4 scrollbar-hide overflow-x-hidden">
             {/* Post Content */}
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4 mb-6 max-w-full">
               {/* User Info */}
               <button 
                 onClick={() => handleOpenUserProfile(post.user)}
@@ -602,34 +659,25 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
             {/* Reactions & Share */}
             <div className="flex items-center justify-between pt-4 border-t border-white/10">
               <div className="flex items-center gap-1">
-                <ReactionButton
-                  icon={Heart}
+                <EmojiReactionButton
+                  emoji="❤️"
                   count={reactions.likes}
-                  color="text-red-500"
-                  hoverColor="hover:text-red-400"
-                  activeBg="bg-red-500/20"
                   active={userReaction === 'like'}
                   onClick={() => handleReaction('like')}
                   label="Me gusta"
                 />
                 
-                <ReactionButton
-                  icon={Laugh}
+                <EmojiReactionButton
+                  emoji="😂"
                   count={reactions.laughs}
-                  color="text-yellow-500"
-                  hoverColor="hover:text-yellow-400"
-                  activeBg="bg-yellow-500/20"
                   active={userReaction === 'laugh'}
                   onClick={() => handleReaction('laugh')}
                   label="Jajaja"
                 />
                 
-                <ReactionButton
-                  icon={ThumbsDown}
+                <EmojiReactionButton
+                  emoji="👎"
                   count={reactions.dislikes}
-                  color="text-blue-500"
-                  hoverColor="hover:text-blue-400"
-                  activeBg="bg-blue-500/20"
                   active={userReaction === 'dislike'}
                   onClick={() => handleReaction('dislike')}
                   label="No me gusta"
@@ -660,16 +708,22 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
                     target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default';
                   }}
                 />
-                <div className="flex-1 flex space-x-2">
-                  <input
-                    type="text"
-                    value={newCommentContent}
-                    onChange={(e) => setNewCommentContent(e.target.value)}
-                    placeholder="Escribe un comentario..."
-                    className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
-                    disabled={!currentUser}
-                  />
+                <div className="flex-1 flex space-x-2 items-center">
+                  <div className="relative flex-1">
+                    <input
+                      ref={commentInputRef}
+                      type="text"
+                      value={newCommentContent}
+                      onChange={(e) => setNewCommentContent(e.target.value)}
+                      placeholder="Escribe un comentario..."
+                      className="w-full px-4 py-2 pr-12 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
+                      disabled={!currentUser}
+                    />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                      <EmojiPickerButton onEmojiSelect={handleCommentEmojiSelect} />
+                    </div>
+                  </div>
                   <CyberButton size="sm" onClick={handleAddComment} disabled={!newCommentContent.trim() || !currentUser}>
                     Enviar
                   </CyberButton>

@@ -145,7 +145,7 @@ export function ViewerStreamModal({ isOpen, onClose }: ViewerStreamModalProps) {
     }
 
     const newStreamId = `stream-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const url = `${window.location.origin}/live/${newStreamId}`;
+    const url = `${window.location.origin}/sos/${newStreamId}`;
 
     setStreamId(newStreamId);
     setStreamUrl(url);

@@ -29,33 +29,24 @@ export function FloatingLogoAndMenuButton() {
   useEffect(() => {
     setMounted(true);
     
-    // Consultar la configuración del sitio
+    // Consultar la configuración del sitio UNA SOLA VEZ al montar
     const fetchSettings = async () => {
       try {
-        console.log('🔄 FloatingButton: Consultando configuraciones...');
         const settings = await getSiteSettings();
-        console.log('📊 FloatingButton: Configuración recibida:', settings);
-        console.log('🎯 FloatingButton: show_register_habilidosos_button =', settings.show_register_habilidosos_button);
         setShowRegisterButton(settings.show_register_habilidosos_button);
       } catch (error) {
-        console.error('❌ FloatingButton: Error al obtener configuraciones, ocultando botón por seguridad');
-        // En caso de error, ocultar el botón por seguridad
+        console.error('❌ FloatingButton: Error al obtener configuraciones');
         setShowRegisterButton(false);
       }
     };
     
     fetchSettings();
     
-    // Actualizar cada 5 segundos para reflejar cambios rápidamente
-    const interval = setInterval(fetchSettings, 5000);
-    
-    return () => clearInterval(interval);
+    // NO más polling - la configuración se cachea por 5 minutos
+    // Si necesitas actualizar, recarga la página o invalida el caché manualmente
   }, []);
 
-  console.log('🔍 FloatingButton: Renderizando con showRegisterButton =', showRegisterButton);
-
   if (!user || !isVisible || !showRegisterButton) {
-    console.log('❌ FloatingButton: No se muestra. user:', !!user, 'isVisible:', isVisible, 'showRegisterButton:', showRegisterButton);
     return null;
   }
 

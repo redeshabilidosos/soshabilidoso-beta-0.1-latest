@@ -6,8 +6,12 @@ import { useAuth } from '@/components/providers/providers';
 import { useNotifications } from '@/lib/hooks/use-notifications';
 import { Sidebar } from '@/components/navigation/sidebar';
 import { MobileNav } from '@/components/navigation/mobile-nav';
-import { CyberButton } from '@/components/ui/cyber-button';
-import { Bell, Heart, MessageCircle, UserPlus, Trophy, Check, X, Mail, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Bell, Heart, MessageCircle, UserPlus, Trophy, Check, X, Mail, User, ArrowLeft } from 'lucide-react';
 import { usersService } from '@/lib/services/users.service';
 export default function NotificationsPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -128,73 +132,101 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-transparent">
       <Sidebar />
       
-      <main className="pb-24 lg:ml-64 lg:pb-0 pt-28 md:pt-12 lg:pt-6 relative z-10 min-h-screen">
-        <div className="max-w-4xl mx-auto p-4 space-y-6">
-          {/* Header */}
-          <div className="glass-card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-2xl font-bold text-white flex items-center space-x-2">
-                  <Bell className="text-neon-green" />
-                  <span>Notificaciones</span>
-                  {unreadCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                      {unreadCount}
-                    </span>
-                  )}
-                </h1>
-                <p className="text-gray-400">Mantente al día con todas las interacciones</p>
-              </div>
-              <CyberButton 
-                variant="outline"
-                onClick={markAllAsRead}
-                disabled={unreadCount === 0}
-              >
-                Marcar todo como leído
-              </CyberButton>
-            </div>
-
-            {/* Filters */}
-            <div className="flex space-x-2">
-              {[
-                { key: 'all', label: 'Todas' },
-                { key: 'unread', label: 'No leídas' },
-                { key: 'connections', label: 'Conexiones' },
-              ].map((filterOption) => (
-                <button
-                  key={filterOption.key}
-                  onClick={() => setFilter(filterOption.key)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    filter === filterOption.key
-                      ? 'bg-neon-green/20 text-neon-green border border-neon-green/50'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                  }`}
-                >
-                  {filterOption.label}
-                </button>
-              ))}
-            </div>
+      <main className="pb-24 lg:ml-64 lg:pb-0 pt-12 md:pt-6 lg:pt-6 relative z-10 min-h-screen">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          {/* Botón Regresar - Solo visible en móvil y tablet */}
+          <div className="lg:hidden">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/feed')}
+              className="flex items-center gap-2 bg-gray-900/80 backdrop-blur-xl border-gray-800 hover:bg-gray-800/80"
+            >
+              <ArrowLeft size={16} />
+              Regresar al Feed
+            </Button>
           </div>
 
+          {/* Header */}
+          <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-800">
+            <CardHeader>
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-2xl font-bold text-white flex items-center gap-2 flex-wrap">
+                    <Bell className="text-neon-green" />
+                    <span>Notificaciones</span>
+                    {unreadCount > 0 && (
+                      <Badge variant="destructive" className="ml-2">
+                        {unreadCount}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-gray-400 mt-2">
+                    Mantente al día con todas las interacciones
+                  </CardDescription>
+                </div>
+                <Button 
+                  variant="outline"
+                  onClick={markAllAsRead}
+                  disabled={unreadCount === 0}
+                  className="bg-gray-800/50 border-gray-700 hover:bg-gray-700/50"
+                >
+                  Marcar todo como leído
+                </Button>
+              </div>
+            </CardHeader>
+            
+            <Separator className="bg-gray-800" />
+            
+            <CardContent className="pt-6">
+              {/* Filters */}
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'all', label: 'Todas' },
+                  { key: 'unread', label: 'No leídas' },
+                  { key: 'connections', label: 'Conexiones' },
+                ].map((filterOption) => (
+                  <Button
+                    key={filterOption.key}
+                    variant={filter === filterOption.key ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilter(filterOption.key)}
+                    className={
+                      filter === filterOption.key
+                        ? 'bg-neon-green/20 text-neon-green border-neon-green/50 hover:bg-neon-green/30'
+                        : 'bg-gray-800/50 border-gray-700 hover:bg-gray-700/50'
+                    }
+                  >
+                    {filterOption.label}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Notifications List */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {isLoading ? (
-              <div className="glass-card p-8 text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neon-green mx-auto mb-4"></div>
-                <p className="text-gray-400">Cargando notificaciones...</p>
-              </div>
+              <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-800">
+                <CardContent className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neon-green mx-auto mb-4"></div>
+                  <p className="text-gray-400">Cargando notificaciones...</p>
+                </CardContent>
+              </Card>
             ) : filteredNotifications.length === 0 ? (
-              <div className="glass-card p-8 text-center">
-                <Bell className="mx-auto text-gray-400 mb-4" size={48} />
-                <h3 className="text-lg font-semibold text-white mb-2">No hay notificaciones</h3>
-                <p className="text-gray-400">Cuando tengas nuevas interacciones aparecerán aquí</p>
-              </div>
+              <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-800">
+                <CardContent className="p-8 text-center">
+                  <Bell className="mx-auto text-gray-400 mb-4" size={48} />
+                  <h3 className="text-lg font-semibold text-white mb-2">No hay notificaciones</h3>
+                  <p className="text-gray-400">Cuando tengas nuevas interacciones aparecerán aquí</p>
+                </CardContent>
+              </Card>
             ) : (
               filteredNotifications.map((notification) => (
-                <div
+                <Card
                   key={notification.id}
                   onClick={() => {
                     // Marcar como leída
@@ -212,90 +244,100 @@ export default function NotificationsPage() {
                       router.push(`/profile/${notification.sender.username}`);
                     }
                   }}
-                  className={`football-card p-4 transition-all duration-300 cursor-pointer hover:scale-[1.02] ${
+                  className={`bg-gray-900/80 backdrop-blur-xl border-gray-800 transition-all duration-300 cursor-pointer hover:scale-[1.01] hover:border-gray-700 ${
                     !notification.is_read ? 'border-neon-green/50 bg-neon-green/5' : ''
                   }`}
                 >
-                  <div className="flex flex-col md:flex-row md:items-start space-y-3 md:space-y-0 md:space-x-4">
-                    <div className="flex items-start space-x-4 flex-1 min-w-0">
-                      <div className="flex-shrink-0">
-                        {getNotificationIcon(notification.notification_type)}
-                      </div>
-                      
-                      <img
-                        src={notification.sender?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
-                        alt={notification.sender?.display_name || 'Usuario'}
-                        className="w-12 h-12 rounded-full ring-2 ring-neon-green/30 object-cover bg-gray-800 flex-shrink-0"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default';
-                        }}
-                      />
-                      
-                      <div className="flex-1 min-w-0">
-                        {notification.sender && (
-                          <div className="flex items-center space-x-2 flex-wrap">
-                            <span className="font-semibold text-white truncate">
-                              {notification.sender.display_name}
-                            </span>
-                            <span className="text-gray-400 text-sm truncate">
-                              @{notification.sender.username}
-                            </span>
-                            {!notification.is_read && (
-                              <div className="w-2 h-2 bg-neon-green rounded-full flex-shrink-0"></div>
-                            )}
-                          </div>
-                        )}
+                  <CardContent className="p-4">
+                    <div className="flex flex-col md:flex-row md:items-start gap-4">
+                      <div className="flex items-start gap-4 flex-1 min-w-0">
+                        <div className="flex-shrink-0 mt-1">
+                          {getNotificationIcon(notification.notification_type)}
+                        </div>
                         
-                        <p className="text-gray-300 mt-1 text-sm md:text-base">{notification.message}</p>
+                        <Avatar className="w-12 h-12 ring-2 ring-neon-green/30 flex-shrink-0">
+                          <AvatarImage 
+                            src={notification.sender?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
+                            alt={notification.sender?.display_name || 'Usuario'}
+                          />
+                          <AvatarFallback className="bg-gray-800">
+                            {notification.sender?.display_name?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex-1 min-w-0">
+                          {notification.sender && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-white truncate">
+                                {notification.sender.display_name}
+                              </span>
+                              <span className="text-gray-400 text-sm truncate">
+                                @{notification.sender.username}
+                              </span>
+                              {!notification.is_read && (
+                                <Badge variant="default" className="bg-neon-green/20 text-neon-green border-neon-green/50 text-xs">
+                                  Nuevo
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                          
+                          <p className="text-gray-300 mt-1 text-sm md:text-base">{notification.message}</p>
 
-                        <p className="text-gray-500 text-xs md:text-sm mt-2">
-                          {notification.time_ago || new Date(notification.created_at).toLocaleDateString('es-ES', {
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </p>
+                          <p className="text-gray-500 text-xs md:text-sm mt-2">
+                            {notification.time_ago || new Date(notification.created_at).toLocaleDateString('es-ES', {
+                              day: 'numeric',
+                              month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
                       </div>
+                      
+                      {notification.notification_type === 'friend_request' && notification.sender && (
+                        <div className="flex flex-wrap gap-2 md:flex-col md:flex-nowrap flex-shrink-0">
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFriendRequest(notification, true);
+                            }}
+                            className="bg-neon-green/20 hover:bg-neon-green/40 text-neon-green border-neon-green/50"
+                            variant="outline"
+                          >
+                            <Check size={14} className="mr-1" />
+                            Aceptar
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFriendRequest(notification, false);
+                            }}
+                            className="bg-red-500/20 hover:bg-red-500/40 text-red-400 border-red-500/50"
+                            variant="outline"
+                          >
+                            <X size={14} className="mr-1" />
+                            Rechazar
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewProfile(notification.sender.username);
+                            }}
+                            className="bg-gray-800/50 hover:bg-gray-700/50 border-gray-700"
+                            variant="outline"
+                          >
+                            <User size={14} className="mr-1" />
+                            Ver perfil
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    
-                    {notification.notification_type === 'friend_request' && notification.sender && (
-                      <div className="flex flex-wrap gap-2 mt-3 md:mt-0 md:flex-col md:flex-nowrap md:ml-2 flex-shrink-0">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFriendRequest(notification, true);
-                          }}
-                          className="px-3 py-1.5 bg-neon-green/20 hover:bg-neon-green/40 rounded-lg transition-colors text-neon-green text-xs md:text-sm font-medium flex items-center space-x-1"
-                        >
-                          <Check size={14} />
-                          <span>Aceptar</span>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFriendRequest(notification, false);
-                          }}
-                          className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/40 rounded-lg transition-colors text-red-400 text-xs md:text-sm font-medium flex items-center space-x-1"
-                        >
-                          <X size={14} />
-                          <span>Rechazar</span>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewProfile(notification.sender.username);
-                          }}
-                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-xs md:text-sm font-medium flex items-center space-x-1"
-                        >
-                          <User size={14} />
-                          <span>Ver perfil</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ))
             )}
           </div>

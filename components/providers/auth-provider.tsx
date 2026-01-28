@@ -10,6 +10,8 @@ import { User } from '@/types/user';
 import { authService, LoginCredentials, RegisterData } from '@/lib/services/auth.service';
 import { toast } from 'sonner';
 import { setCachedUser } from '@/lib/hooks/use-cached-auth';
+import { preloadSiteSettings } from '@/lib/services/site-settings';
+import { menuConfigService } from '@/lib/services/menu-config';
 
 interface AuthContextType {
   user: User | null;
@@ -83,29 +85,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Inicializar autenticación al cargar - OPTIMIZADO
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (isInitializedRef.current && user) {
-      // Ya inicializado con usuario, verificar en background para obtener datos actualizados
-      if (!verificationDoneRef.current) {
-        verificationDoneRef.current = true;
-        // Verificar token y obtener perfil actualizado inmediatamente
-        const timer = setTimeout(async () => {
-          try {
-            await refreshUser();
-          } catch (e) {
-            console.warn('Error refrescando usuario:', e);
-          }
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-      return;
-    }
     
-    const loadUserFromStorage = async () => {
+    const initAuth = async () => {
+      // Si ya está inicializado con usuario, solo verificar en background
+      if (isInitializedRef.current && user) {
+        if (!verificationDoneRef.current) {
+          verificationDoneRef.current = true;
+          // Verificar en background sin bloquear
+          refreshUser().catch(console.warn);
+        }
+        return;
+      }
+      
       try {
         const storedUser = authService.getCurrentUser();
         const hasToken = authService.isAuthenticated();
-        
-        console.log('🔄 Cargando usuario desde storage:', { hasUser: !!storedUser, hasToken });
         
         if (storedUser && hasToken) {
           // Asegurar que el usuario tenga los campos necesarios
@@ -116,28 +110,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
             avatar: storedUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(storedUser.display_name || storedUser.displayName || storedUser.username || 'U')}&background=39FF14&color=000`,
           };
           
-          console.log('✅ Usuario normalizado:', normalizedUser.username, normalizedUser.displayName);
           updateUser(normalizedUser);
           setIsLoading(false);
           isInitializedRef.current = true;
           
-          // Obtener perfil actualizado del servidor inmediatamente
-          try {
-            const freshUser = await authService.getProfile();
-            const mappedUser = {
-              ...freshUser,
-              displayName: freshUser.display_name || freshUser.displayName,
-              avatar: freshUser.avatar || freshUser.avatar_url,
-              coverPhoto: freshUser.cover_photo_url || freshUser.cover_photo,
-            };
-            console.log('✅ Perfil actualizado desde servidor:', mappedUser.avatar);
-            updateUser(mappedUser);
-            localStorage.setItem('user', JSON.stringify(mappedUser));
-          } catch (e) {
-            console.warn('⚠️ No se pudo obtener perfil del servidor, usando datos locales');
-          }
+          // Obtener perfil actualizado del servidor en background
+          authService.getProfile()
+            .then(freshUser => {
+              const mappedUser = {
+                ...freshUser,
+                displayName: freshUser.display_name || freshUser.displayName,
+                avatar: freshUser.avatar || freshUser.avatar_url,
+                coverPhoto: freshUser.cover_photo_url || freshUser.cover_photo,
+              };
+              updateUser(mappedUser);
+              localStorage.setItem('user', JSON.stringify(mappedUser));
+            })
+            .catch(() => {
+              // Silenciosamente fallar, usar datos locales
+            });
         } else {
-          console.log('⚠️ No hay usuario o token en storage');
           setIsLoading(false);
           isInitializedRef.current = true;
         }
@@ -148,8 +140,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     };
     
-    loadUserFromStorage();
-  }, [updateUser]);
+    initAuth();
+  }, []); // Sin dependencias - solo ejecutar una vez
 
   const initializeAuth = useCallback(async () => {
     if (verificationDoneRef.current) return;
@@ -178,17 +170,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       const response = await authService.login(credentials);
       
-      console.log('✅ Login exitoso:', response.user.username);
       updateUser(response.user);
       verificationDoneRef.current = false; // Reset para permitir verificación
       
       toast.success(`¡Bienvenido, ${response.user.display_name}!`);
       return true;
     } catch (error: any) {
-      console.error('❌ Login error:', error);
-      
       const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
+                          error.response?.data?.message ||
+                          error.response?.data?.non_field_errors?.[0] ||
                           'Error al iniciar sesión';
       
       toast.error(errorMessage);
@@ -359,11 +349,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const uploadAvatar = async (file: File): Promise<boolean> => {
+    console.log('🎯 [AUTH PROVIDER] uploadAvatar iniciado');
+    console.log('📁 [AUTH PROVIDER] Archivo:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+    
     try {
       setIsLoading(true);
+      console.log('📤 [AUTH PROVIDER] Llamando a authService.uploadAvatar...');
+      
       const response = await authService.uploadAvatar(file);
       
-      console.log('✅ Avatar subido, respuesta:', response);
+      console.log('✅ [AUTH PROVIDER] Avatar subido, respuesta completa:', JSON.stringify(response, null, 2));
+      console.log('✅ [AUTH PROVIDER] avatar_url:', response.avatar_url);
+      console.log('✅ [AUTH PROVIDER] user en respuesta:', response.user ? 'SÍ' : 'NO');
       
       // Actualizar el usuario con los datos completos del servidor
       if (response.user) {
@@ -374,28 +375,39 @@ export function AuthProvider({ children }: AuthProviderProps) {
           avatar: response.user.avatar || response.user.avatar_url || response.avatar_url,
           coverPhoto: response.user.cover_photo_url || response.user.cover_photo,
         };
-        console.log('✅ Usuario actualizado con nuevo avatar:', mappedUser.avatar);
+        console.log('✅ [AUTH PROVIDER] Usuario mapeado:', {
+          username: mappedUser.username,
+          avatar: mappedUser.avatar,
+          displayName: mappedUser.displayName
+        });
         setUser(mappedUser);
         globalUserCache = mappedUser;
         localStorage.setItem('user', JSON.stringify(mappedUser));
+        console.log('💾 [AUTH PROVIDER] Usuario guardado en localStorage');
       } else if (user) {
         // Fallback: actualizar solo el avatar
         const updatedUser = { 
           ...user,
           avatar: response.avatar_url,
         };
-        console.log('✅ Usuario actualizado (fallback) con nuevo avatar:', updatedUser.avatar);
+        console.log('⚠️ [AUTH PROVIDER] Usando fallback, actualizando solo avatar:', updatedUser.avatar);
         setUser(updatedUser);
         globalUserCache = updatedUser;
         localStorage.setItem('user', JSON.stringify(updatedUser));
       }
       
       // Forzar actualización del perfil desde el servidor para asegurar sincronización
-      setTimeout(() => refreshUser(), 500);
+      console.log('🔄 [AUTH PROVIDER] Programando refresh del usuario en 500ms...');
+      setTimeout(() => {
+        console.log('🔄 [AUTH PROVIDER] Ejecutando refreshUser...');
+        refreshUser();
+      }, 500);
       
       return true;
     } catch (error: any) {
-      console.error('Upload avatar error:', error);
+      console.error('❌ [AUTH PROVIDER] Upload avatar error:', error);
+      console.error('❌ [AUTH PROVIDER] Error response:', error.response?.data);
+      console.error('❌ [AUTH PROVIDER] Error status:', error.response?.status);
       
       const errorMessage = error.response?.data?.error || 
                           error.response?.data?.message || 
@@ -404,15 +416,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
       throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
+      console.log('🏁 [AUTH PROVIDER] uploadAvatar finalizado');
     }
   };
 
   const uploadCoverPhoto = async (file: File): Promise<boolean> => {
+    console.log('🎯 [AUTH PROVIDER] uploadCoverPhoto iniciado');
+    console.log('📁 [AUTH PROVIDER] Archivo:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+    
     try {
       setIsLoading(true);
+      console.log('📤 [AUTH PROVIDER] Llamando a authService.uploadCoverPhoto...');
+      
       const response = await authService.uploadCoverPhoto(file);
       
-      console.log('✅ Foto de portada subida:', response);
+      console.log('✅ [AUTH PROVIDER] Foto de portada subida, respuesta completa:', JSON.stringify(response, null, 2));
+      console.log('✅ [AUTH PROVIDER] cover_photo_url:', response.cover_photo_url);
+      console.log('✅ [AUTH PROVIDER] user en respuesta:', response.user ? 'SÍ' : 'NO');
       
       // Actualizar el usuario con los datos completos del servidor
       if (response.user) {
@@ -423,9 +447,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           cover_photo: response.user.cover_photo_url || response.user.cover_photo || response.cover_photo_url,
           cover_photo_url: response.user.cover_photo_url || response.cover_photo_url,
         };
-        console.log('✅ Usuario actualizado con foto de portada:', mappedUser.coverPhoto);
+        console.log('✅ [AUTH PROVIDER] Usuario mapeado:', {
+          username: mappedUser.username,
+          coverPhoto: mappedUser.coverPhoto,
+          cover_photo_url: mappedUser.cover_photo_url
+        });
         setUser(mappedUser);
         localStorage.setItem('user', JSON.stringify(mappedUser));
+        console.log('💾 [AUTH PROVIDER] Usuario guardado en localStorage');
       } else if (user) {
         // Fallback: actualizar solo la foto de portada
         const updatedUser = { 
@@ -434,17 +463,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
           cover_photo: response.cover_photo_url,
           cover_photo_url: response.cover_photo_url,
         };
-        console.log('✅ Usuario actualizado (fallback) con foto de portada:', updatedUser.coverPhoto);
+        console.log('⚠️ [AUTH PROVIDER] Usando fallback, actualizando solo coverPhoto:', updatedUser.coverPhoto);
         setUser(updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser));
       }
       
       // Forzar actualización del perfil desde el servidor
+      console.log('🔄 [AUTH PROVIDER] Ejecutando refreshUser inmediatamente...');
       await refreshUser();
       
       return true;
     } catch (error: any) {
-      console.error('❌ Upload cover photo error:', error);
+      console.error('❌ [AUTH PROVIDER] Upload cover photo error:', error);
+      console.error('❌ [AUTH PROVIDER] Error response:', error.response?.data);
+      console.error('❌ [AUTH PROVIDER] Error status:', error.response?.status);
       
       const errorMessage = error.response?.data?.error || 
                           error.response?.data?.message || 
@@ -453,6 +485,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
+      console.log('🏁 [AUTH PROVIDER] uploadCoverPhoto finalizado');
     }
   };
 

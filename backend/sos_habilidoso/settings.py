@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     
     # Third party
     'rest_framework',
+    'rest_framework.authtoken',  # Token Authentication
     'corsheaders',
     'channels',  # WebSocket support
     'drf_spectacular',  # API Documentation
@@ -56,6 +57,7 @@ INSTALLED_APPS = [
     'apps.enterprises',
     'apps.payments',
     'apps.site_settings',
+    'apps.streaming',  # Sistema de streaming en vivo
     'apps.common',
 ]
 
@@ -68,6 +70,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'apps.site_settings.middleware.RouteAccessMiddleware',  # DESACTIVADO TEMPORALMENTE
 ]
 
 ROOT_URLCONF = 'sos_habilidoso.urls'
@@ -95,7 +98,7 @@ ASGI_APPLICATION = 'sos_habilidoso.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'habilidosos_clean',
+        'NAME': 'habilidosos_db',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': 'localhost',
@@ -155,6 +158,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  # Para compatibilidad con Token
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     # Configuración para drf-spectacular

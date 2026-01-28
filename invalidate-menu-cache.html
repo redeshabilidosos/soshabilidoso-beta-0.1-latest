@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invalidar Caché del Menú</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #00ff88;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #00dd77;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #00ff8844;
+            border: 1px solid #00ff88;
+        }
+        .info {
+            background: #0088ff44;
+            border: 1px solid #0088ff;
+        }
+        pre {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Invalidar Caché del Menú</h1>
+        <p>Este script limpiará el caché del menú para que se actualicen los cambios inmediatamente.</p>
+        
+        <button onclick="invalidateCache()">Invalidar Caché</button>
+        <button onclick="reloadPage()">Recargar Página</button>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        function invalidateCache() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // Limpiar caché de localStorage
+                localStorage.removeItem('menu_routes_cache');
+                localStorage.removeItem('menu_routes_cache_timestamp');
+                
+                resultDiv.className = 'result success';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <h3>✅ Caché Invalidado</h3>
+                    <p>El caché del menú ha sido limpiado exitosamente.</p>
+                    <p><strong>Siguiente paso:</strong> Recarga la página para ver los cambios.</p>
+                `;
+                
+                console.log('✅ Caché del menú invalidado');
+            } catch (error) {
+                resultDiv.className = 'result info';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <h3>⚠️ Error</h3>
+                    <p>No se pudo invalidar el caché: ${error.message}</p>
+                `;
+                
+                console.error('Error invalidando caché:', error);
+            }
+        }
+        
+        function reloadPage() {
+            window.location.reload();
+        }
+        
+        // Mostrar estado actual del caché
+        window.addEventListener('load', () => {
+            const cache = localStorage.getItem('menu_routes_cache');
+            const timestamp = localStorage.getItem('menu_routes_cache_timestamp');
+            
+            if (cache && timestamp) {
+                const date = new Date(parseInt(timestamp));
+                console.log('📊 Caché actual:', {
+                    timestamp: date.toLocaleString(),
+                    routes: JSON.parse(cache).length
+                });
+            } else {
+                console.log('ℹ️  No hay caché del menú');
+            }
+        });
+    </script>
+</body>
+</html>

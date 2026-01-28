@@ -1,7 +1,10 @@
+"""
+Configuración de la app site_settings
+"""
 from django.apps import AppConfig
 
 
 class SiteSettingsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.site_settings'
-    verbose_name = 'Configuraciones del Sitio'
+    verbose_name = 'Configuración del Sitio'

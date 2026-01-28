@@ -169,9 +169,44 @@ const nextConfig = {
     } : false,
   },
   
-  // Optimizar chunks - mantener configuración por defecto de Next.js
-  // para evitar errores de carga de chunks en navegación
+  // Optimizar chunks para navegación instantánea
   webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Optimizar tamaño de chunks para carga más rápida
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            // Chunk para librerías grandes
+            lib: {
+              test: /[\\/]node_modules[\\/]/,
+              name(module) {
+                // Verificar que module.context existe y es válido
+                if (!module.context) return 'npm.misc';
+                
+                const match = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/);
+                if (!match || !match[1]) return 'npm.misc';
+                
+                const packageName = match[1];
+                return `npm.${packageName.replace('@', '')}`;
+              },
+              priority: 10,
+              reuseExistingChunk: true,
+            },
+            // Chunk para componentes comunes
+            commons: {
+              name: 'commons',
+              minChunks: 2,
+              priority: 5,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      };
+    }
     return config;
   },
   
@@ -181,10 +216,10 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', 'date-fns', 'framer-motion'],
   },
   
-  // Prefetch más agresivo
+  // Prefetch más agresivo para navegación instantánea
   onDemandEntries: {
-    maxInactiveAge: 120 * 1000, // 2 minutos - mantener páginas en memoria más tiempo
-    pagesBufferLength: 10, // Más páginas en buffer
+    maxInactiveAge: 300 * 1000, // 5 minutos - mantener páginas en memoria más tiempo
+    pagesBufferLength: 20, // Más páginas en buffer para navegación rápida
   },
   
   // Headers para mejor caching
@@ -196,7 +231,11 @@ const nextConfig = {
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on'
-          }
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
         ],
       },
     ];

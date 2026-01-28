@@ -64,7 +64,7 @@ class CustomAdminSite(admin.AdminSite):
                 'today_transaction_amount': today_transaction_amount,
             })
             
-            print(f"✅ Estadísticas cargadas: {total_users} usuarios totales, {active_users} activos")
+            print(f"[OK] Estadisticas cargadas: {total_users} usuarios totales, {active_users} activos")
         except Exception as e:
             # Si hay algún error, continuar sin estadísticas
             print(f"Error al cargar estadísticas del admin: {e}")
@@ -176,3 +176,22 @@ custom_admin_site.register(PlatformSettings, PlatformSettingsAdmin)
 from apps.site_settings.models import SiteSettings
 from apps.site_settings.admin import SiteSettingsAdmin
 custom_admin_site.register(SiteSettings, SiteSettingsAdmin)
+
+# ============================================================
+# SISTEMA DE STREAMING
+# ============================================================
+from apps.streaming.models import (
+    StreamSession, StreamGift, StreamViewer,
+    StreamChatMessage, StreamReport, StreamEarnings
+)
+from apps.streaming.admin import (
+    StreamSessionAdmin, StreamGiftAdmin, StreamViewerAdmin,
+    StreamChatMessageAdmin, StreamReportAdmin, StreamEarningsAdmin
+)
+custom_admin_site.register(StreamSession, StreamSessionAdmin)
+custom_admin_site.register(StreamGift, StreamGiftAdmin)
+custom_admin_site.register(StreamViewer, StreamViewerAdmin)
+custom_admin_site.register(StreamChatMessage, StreamChatMessageAdmin)
+custom_admin_site.register(StreamReport, StreamReportAdmin)
+custom_admin_site.register(StreamEarnings, StreamEarningsAdmin)
+

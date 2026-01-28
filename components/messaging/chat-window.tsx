@@ -5,15 +5,24 @@ import {
   Send, Smile, Settings, ArrowLeft, 
   Phone, Video, CheckCheck,
   Paperclip, Bell, BellOff, Heart, Sparkles, Moon, Stars,
-  ThumbsDown
+  ThumbsDown, Share2, X
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { messagingService, ChatRoom, Message } from '@/lib/services/messaging.service';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { UserProfileDialog } from '@/components/ui/user-profile-dialog';
 import EmojiPicker from 'emoji-picker-react';
+import { StoryPreviewMessage } from './story-preview-message';
+import dynamic from 'next/dynamic';
+
+// Importar el visor de historias dinámicamente
+const StoriesSlider = dynamic(() => import('@/components/ui/stories-slider').then(mod => ({ default: mod.StoriesSlider })), {
+  ssr: false
+});
 
 interface ChatWindowProps {
   chatId: string;
@@ -64,6 +73,10 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [selectedMessageForReaction, setSelectedMessageForReaction] = useState<string | null>(null);
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [messageToShare, setMessageToShare] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -174,6 +187,11 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
     localStorage.setItem(`chat_bg_${chatId}`, bg);
   };
 
+  const handleStoryClick = (storyId: string) => {
+    setSelectedStoryId(storyId);
+    setShowStoryViewer(true);
+  };
+
   const handleReaction = async (messageId: string, reactionType: string) => {
     try {
       const result = await messagingService.reactToMessage(chatId, messageId, reactionType);
@@ -216,9 +234,24 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
         return msg;
       }));
       setSelectedMessageForReaction(null);
+      toast({ 
+        title: "Reacción agregada", 
+        description: "Tu reacción se ha registrado correctamente",
+        duration: 2000
+      });
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error('Error al reaccionar:', error);
+      toast({ 
+        title: "Error al reaccionar", 
+        description: error.response?.data?.detail || error.message || "No se pudo agregar la reacción. Intenta de nuevo.", 
+        variant: "destructive" 
+      });
     }
+  };
+
+  const handleShareMessage = (message: Message) => {
+    setMessageToShare(message);
+    setShowShareDialog(true);
   };
 
   const getReactionEmoji = (type: string) => {
@@ -596,17 +629,38 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
                   {!isOwn && (
                     <div className="w-7 flex-shrink-0">
                       {showAvatar && (
-                        <Avatar className="w-7 h-7">
-                          <AvatarImage src={message.sender.avatar_url} />
-                          <AvatarFallback className="text-xs bg-gray-700 text-white">
+                        <div className="w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-neon-green/80 to-emerald-600 flex items-center justify-center relative">
+                          {message.sender.avatar_url ? (
+                            <img 
+                              src={message.sender.avatar_url}
+                              alt={message.sender.display_name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Fallback si la imagen no carga
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
+                          ) : null}
+                          {/* Fallback con inicial - siempre presente */}
+                          <div className="absolute inset-0 flex items-center justify-center text-white font-semibold text-xs pointer-events-none">
                             {message.sender.display_name?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                          </div>
+                        </div>
                       )}
                     </div>
                   )}
                   
                   <div className={cn("max-w-[75%] lg:max-w-[60%] relative", isOwn ? "order-1" : "order-2")}>
+                    {/* Previsualización de historia si el mensaje es una respuesta a historia */}
+                    {message.message_type === 'story_reply' && message.story_preview && (
+                      <StoryPreviewMessage
+                        storyPreview={message.story_preview}
+                        onStoryClick={handleStoryClick}
+                        className="mb-2"
+                      />
+                    )}
+                    
                     {message.message_type === 'image' && message.image && (
                       <img
                         src={message.image}
@@ -685,10 +739,23 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
                       )}
                       className={cn(
                         "absolute top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-gray-800/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-gray-700 border border-white/10",
-                        isOwn ? "-left-8" : "-right-8"
+                        isOwn ? "-left-16" : "-right-16"
                       )}
+                      title="Reaccionar"
                     >
                       <Smile className="w-4 h-4 text-gray-400" />
+                    </button>
+                    
+                    {/* Botón para compartir mensaje */}
+                    <button
+                      onClick={() => handleShareMessage(message)}
+                      className={cn(
+                        "absolute top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-gray-800/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-gray-700 border border-white/10",
+                        isOwn ? "-left-8" : "-right-8"
+                      )}
+                      title="Compartir mensaje"
+                    >
+                      <Share2 className="w-4 h-4 text-gray-400" />
                     </button>
                     
                     {/* Selector de reacciones */}
@@ -720,19 +787,20 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
 
       {/* Input de mensaje - fijo en la parte inferior */}
       <div className="flex-shrink-0 relative z-10 backdrop-blur-xl bg-black/80 border-t border-white/10 p-3">
-        <form onSubmit={handleSendMessage} className="flex items-end gap-2">
-          <div className="flex items-center">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+          <div className="flex items-center flex-shrink-0">
             <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="image-upload" />
             <button
               type="button"
               onClick={() => document.getElementById('image-upload')?.click()}
-              className="p-2.5 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-neon-green"
+              className="p-2.5 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-neon-green flex-shrink-0"
+              title="Adjuntar imagen"
             >
               <Paperclip className="w-5 h-5" />
             </button>
           </div>
           
-          <div className="flex-1 relative">
+          <div className="flex-1 relative min-w-0">
             <input
               ref={inputRef}
               value={newMessage}
@@ -746,7 +814,8 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
             <button
               type="button"
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-yellow-400"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-yellow-400 flex-shrink-0"
+              title="Agregar emoji"
             >
               <Smile className="w-4 h-4" />
             </button>
@@ -756,11 +825,12 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
             type="submit"
             disabled={!newMessage.trim() || sending}
             className={cn(
-              "p-3 rounded-full transition-all duration-200",
+              "p-3 rounded-full transition-all duration-200 flex-shrink-0",
               newMessage.trim() 
                 ? cn(bubbleStyle.bg, bubbleStyle.text, "shadow-lg hover:scale-105 active:scale-95")
                 : "bg-white/10 text-gray-500"
             )}
+            title="Enviar mensaje"
           >
             {sending ? (
               <div className="w-5 h-5 border-2 border-current/30 border-t-current rounded-full animate-spin" />
@@ -1169,6 +1239,268 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
           }}
         />
       )}
+      
+      {/* Visor de historias */}
+      {showStoryViewer && selectedStoryId && (
+        <div className="fixed inset-0 z-50">
+          <StoriesSlider
+            userStories={[]}
+            currentUserId={userId}
+            isOpen={showStoryViewer}
+            onClose={() => {
+              setShowStoryViewer(false);
+              setSelectedStoryId(null);
+            }}
+            initialStoryId={selectedStoryId}
+          />
+        </div>
+      )}
+      
+      {/* Diálogo para compartir mensaje */}
+      <ShareMessageDialog
+        isOpen={showShareDialog}
+        onClose={() => {
+          setShowShareDialog(false);
+          setMessageToShare(null);
+        }}
+        message={messageToShare}
+        currentChatId={chatId}
+      />
     </div>
+  );
+}
+
+// Componente para compartir mensajes con amigos
+function ShareMessageDialog({ 
+  isOpen, 
+  onClose, 
+  message, 
+  currentChatId 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  message: Message | null;
+  currentChatId: string;
+}) {
+  const [friends, setFriends] = useState<any[]>([]);
+  const [chats, setChats] = useState<ChatRoom[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [selectedChats, setSelectedChats] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (isOpen) {
+      loadChatsAndFriends();
+    }
+  }, [isOpen]);
+
+  const loadChatsAndFriends = async () => {
+    try {
+      setLoading(true);
+      const chatsResponse = await messagingService.getChats();
+      // Filtrar el chat actual
+      const filteredChats = chatsResponse.results.filter(chat => chat.id !== currentChatId);
+      setChats(filteredChats);
+    } catch (error) {
+      console.error('Error loading chats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleChatSelection = (chatId: string) => {
+    const newSelected = new Set(selectedChats);
+    if (newSelected.has(chatId)) {
+      newSelected.delete(chatId);
+    } else {
+      newSelected.add(chatId);
+    }
+    setSelectedChats(newSelected);
+  };
+
+  const handleShare = async () => {
+    if (selectedChats.size === 0 || !message) return;
+    
+    setSending(true);
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const chatId of Array.from(selectedChats)) {
+        try {
+          // Crear el mensaje compartido
+          let shareContent = '';
+          if (message.content) {
+            shareContent = `📤 Mensaje compartido:\n\n"${message.content}"`;
+          } else if (message.image) {
+            shareContent = '📤 Imagen compartida';
+          }
+          
+          await messagingService.sendMessage(chatId, shareContent);
+          
+          // Si hay imagen, enviarla también
+          if (message.image) {
+            // Aquí podrías implementar la lógica para reenviar la imagen
+            // Por ahora solo enviamos el texto
+          }
+          
+          successCount++;
+        } catch (error) {
+          console.error(`Error sharing to chat ${chatId}:`, error);
+          errorCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast({
+          title: "Mensaje compartido",
+          description: `Compartido con ${successCount} ${successCount === 1 ? 'chat' : 'chats'}`,
+        });
+      }
+
+      if (errorCount > 0) {
+        toast({
+          title: "Algunos mensajes no se enviaron",
+          description: `${errorCount} ${errorCount === 1 ? 'mensaje falló' : 'mensajes fallaron'}`,
+          variant: "destructive",
+        });
+      }
+
+      onClose();
+      setSelectedChats(new Set());
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo compartir el mensaje",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const getChatDisplayName = (chat: ChatRoom) => {
+    if (chat.name) return chat.name;
+    if (chat.chat_type === 'private') {
+      const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
+      const otherUser = chat.participants?.find(p => p.user.id !== currentUser?.id)?.user;
+      return otherUser?.display_name || 'Usuario';
+    }
+    return 'Chat';
+  };
+
+  const getChatAvatar = (chat: ChatRoom) => {
+    if (chat.avatar) return chat.avatar;
+    if (chat.chat_type === 'private') {
+      const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
+      const otherUser = chat.participants?.find(p => p.user.id !== currentUser?.id)?.user;
+      return otherUser?.avatar_url || '';
+    }
+    return '';
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-gray-900 border-white/10 text-white max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <Share2 className="w-5 h-5 text-neon-green" />
+            Compartir mensaje
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Vista previa del mensaje */}
+        {message && (
+          <div className="p-3 bg-white/5 rounded-lg border border-white/10 mb-4">
+            <p className="text-xs text-gray-400 mb-2">Vista previa:</p>
+            {message.content && (
+              <p className="text-sm text-white line-clamp-3">{message.content}</p>
+            )}
+            {message.image && (
+              <div className="mt-2">
+                <img 
+                  src={message.image} 
+                  alt="Imagen" 
+                  className="rounded-lg max-h-32 object-cover"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Lista de chats */}
+        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-8 h-8 border-2 border-neon-green border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : chats.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <p>No hay chats disponibles</p>
+              <p className="text-xs mt-2">Inicia una conversación primero</p>
+            </div>
+          ) : (
+            chats.map(chat => (
+              <button
+                key={chat.id}
+                onClick={() => toggleChatSelection(chat.id)}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-lg transition-all",
+                  selectedChats.has(chat.id)
+                    ? "bg-neon-green/20 border-2 border-neon-green"
+                    : "bg-white/5 border-2 border-transparent hover:bg-white/10"
+                )}
+              >
+                <Avatar className="w-10 h-10 flex-shrink-0">
+                  <AvatarImage src={getChatAvatar(chat)} />
+                  <AvatarFallback className="bg-gradient-to-br from-neon-green to-emerald-600 text-white">
+                    {getChatDisplayName(chat).charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-medium text-white truncate">{getChatDisplayName(chat)}</p>
+                  {chat.last_message && (
+                    <p className="text-xs text-gray-400 truncate">{chat.last_message}</p>
+                  )}
+                </div>
+                {selectedChats.has(chat.id) && (
+                  <div className="w-5 h-5 rounded-full bg-neon-green flex items-center justify-center flex-shrink-0">
+                    <CheckCheck className="w-3 h-3 text-black" />
+                  </div>
+                )}
+              </button>
+            ))
+          )}
+        </div>
+
+        {/* Botones de acción */}
+        <div className="flex gap-2 mt-4">
+          <Button
+            onClick={onClose}
+            variant="outline"
+            className="flex-1 bg-white/5 border-white/10 text-white hover:bg-white/10"
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleShare}
+            disabled={selectedChats.size === 0 || sending}
+            className={cn(
+              "flex-1",
+              selectedChats.size > 0
+                ? "bg-gradient-to-r from-neon-green to-emerald-500 text-black hover:shadow-lg hover:shadow-neon-green/25"
+                : "bg-gray-700 text-gray-400"
+            )}
+          >
+            {sending ? (
+              <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+            ) : (
+              `Compartir ${selectedChats.size > 0 ? `(${selectedChats.size})` : ''}`
+            )}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

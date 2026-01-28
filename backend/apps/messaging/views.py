@@ -326,7 +326,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Obtener mensajes del chat específico"""
-        chat_room_id = self.kwargs.get('chat_room_id')
+        chat_room_id = self.kwargs.get('chat_room_pk') or self.kwargs.get('chat_room_id')
         return Message.objects.filter(
             chat_room_id=chat_room_id,
             is_deleted=False
@@ -339,7 +339,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         description="Agregar o quitar reacción a un mensaje"
     )
     @action(detail=True, methods=['post'])
-    def react(self, request, chat_room_id=None, pk=None):
+    def react(self, request, chat_room_pk=None, pk=None):
         """Reaccionar a mensaje"""
         message = self.get_object()
         reaction_type = request.data.get('reaction_type')

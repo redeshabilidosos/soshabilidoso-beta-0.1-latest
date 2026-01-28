@@ -8,7 +8,6 @@ import { MobileNav } from '@/components/navigation/mobile-nav';
 import { AthleteProfileDetail } from '@/components/donations/athlete-profile-detail';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { getAthleteById, transformAthleteForDetail } from '@/lib/api/donations';
-import { useForceBlackBackground } from '@/hooks/use-force-black-background';
 
 export default function AthleteProfilePage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -17,9 +16,6 @@ export default function AthleteProfilePage() {
   const [athlete, setAthlete] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Aplicar fondo negro con estrellas
-  useForceBlackBackground();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -55,7 +51,7 @@ export default function AthleteProfilePage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
         <RefreshCw className="w-10 h-10 text-neon-green animate-spin" />
       </div>
     );
@@ -65,7 +61,7 @@ export default function AthleteProfilePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-transparent">
         <Sidebar />
         <main className="pb-24 xl:ml-64 xl:pb-0">
           <div className="container mx-auto px-4 py-6 max-w-4xl">
@@ -94,7 +90,7 @@ export default function AthleteProfilePage() {
 
   if (!athlete) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-transparent">
         <Sidebar />
         <main className="pb-24 xl:ml-64 xl:pb-0">
           <div className="container mx-auto px-4 py-6 max-w-4xl">
@@ -117,7 +113,7 @@ export default function AthleteProfilePage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-transparent">
       <Sidebar />
       <main className="pb-24 xl:ml-64 xl:pb-0">
         <div className="container mx-auto px-4 py-6 max-w-4xl">

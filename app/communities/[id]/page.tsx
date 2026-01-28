@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';
 import { CyberButton } from '@/components/ui/cyber-button';
@@ -8,10 +8,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-
-// Lazy loading de componentes pesados
-const Sidebar = lazy(() => import('@/components/navigation/sidebar').then(mod => ({ default: mod.Sidebar })));
-const MobileNav = lazy(() => import('@/components/navigation/mobile-nav').then(mod => ({ default: mod.MobileNav })));
+import { Sidebar } from '@/components/navigation/sidebar';
+import { MobileNav } from '@/components/navigation/mobile-nav';
 
 import {
   Users,
@@ -36,13 +34,21 @@ import {
   Camera,
   ImageIcon,
   ThumbsDown,
-  Laugh
+  Laugh,
+  Shield
 } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { UserProfileDialog } from '@/components/ui/user-profile-dialog';
 import { toast } from 'sonner';
 import { useForceBlackBackground } from '@/hooks/use-force-black-background';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Community {
   id: string;
@@ -128,6 +134,7 @@ export default function CommunityPage() {
   const [editingComment, setEditingComment] = useState<{ id: string; content: string } | null>(null);
   const [replyingTo, setReplyingTo] = useState<{ commentId: string; username: string } | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [activeInfoTab, setActiveInfoTab] = useState<'about' | 'stats'>('about');
 
   useEffect(() => {
     // Solo redirigir si ya terminó de cargar la autenticación y no hay usuario
@@ -639,28 +646,40 @@ export default function CommunityPage() {
 
   return (
     <div className="flex min-h-screen bg-black text-white relative overflow-x-hidden">
-      {/* Fondo de estrellas animadas con CSS */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <div className="stars"></div>
-        <div className="stars2"></div>
-        <div className="stars3"></div>
-      </div>
-      {/* Gradientes adicionales */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-transparent to-black/50"></div>
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon-green/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"></div>
+      {/* Fondo de estrellas animadas - igual que en mensajes */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="stars-container">
+          <div className="star star-1">✦</div>
+          <div className="star star-2">✧</div>
+          <div className="star star-3">✦</div>
+          <div className="star star-4">✧</div>
+          <div className="star star-5">✦</div>
+          <div className="star star-6">✧</div>
+          <div className="star star-7">✦</div>
+          <div className="star star-8">✧</div>
+          <div className="star star-9">✦</div>
+          <div className="star star-10">✧</div>
+          <div className="star star-11">✦</div>
+          <div className="star star-12">✧</div>
+          <div className="star star-13">✦</div>
+          <div className="star star-14">✧</div>
+          <div className="star star-15">✦</div>
+          <div className="star star-16">✧</div>
+          <div className="star star-17">✦</div>
+          <div className="star star-18">✧</div>
+          <div className="star star-19">✦</div>
+          <div className="star star-20">✧</div>
         </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-transparent to-amber-500/5" />
       </div>
 
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <MobileNav />
         <main className="flex-1 overflow-y-auto overflow-x-hidden w-full xl:ml-64">
-          <div className="w-full px-4 md:px-6 py-4 md:py-6 pb-24 md:pb-6 space-y-4 md:space-y-6">
+          <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 py-4 md:py-6 pb-24 md:pb-6 space-y-4 md:space-y-6 max-w-[1600px] mx-auto">
             {/* Header con portada y avatar */}
-            <div className="relative -mx-4 md:-mx-6">
+            <div className="relative -mx-4 md:-mx-6 lg:-mx-8 xl:-mx-12 mb-4">
               <div 
                 className="relative h-32 md:h-48 lg:h-56 bg-gradient-to-b from-neon-green/10 to-transparent rounded-none md:rounded-lg overflow-hidden backdrop-blur-sm border-0 md:border border-white/10 cursor-pointer"
                 onClick={() => {
@@ -688,11 +707,9 @@ export default function CommunityPage() {
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
-
-
               </div>
 
-              <div className="relative px-4 md:px-6 -mt-10 md:-mt-14 z-10 flex items-end space-x-3 md:space-x-4">
+              <div className="relative px-4 md:px-6 lg:px-8 xl:px-12 -mt-10 md:-mt-14 z-10 flex items-end space-x-3 md:space-x-4 mb-3">
                 <div 
                   className="w-20 md:w-28 lg:w-32 h-20 md:h-28 lg:h-32 rounded-lg bg-gradient-to-br from-neon-green/30 to-neon-green/10 border-2 border-neon-green/50 overflow-hidden flex-shrink-0 shadow-lg backdrop-blur-sm cursor-pointer hover:border-neon-green transition-colors"
                   onClick={() => {
@@ -714,6 +731,36 @@ export default function CommunityPage() {
                 <div className="flex-1 pb-2 md:pb-3">
                   <div className="flex items-center space-x-2 mb-1 md:mb-2 flex-wrap">
                     <h1 className="text-xl md:text-3xl lg:text-4xl font-bold">{community.name}</h1>
+                    
+                    {/* Avatar del creador con Tooltip */}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-transform">
+                            <Avatar className="w-6 h-6 md:w-7 md:h-7 ring-2 ring-yellow-500/50">
+                              <AvatarImage 
+                                src={community.owner?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(community.owner?.username || 'A')}&background=FFD700&color=000`}
+                                alt={community.owner?.username}
+                              />
+                              <AvatarFallback className="bg-yellow-500/20 text-yellow-500 text-xs">
+                                {community.owner?.username?.charAt(0).toUpperCase() || 'A'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <Crown className="w-4 h-4 md:w-5 md:h-5 text-yellow-400" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="bg-black/95 border-yellow-500/30">
+                          <div className="flex items-center gap-2">
+                            <Crown className="w-4 h-4 text-yellow-500" />
+                            <div>
+                              <p className="text-xs font-semibold text-white">Creador</p>
+                              <p className="text-xs text-yellow-400">{community.owner?.username}</p>
+                            </div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
                     {community.type === 'premium' && <Crown className="w-4 md:w-5 h-4 md:h-5 text-yellow-400" />}
                     {community.type === 'private' && <Lock className="w-4 md:w-5 h-4 md:h-5 text-blue-400" />}
                     {community.type === 'page' && <Globe className="w-4 md:w-5 h-4 md:h-5 text-purple-400" />}
@@ -739,128 +786,651 @@ export default function CommunityPage() {
               </div>
             </div>
 
-            {/* Grid de contenido */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 relative z-10 max-w-full overflow-hidden">
-              {/* Sidebar izquierdo - Info */}
-              <div className="lg:col-span-1 space-y-4">
-                {/* Descripción */}
-                <Card className="glass-card border-white/10 hover:border-neon-green/30 transition-colors">
-                  <CardContent className="pt-4">
-                    <h3 className="text-xs font-semibold text-neon-green mb-2 uppercase tracking-wider">Descripción</h3>
-                    <p className="text-xs md:text-sm text-gray-300 leading-relaxed">{community.description}</p>
+            {/* Contenido reorganizado - Sistema completo de 2 columnas */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 relative z-10 max-w-[1500px] mx-auto px-2 lg:px-4">
+              
+              {/* COLUMNA IZQUIERDA - Sidebar con toda la información (4 columnas) */}
+              <div className="lg:col-span-4 space-y-2 lg:pr-4">
+                {/* Botón de unirse/miembro */}
+                <Card className="glass-card border-white/10">
+                  <CardContent className="pt-3 pb-3">
+                    {!community.is_member ? (
+                      <CyberButton 
+                        className="w-full cursor-pointer" 
+                        onClick={handleJoinCommunity}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <Users className="w-4 h-4" />
+                          <span className="text-sm">Unirse</span>
+                        </div>
+                      </CyberButton>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-neon-green justify-center py-2">
+                          <Users className="w-4 h-4" />
+                          <span className="font-semibold text-sm">Miembro</span>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Estadísticas rápidas */}
+                <Card className="glass-card border-white/10">
+                  <CardContent className="pt-2.5 pb-2.5">
+                    <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-neon-green" />
+                      Estadísticas
+                    </h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-400">Miembros</span>
+                        <span className="text-white font-semibold">{community.member_count}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-400">Posts</span>
+                        <span className="text-white font-semibold">{community.post_count}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-400">Tipo</span>
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {community.type}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Acerca de */}
+                <Card className="glass-card border-white/10">
+                  <CardContent className="pt-2.5 pb-2.5">
+                    <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-blue-400" />
+                      Acerca de
+                    </h3>
+                    <p className="text-xs text-gray-300 leading-relaxed mb-2">
+                      {community.description}
+                    </p>
+                    <div className="pt-2 border-t border-white/10 space-y-1.5">
+                      <div className="flex items-center gap-2 text-xs">
+                        <Badge variant="outline" className="text-xs">
+                          {community.category}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-400">
+                        <span>Creada: {new Date(community.created_at).toLocaleDateString('es-ES')}</span>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
 
                 {/* Reglas */}
-                <Card className="glass-card border-white/10 hover:border-neon-green/30 transition-colors">
-                  <CardContent className="pt-4">
-                    <h3 className="text-xs font-semibold text-neon-green mb-2 uppercase tracking-wider">Reglas</h3>
-                    <p className="text-xs md:text-sm text-gray-300 leading-relaxed">
-                      Mantén el respeto, no hagas spam, sigue las normas de la comunidad.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                {/* Estadísticas */}
-                <Card className="glass-card border-white/10 hover:border-neon-green/30 transition-colors">
-                  <CardContent className="pt-4 space-y-3">
-                    <h3 className="text-xs font-semibold text-neon-green uppercase tracking-wider">Estadísticas</h3>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs md:text-sm text-gray-400 flex items-center space-x-2">
-                        <Users className="w-4 h-4" />
-                        <span>Miembros</span>
-                      </span>
-                      <span className="font-semibold text-neon-green text-sm md:text-base">{community.member_count}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs md:text-sm text-gray-400 flex items-center space-x-2">
-                        <MessageSquare className="w-4 h-4" />
-                        <span>Publicaciones</span>
-                      </span>
-                      <span className="font-semibold text-neon-green text-sm md:text-base">{community.post_count}</span>
+                <Card className="glass-card border-white/10">
+                  <CardContent className="pt-2.5 pb-2.5">
+                    <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-blue-400" />
+                      Reglas
+                    </h3>
+                    <div className="space-y-1.5">
+                      {[
+                        'Respeto mutuo',
+                        'No spam',
+                        'Contenido apropiado',
+                        'Sigue las normas'
+                      ].map((rule, idx) => (
+                        <div key={idx} className="flex items-start gap-2 text-xs text-gray-400">
+                          <span className="text-neon-green mt-0.5">✓</span>
+                          <span>{rule}</span>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Botones de acción */}
-                <div className="space-y-2 relative z-20">
-                  {community.is_member ? (
-                    <>
-                      <CyberButton 
-                        className="w-full cursor-pointer" 
-                        size="sm"
-                        onClick={() => setShowPostModal(true)}
-                      >
-                        Hacer una publicación
-                      </CyberButton>
-                      <Button 
-                        variant="outline"
-                        className="w-full border-neon-green/50 text-neon-green hover:bg-neon-green/10"
-                        size="sm"
-                        onClick={handleJoinCommunity}
-                      >
-                        ✓ Suscrito
-                      </Button>
-                    </>
-                  ) : (
-                    <CyberButton 
-                      className="w-full" 
-                      size="sm"
-                      onClick={handleJoinCommunity}
-                    >
-                      Seguir Comunidad
-                    </CyberButton>
-                  )}
+                {/* Creador */}
+                <Card className="glass-card border-white/10">
+                  <CardContent className="pt-2.5 pb-2.5">
+                    <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500" />
+                      Creador
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-10 h-10 ring-2 ring-yellow-500/30">
+                        <AvatarImage 
+                          src={community.owner?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(community.owner?.username || 'A')}&background=FFD700&color=000`}
+                          alt={community.owner?.username}
+                        />
+                        <AvatarFallback className="bg-yellow-500/20 text-yellow-500">
+                          {community.owner?.username?.charAt(0).toUpperCase() || 'A'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">
+                          {community.owner?.username}
+                        </p>
+                        <p className="text-xs text-yellow-500">Fundador</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Actividad reciente - Desktop */}
+                <div className="hidden lg:block">
+                  <Card className="glass-card border-white/10">
+                    <CardContent className="pt-2.5 pb-2.5">
+                      <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-2">
+                        <div className="w-1 h-4 bg-purple-500 rounded-full" />
+                        Actividad Reciente
+                      </h3>
+                      <div className="space-y-2">
+                        {posts.slice(0, 3).map((post) => (
+                          <div 
+                            key={post.id}
+                            className="flex items-start gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                            onClick={() => {
+                              setActiveTab('all');
+                              setActiveInfoTab('about');
+                            }}
+                          >
+                            <img
+                              src={post.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author?.username || 'U')}&background=39FF14&color=000`}
+                              alt={post.author?.username}
+                              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-white truncate">
+                                {post.author?.username}
+                              </p>
+                              <p className="text-xs text-gray-400 truncate">
+                                {post.content || 'Publicó contenido multimedia'}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                {new Date(post.created_at).toLocaleDateString('es-ES')}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                        {posts.length === 0 && (
+                          <p className="text-xs text-gray-500 text-center py-2">
+                            No hay actividad reciente
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
 
-              {/* Contenido principal - Feed */}
-              <div className="lg:col-span-2 space-y-4 min-w-0 overflow-hidden">
-                {/* Botones de filtro */}
-                <div className="flex items-center space-x-2 overflow-x-auto pb-2">
-                  {[
-                    { id: 'all', label: 'Publicaciones', icon: FileText },
-                    { id: 'gallery', label: 'Galería', icon: Grid3x3 },
-                    { id: 'podcasts', label: 'Podcasts', icon: Music },
-                    { id: 'streaming', label: 'Streaming', icon: Zap }
-                  ].map(({ id, label, icon: Icon }) => (
-                    <button
-                      key={id}
-                      onClick={() => setActiveTab(id as any)}
-                      className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-colors whitespace-nowrap text-xs md:text-sm ${
-                        activeTab === id
-                          ? 'bg-neon-green/20 border border-neon-green text-neon-green'
-                          : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span>{label}</span>
-                    </button>
-                  ))}
-                </div>
+              {/* COLUMNA DERECHA - Feed de publicaciones (8 columnas) */}
+              <div className="lg:col-span-8 space-y-2.5 lg:pl-4 lg:pr-6">
+                {/* Crear publicación (solo para miembros) */}
+                {community.is_member && (
+                  <Card className="glass-card border-white/10 hover:border-neon-green/30 transition-colors">
+                    <CardContent className="pt-3 pb-3">
+                      <div 
+                        className="flex items-center gap-3 cursor-pointer"
+                        onClick={() => setShowPostModal(true)}
+                      >
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage 
+                            src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=39FF14&color=000`}
+                            alt={user?.username}
+                          />
+                          <AvatarFallback className="bg-neon-green/20 text-neon-green">
+                            {user?.username?.charAt(0).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 bg-white/5 rounded-full px-4 py-2.5 text-sm text-gray-400 hover:bg-white/10 transition-colors">
+                          ¿Qué quieres compartir?
+                        </div>
+                        <CyberButton size="sm">
+                          <MessageSquare className="w-4 h-4" />
+                        </CyberButton>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Tabs de filtro */}
+                <Card className="glass-card border-white/10">
+                  <CardContent className="p-0">
+                    <div className="flex items-center border-b border-white/10 overflow-x-auto scrollbar-hide">
+                      {[
+                        { id: 'all', label: 'Todo', icon: FileText },
+                        { id: 'gallery', label: 'Fotos', icon: Image },
+                        { id: 'podcasts', label: 'Audio', icon: Music },
+                        { id: 'streaming', label: 'Live', icon: Radio }
+                      ].map(({ id, label, icon: Icon }) => (
+                        <button
+                          key={id}
+                          onClick={() => setActiveTab(id as any)}
+                          className={`flex items-center gap-1.5 px-4 py-3 text-xs font-medium transition-all whitespace-nowrap border-b-2 ${
+                            activeTab === id
+                              ? 'text-neon-green border-neon-green bg-neon-green/5'
+                              : 'text-gray-400 border-transparent hover:text-white hover:bg-white/5'
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          <span>{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Feed de publicaciones */}
-                <div className="space-y-3">
-                  {filteredPosts.length === 0 ? (
+                <div className="space-y-2.5 pb-4">
+                  {posts.length === 0 ? (
                     <Card className="glass-card border-white/10">
                       <CardContent className="py-12 text-center">
                         <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-                        <p className="text-gray-400 text-sm">No hay publicaciones en esta categoría</p>
+                        <p className="text-gray-400 text-sm mb-2">No hay publicaciones</p>
+                        <p className="text-gray-500 text-xs mb-4">Sé el primero en compartir</p>
                         {community.is_member && (
-                          <Button 
-                            variant="outline" 
-                            className="mt-4"
-                            onClick={() => setShowPostModal(true)}
-                          >
-                            Crear la primera publicación
-                          </Button>
+                          <CyberButton onClick={() => setShowPostModal(true)}>
+                            Crear publicación
+                          </CyberButton>
                         )}
                       </CardContent>
                     </Card>
                   ) : (
-                    filteredPosts.map(post => (
-                      <Card key={post.id} className="glass-card border-white/10 hover:border-neon-green/30 transition-colors backdrop-blur-md overflow-hidden">
-                        <CardContent className="pt-3 md:pt-4 px-3 md:px-4">
+                    posts
+                      .filter(post => {
+                        if (activeTab === 'gallery') return post.post_type === 'image';
+                        if (activeTab === 'podcasts') return post.post_type === 'podcast';
+                        if (activeTab === 'streaming') return post.post_type === 'live';
+                        return true;
+                      })
+                      .map(post => (
+                        <Card key={post.id} className="glass-card border-white/10 hover:border-neon-green/30 transition-colors backdrop-blur-md overflow-hidden w-full">
+                          <CardContent className="pt-3 md:pt-4 px-3 md:px-4 pb-3 md:pb-4">
+                            <div className="flex items-start justify-between mb-2 md:mb-3">
+                              <div className="flex items-center space-x-2">
+                                <img
+                                  src={post.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author?.username || 'U')}&background=39FF14&color=000`}
+                                  alt={post.author?.username || 'Usuario'}
+                                  className="w-8 md:w-10 h-8 md:h-10 rounded-full object-cover flex-shrink-0 ring-2 ring-neon-green/30 cursor-pointer hover:ring-neon-green transition-all"
+                                  onClick={() => {
+                                    if (post.author) {
+                                      setSelectedProfileUser({
+                                        id: post.author.id,
+                                        username: post.author.username,
+                                        displayName: post.author.username,
+                                        avatar: post.author.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.username)}&background=39FF14&color=000`,
+                                        email: '',
+                                        bio: '',
+                                        coverPhoto: undefined,
+                                        position: '',
+                                        team: '',
+                                        followers: 0,
+                                        following: 0,
+                                        posts: 0,
+                                        interests: [],
+                                        createdAt: new Date().toISOString(),
+                                      });
+                                      setShowUserProfile(true);
+                                    }
+                                  }}
+                                />
+                                <div>
+                                  <p 
+                                    className="font-semibold text-xs md:text-sm cursor-pointer hover:text-neon-green transition-colors"
+                                    onClick={() => {
+                                      if (post.author) {
+                                        setSelectedProfileUser({
+                                          id: post.author.id,
+                                          username: post.author.username,
+                                          displayName: post.author.username,
+                                          avatar: post.author.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.username)}&background=39FF14&color=000`,
+                                          email: '',
+                                          bio: '',
+                                          coverPhoto: undefined,
+                                          position: '',
+                                          team: '',
+                                          followers: 0,
+                                          following: 0,
+                                          posts: 0,
+                                          interests: [],
+                                          createdAt: new Date().toISOString(),
+                                        });
+                                        setShowUserProfile(true);
+                                      }
+                                    }}
+                                  >
+                                    {post.author?.username || 'Usuario'}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(post.created_at).toLocaleDateString('es-ES')}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {user?.id === post.author?.id && (
+                                <button
+                                  onClick={() => handleDeletePost(post.id)}
+                                  className="p-1 hover:bg-red-500/10 rounded transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4 text-red-400" />
+                                </button>
+                              )}
+                            </div>
+
+                            {post.content && (
+                              <p className="text-gray-200 text-xs md:text-sm mb-2 md:mb-3 leading-relaxed">{post.content}</p>
+                            )}
+
+                            {post.post_type === 'image' && post.image_url && (
+                              <div className="rounded-lg overflow-hidden mb-2 md:mb-3 -mx-3 md:-mx-4">
+                                <img
+                                  src={post.image_url}
+                                  alt="Post"
+                                  className="w-full h-auto object-contain max-h-96"
+                                />
+                              </div>
+                            )}
+
+                            {post.post_type === 'video' && (post.video_file_url || post.video_url) && (
+                              <div className="rounded-lg overflow-hidden mb-2 md:mb-3 -mx-3 md:-mx-4 bg-black">
+                                <video
+                                  src={post.video_file_url || post.video_url}
+                                  controls
+                                  className="w-full h-auto max-h-[500px] object-contain"
+                                  style={{ aspectRatio: 'auto' }}
+                                />
+                              </div>
+                            )}
+
+                            {post.post_type === 'podcast' && (post.podcast_file_url || post.podcast_url) && (
+                              <audio
+                                src={post.podcast_file_url || post.podcast_url}
+                                controls
+                                className="w-full mb-2 md:mb-3 h-10"
+                              />
+                            )}
+
+                            {post.post_type === 'live' && (
+                              <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-2 text-center mb-2 md:mb-3">
+                                <div className="flex items-center justify-center space-x-2">
+                                  <Radio className="w-3 h-3 text-red-500 animate-pulse" />
+                                  <span className="text-xs text-red-400">EN VIVO</span>
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="flex items-center space-x-2 text-xs text-gray-400 pt-2 md:pt-3 border-t border-white/10">
+                              <button
+                                onClick={() => handleReaction(post.id, 'like')}
+                                className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
+                                  post.is_liked
+                                    ? 'text-red-500 bg-red-500/10'
+                                    : 'text-gray-400 hover:text-red-500 hover:bg-red-500/10'
+                                }`}
+                                title="Me gusta"
+                              >
+                                <Heart className={`w-3 h-3 ${post.is_liked ? 'fill-current' : ''}`} />
+                                <span>{post.like_count || 0}</span>
+                              </button>
+                              
+                              <button
+                                onClick={() => handleReaction(post.id, 'laugh')}
+                                className="flex items-center space-x-1 px-2 py-1 rounded transition-colors text-gray-400 hover:text-yellow-500 hover:bg-yellow-500/10"
+                                title="Jajaja"
+                              >
+                                <span className="text-sm">😂</span>
+                                <span>{(post as any).laugh_count || 0}</span>
+                              </button>
+                              
+                              <button
+                                onClick={() => handleReaction(post.id, 'dislike')}
+                                className="flex items-center space-x-1 px-2 py-1 rounded transition-colors text-gray-400 hover:text-blue-500 hover:bg-blue-500/10"
+                                title="No me gusta"
+                              >
+                                <ThumbsDown className="w-3 h-3" />
+                                <span>{(post as any).dislike_count || 0}</span>
+                              </button>
+                              
+                              <button
+                                onClick={() => toggleComments(post.id)}
+                                className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
+                                  expandedComments === post.id
+                                    ? 'text-neon-green bg-neon-green/10'
+                                    : 'text-gray-400 hover:text-neon-green hover:bg-neon-green/10'
+                                }`}
+                                title="Comentarios"
+                              >
+                                <MessageSquare className="w-3 h-3" />
+                                <span>{post.comment_count}</span>
+                              </button>
+                            </div>
+
+                            {/* Sección de comentarios */}
+                            {expandedComments === post.id && (
+                              <div className="mt-3 pt-3 border-t border-white/10 space-y-3">
+                                {replyingTo && (
+                                  <div className="flex items-center justify-between bg-neon-green/10 border border-neon-green/30 rounded-lg px-3 py-2">
+                                    <span className="text-xs text-neon-green">
+                                      Respondiendo a @{replyingTo.username}
+                                    </span>
+                                    <button
+                                      onClick={() => setReplyingTo(null)}
+                                      className="text-gray-400 hover:text-white"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                )}
+
+                                <div className="flex space-x-2">
+                                  <img
+                                    src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=39FF14&color=000`}
+                                    alt="Tu avatar"
+                                    className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                                  />
+                                  <div className="flex-1 flex space-x-2">
+                                    <input
+                                      type="text"
+                                      value={newComment}
+                                      onChange={(e) => setNewComment(e.target.value)}
+                                      placeholder={replyingTo ? `Responder a @${replyingTo.username}...` : "Escribe un comentario..."}
+                                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-neon-green/50"
+                                      onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
+                                    />
+                                    <button
+                                      onClick={() => handleAddComment(post.id)}
+                                      className="px-3 py-1.5 bg-neon-green/20 text-neon-green rounded-lg text-xs hover:bg-neon-green/30 transition-colors"
+                                    >
+                                      Enviar
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2 max-h-80 overflow-y-auto">
+                                  {comments[post.id]?.length === 0 && (
+                                    <p className="text-gray-500 text-xs text-center py-2">No hay comentarios aún</p>
+                                  )}
+                                  {comments[post.id]?.map((comment: any) => (
+                                    <div key={comment.id} className="bg-white/5 rounded-lg p-2">
+                                      <div className="flex space-x-2">
+                                        <img
+                                          src={comment.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author?.username || 'U')}&background=39FF14&color=000`}
+                                          alt={comment.author?.username}
+                                          className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+                                        />
+                                        <div className="flex-1">
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-xs font-semibold text-white">
+                                              {comment.author?.username}
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                              {new Date(comment.created_at).toLocaleDateString('es-ES')}
+                                            </span>
+                                          </div>
+                                          <p className="text-xs text-gray-300 mt-0.5">{comment.content}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))
+                  )}
+                </div>
+
+                {/* Tab: Acerca de */}
+                {activeInfoTab === 'about' && activeTab === 'all' && (
+                  <div className="grid grid-cols-1 gap-3 w-full pb-4">
+                    {/* Descripción */}
+                    <Card className="glass-card border-white/10 hover:border-neon-green/30 transition-all duration-300 w-full">
+                      <CardContent className="pt-4 pb-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-1 h-6 bg-neon-green rounded-full" />
+                          <h3 className="text-sm font-semibold text-neon-green uppercase tracking-wider">
+                            Descripción
+                          </h3>
+                        </div>
+                        <p className="text-sm text-gray-300 leading-relaxed">
+                          {community.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Reglas */}
+                    <Card className="glass-card border-white/10 hover:border-blue-500/30 transition-all duration-300 w-full">
+                      <CardContent className="pt-4 pb-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-1 h-6 bg-blue-500 rounded-full" />
+                          <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider">
+                            Reglas de la Comunidad
+                          </h3>
+                        </div>
+                        <div className="space-y-2">
+                          {[
+                            { icon: '✓', text: 'Mantén el respeto entre miembros' },
+                            { icon: '✓', text: 'No hagas spam ni publicidad' },
+                            { icon: '✓', text: 'Sigue las normas de la comunidad' },
+                            { icon: '✓', text: 'Contenido apropiado y relevante' }
+                          ].map((rule, idx) => (
+                            <div 
+                              key={idx}
+                              className="flex items-start gap-2 text-sm text-gray-400 hover:text-gray-300 transition-colors group"
+                            >
+                              <span className="text-neon-green group-hover:scale-110 transition-transform">
+                                {rule.icon}
+                              </span>
+                              <span>{rule.text}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Tab: Estadísticas */}
+                {activeInfoTab === 'stats' && activeTab === 'all' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full pb-4">
+                    {/* Miembros */}
+                    <Card className="glass-card border-white/10 hover:border-neon-green/30 transition-all duration-300 group cursor-pointer w-full">
+                      <CardContent className="pt-4 pb-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-xl bg-neon-green/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Users className="w-7 h-7 text-neon-green" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs text-gray-400 mb-1">Total Miembros</p>
+                            <p className="text-2xl font-bold text-white">{community.member_count}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Publicaciones */}
+                    <Card className="glass-card border-white/10 hover:border-blue-500/30 transition-all duration-300 group cursor-pointer w-full">
+                      <CardContent className="pt-4 pb-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <MessageSquare className="w-7 h-7 text-blue-400" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs text-gray-400 mb-1">Publicaciones</p>
+                            <p className="text-2xl font-bold text-white">{community.post_count}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Actividad */}
+                    <Card className="glass-card border-white/10 hover:border-purple-500/30 transition-all duration-300 group cursor-pointer w-full">
+                      <CardContent className="pt-4 pb-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-xl bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Zap className="w-7 h-7 text-purple-400" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs text-gray-400 mb-1">Actividad</p>
+                            <p className="text-lg font-semibold text-white">Alta</p>
+                            <div className="flex gap-0.5 mt-1">
+                              {[1, 2, 3, 4, 5].map((i) => (
+                                <div
+                                  key={i}
+                                  className="w-1 bg-purple-400 rounded-full"
+                                  style={{
+                                    height: `${i * 3 + 6}px`,
+                                    opacity: i <= 4 ? 1 : 0.3
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Engagement */}
+                    <Card className="glass-card border-white/10 hover:border-yellow-500/30 transition-all duration-300 group cursor-pointer w-full">
+                      <CardContent className="pt-4 pb-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-xl bg-yellow-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Heart className="w-7 h-7 text-yellow-400" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs text-gray-400 mb-1">Engagement</p>
+                            <p className="text-2xl font-bold text-white">
+                              {Math.round((community.post_count / Math.max(community.member_count, 1)) * 100)}%
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Feed de publicaciones filtradas (Galería, Podcasts, Streaming) */}
+                {activeTab !== 'all' && (
+                  <div className="space-y-2.5 pb-4 w-full">
+                    {filteredPosts.length === 0 ? (
+                      <Card className="glass-card border-white/10 w-full">
+                        <CardContent className="py-12 text-center">
+                          <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-600" />
+                          <p className="text-gray-400 text-sm">No hay publicaciones en esta categoría</p>
+                          {community.is_member && (
+                            <Button 
+                              variant="outline" 
+                              className="mt-4"
+                              onClick={() => setShowPostModal(true)}
+                            >
+                              Crear la primera publicación
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      filteredPosts.map(post => (
+                      <Card key={post.id} className="glass-card border-white/10 hover:border-neon-green/30 transition-colors backdrop-blur-md overflow-hidden w-full">
+                        <CardContent className="pt-3 md:pt-4 px-3 md:px-4 pb-3 md:pb-4">
                           <div className="flex items-start justify-between mb-2 md:mb-3">
                             <div className="flex items-center space-x-2">
                               <img
@@ -1216,9 +1786,10 @@ export default function CommunityPage() {
                           )}
                         </CardContent>
                       </Card>
-                    ))
-                  )}
-                </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1683,4 +2254,133 @@ export default function CommunityPage() {
       )}
     </div>
   );
+}
+
+// Estilos CSS para las estrellas animadas
+const styles = `
+  .stars-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    font-size: 14px;
+    opacity: 0.3;
+    color: #ffd700;
+    text-shadow: 0 0 8px #ffd700;
+  }
+  @media (min-width: 768px) {
+    .star { font-size: 18px; opacity: 0.25; }
+  }
+  @media (min-width: 1024px) {
+    .star { font-size: 22px; opacity: 0.2; }
+  }
+  /* Tamaños variados */
+  .star-1, .star-6, .star-11, .star-16 { font-size: 10px; }
+  .star-3, .star-8, .star-13, .star-18 { font-size: 18px; }
+  .star-5, .star-10, .star-15, .star-20 { font-size: 12px; }
+  /* Colores variados */
+  .star-2, .star-7, .star-12, .star-17 { color: #ffec8b; text-shadow: 0 0 8px #ffec8b; }
+  .star-4, .star-9, .star-14, .star-19 { color: #fff8dc; text-shadow: 0 0 8px #fff8dc; }
+  /* Posiciones y animaciones */
+  .star-1 { top: 5%; left: 10%; animation: starFloat1 12s ease-in-out infinite; }
+  .star-2 { top: 12%; right: 8%; animation: starFloat2 14s ease-in-out infinite; }
+  .star-3 { top: 22%; left: 25%; animation: starFloat3 11s ease-in-out infinite; }
+  .star-4 { top: 8%; right: 30%; animation: starFloat4 13s ease-in-out infinite; }
+  .star-5 { top: 32%; left: 5%; animation: starFloat5 15s ease-in-out infinite; }
+  .star-6 { top: 42%; right: 12%; animation: starFloat6 12s ease-in-out infinite; }
+  .star-7 { top: 18%; left: 55%; animation: starFloat1 14s ease-in-out infinite reverse; }
+  .star-8 { top: 52%; right: 20%; animation: starFloat2 11s ease-in-out infinite reverse; }
+  .star-9 { top: 38%; left: 75%; animation: starFloat3 13s ease-in-out infinite; }
+  .star-10 { top: 62%; left: 12%; animation: starFloat4 15s ease-in-out infinite; }
+  .star-11 { top: 48%; right: 45%; animation: starFloat5 12s ease-in-out infinite reverse; }
+  .star-12 { top: 72%; right: 8%; animation: starFloat6 14s ease-in-out infinite reverse; }
+  .star-13 { top: 58%; left: 38%; animation: starFloat1 11s ease-in-out infinite; }
+  .star-14 { top: 82%; left: 60%; animation: starFloat2 13s ease-in-out infinite; }
+  .star-15 { top: 68%; right: 35%; animation: starFloat3 15s ease-in-out infinite reverse; }
+  .star-16 { top: 78%; left: 5%; animation: starFloat4 12s ease-in-out infinite reverse; }
+  .star-17 { top: 88%; right: 55%; animation: starFloat5 14s ease-in-out infinite; }
+  .star-18 { top: 28%; left: 88%; animation: starFloat6 11s ease-in-out infinite; }
+  .star-19 { top: 92%; left: 25%; animation: starFloat1 13s ease-in-out infinite reverse; }
+  .star-20 { top: 3%; left: 42%; animation: starFloat2 15s ease-in-out infinite reverse; }
+
+  @keyframes starFloat1 {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    12.5% { transform: translate(20px, 15px) rotate(22deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    25% { transform: translate(40px, 30px) rotate(45deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    37.5% { transform: translate(30px, 42px) rotate(67deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    50% { transform: translate(20px, 55px) rotate(90deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    62.5% { transform: translate(1px, 43px) rotate(112deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    75% { transform: translate(-18px, 32px) rotate(135deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    87.5% { transform: translate(-9px, 16px) rotate(157deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    100% { transform: translate(0, 0) rotate(180deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+  }
+  @keyframes starFloat2 {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    12.5% { transform: translate(-16px, 21px) rotate(-22deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    25% { transform: translate(-32px, 42px) rotate(-45deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    37.5% { transform: translate(-22px, 10px) rotate(-67deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    50% { transform: translate(-12px, -22px) rotate(-90deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    62.5% { transform: translate(5px, -2px) rotate(-112deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    75% { transform: translate(22px, 18px) rotate(-135deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    87.5% { transform: translate(11px, 9px) rotate(-157deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    100% { transform: translate(0, 0) rotate(-180deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+  }
+  @keyframes starFloat3 {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    12.5% { transform: translate(14px, -16px) rotate(30deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    25% { transform: translate(28px, -32px) rotate(60deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    37.5% { transform: translate(38px, -7px) rotate(90deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    50% { transform: translate(48px, 18px) rotate(120deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    62.5% { transform: translate(30px, 31px) rotate(150deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    75% { transform: translate(12px, 45px) rotate(180deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    87.5% { transform: translate(6px, 22px) rotate(210deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    100% { transform: translate(0, 0) rotate(240deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+  }
+  @keyframes starFloat4 {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    12.5% { transform: translate(-11px, -19px) rotate(-30deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    25% { transform: translate(-22px, -38px) rotate(-60deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    37.5% { transform: translate(-2px, -28px) rotate(-90deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    50% { transform: translate(18px, -18px) rotate(-120deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    62.5% { transform: translate(-10px, -3px) rotate(-150deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    75% { transform: translate(-38px, 12px) rotate(-180deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    87.5% { transform: translate(-19px, 6px) rotate(-210deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    100% { transform: translate(0, 0) rotate(-240deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+  }
+  @keyframes starFloat5 {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    12.5% { transform: translate(16px, -11px) rotate(15deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    25% { transform: translate(32px, -22px) rotate(30deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    37.5% { transform: translate(11px, -35px) rotate(45deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    50% { transform: translate(-10px, -48px) rotate(60deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    62.5% { transform: translate(5px, -29px) rotate(75deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    75% { transform: translate(20px, -10px) rotate(90deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    87.5% { transform: translate(10px, -5px) rotate(105deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    100% { transform: translate(0, 0) rotate(120deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+  }
+  @keyframes starFloat6 {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    12.5% { transform: translate(-14px, 11px) rotate(-15deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    25% { transform: translate(-28px, 22px) rotate(-30deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    37.5% { transform: translate(-3px, 35px) rotate(-45deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    50% { transform: translate(22px, 48px) rotate(-60deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    62.5% { transform: translate(31px, 16px) rotate(-75deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    75% { transform: translate(40px, -15px) rotate(-90deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+    87.5% { transform: translate(20px, -7px) rotate(-105deg); opacity: 0.45; text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+    100% { transform: translate(0, 0) rotate(-120deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
+  }
+`;
+
+// Inyectar estilos
+if (typeof document !== 'undefined') {
+  const styleElement = document.getElementById('community-stars-styles');
+  if (!styleElement) {
+    const style = document.createElement('style');
+    style.id = 'community-stars-styles';
+    style.textContent = styles;
+    document.head.appendChild(style);
+  }
 }

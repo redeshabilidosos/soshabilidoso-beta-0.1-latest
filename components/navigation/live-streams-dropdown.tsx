@@ -249,7 +249,7 @@ export function LiveStreamsDropdown() {
 
   // Componente del Modal
   const Modal = () => (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ marginLeft: 0 }}>
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4" style={{ marginLeft: 0 }}>
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"

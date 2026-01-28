@@ -185,42 +185,66 @@ class UploadCoverPhotoView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request):
+        print(f"[UPLOAD COVER] Petición recibida de usuario: {request.user.username}")
+        print(f"[UPLOAD COVER] FILES en request: {list(request.FILES.keys())}")
+        
         if 'cover_photo' not in request.FILES:
+            print("[UPLOAD COVER] ERROR: No se encontró 'cover_photo' en FILES")
             return Response({
                 'error': 'No se proporcionó ningún archivo'
             }, status=status.HTTP_400_BAD_REQUEST)
         
         cover_file = request.FILES['cover_photo']
+        print(f"[UPLOAD COVER] Archivo recibido: {cover_file.name}, tamaño: {cover_file.size}, tipo: {cover_file.content_type}")
         
         # Validar tipo de archivo
         allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
         if cover_file.content_type not in allowed_types:
+            print(f"[UPLOAD COVER] ERROR: Tipo no permitido: {cover_file.content_type}")
             return Response({
                 'error': 'Tipo de archivo no permitido. Use JPG, PNG o WebP'
             }, status=status.HTTP_400_BAD_REQUEST)
         
         # Validar tamaño (máximo 10MB)
         if cover_file.size > 10 * 1024 * 1024:
+            print(f"[UPLOAD COVER] ERROR: Archivo muy grande: {cover_file.size}")
             return Response({
                 'error': 'El archivo es demasiado grande. Máximo 10MB'
             }, status=status.HTTP_400_BAD_REQUEST)
         
+        print("[UPLOAD COVER] Validaciones pasadas, guardando archivo...")
+        
         # Actualizar foto de portada del usuario
         user = request.user
+        old_cover = user.cover_photo.url if user.cover_photo else None
+        print(f"[UPLOAD COVER] Foto de portada anterior: {old_cover}")
+        
         user.cover_photo = cover_file
         user.save()
+        
+        new_cover = user.cover_photo.url if user.cover_photo else None
+        print(f"[UPLOAD COVER] Nueva foto de portada guardada: {new_cover}")
         
         # Guardar en álbum de fotos de portada
         try:
             self._save_to_cover_album(user, cover_file, request)
+            print("[UPLOAD COVER] Guardado en álbum exitoso")
         except Exception as e:
-            print(f"Error guardando en álbum: {e}")
+            print(f"[UPLOAD COVER] Error guardando en álbum: {e}")
         
-        return Response({
+        cover_photo_url = request.build_absolute_uri(user.cover_photo.url) if user.cover_photo else None
+        print(f"[UPLOAD COVER] URL absoluta generada: {cover_photo_url}")
+        
+        response_data = {
             'message': 'Foto de portada actualizada exitosamente',
-            'cover_photo_url': request.build_absolute_uri(user.cover_photo.url) if user.cover_photo else None,
+            'cover_photo_url': cover_photo_url,
             'user': UserProfileSerializer(user, context={'request': request}).data
-        }, status=status.HTTP_200_OK)
+        }
+        
+        print(f"[UPLOAD COVER] Respuesta preparada, cover_photo_url: {response_data['cover_photo_url']}")
+        print(f"[UPLOAD COVER] Usuario en respuesta tiene cover_photo_url: {response_data['user'].get('cover_photo_url')}")
+        
+        return Response(response_data, status=status.HTTP_200_OK)
     
     def _save_to_cover_album(self, user, cover_file, request):
         """Guardar foto de portada en álbum"""

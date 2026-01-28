@@ -63,7 +63,18 @@ export function ChatInterfaceIntegrated({ isOpen, onClose, chat, onUpdateChat }:
     reactToMessage,
   } = useWebSocket(chat?.id || null, {
     onMessage: (message) => {
-      setMessages(prev => [...prev, message]);
+      // Transform API message to frontend Message type
+      const transformedMessage: Message = {
+        id: message.id,
+        senderId: message.sender?.id || message.sender,
+        content: message.content,
+        timestamp: message.created_at || message.timestamp,
+        type: message.message_type || message.type || 'text',
+        imageUrl: message.image_url,
+        videoUrl: message.video_url,
+        emoji: message.emoji
+      };
+      setMessages(prev => [...prev, transformedMessage]);
       scrollToBottom();
     },
     onTyping: (userId, isTyping) => {
@@ -114,7 +125,20 @@ export function ChatInterfaceIntegrated({ isOpen, onClose, chat, onUpdateChat }:
     try {
       setIsLoading(true);
       const response = await chatService.getMessages(chat.id);
-      setMessages(response.results.reverse()); // Invertir para mostrar más recientes al final
+      
+      // Transform API response to match frontend Message type
+      const transformedMessages = response.results.map((msg: any) => ({
+        id: msg.id,
+        senderId: msg.sender?.id || msg.sender,
+        content: msg.content,
+        timestamp: msg.created_at,
+        type: msg.message_type || 'text',
+        imageUrl: msg.image_url,
+        videoUrl: msg.video_url,
+        emoji: msg.emoji
+      }));
+      
+      setMessages(transformedMessages.reverse()); // Invertir para mostrar más recientes al final
     } catch (error) {
       console.error('Error loading messages:', error);
       toast.error('Error al cargar mensajes');
@@ -240,22 +264,34 @@ export function ChatInterfaceIntegrated({ isOpen, onClose, chat, onUpdateChat }:
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-2xl h-[90vh] flex flex-col glass-card border-neon-green/20 p-0">
-          <DialogHeader className="p-4 border-b border-white/10 flex-shrink-0">
+          <DialogHeader className="p-4 border-b border-white/10 flex-shrink-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50 backdrop-blur-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <img
-                  src={chat.otherUser?.avatar || '/default-avatar.png'}
-                  alt={displayName}
-                  className="w-10 h-10 rounded-full ring-2 ring-neon-blue/30"
-                />
+                <div className="relative">
+                  <img
+                    src={chat.otherUser?.avatar || '/default-avatar.png'}
+                    alt={displayName}
+                    className="w-12 h-12 rounded-full ring-2 ring-neon-green/30 shadow-lg shadow-neon-green/20"
+                  />
+                  {/* Indicador online con animación */}
+                  {isConnected && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-neon-green rounded-full border-2 border-black animate-pulse shadow-lg shadow-neon-green/50" />
+                  )}
+                </div>
                 <div>
-                  <DialogTitle className="text-white text-lg">
+                  <DialogTitle className="text-white text-lg font-semibold flex items-center gap-2">
                     {displayName}
+                    {chat.otherUser?.is_verified && (
+                      <span className="text-neon-blue text-sm">✓</span>
+                    )}
                   </DialogTitle>
-                  <DialogDescription className="text-gray-400 text-sm">
+                  <DialogDescription className="text-gray-400 text-sm flex items-center gap-2">
                     @{chat.otherUser?.username || 'usuario'}
                     {isConnected && (
-                      <span className="ml-2 text-neon-green text-xs">● En línea</span>
+                      <span className="flex items-center gap-1 text-neon-green text-xs font-medium">
+                        <span className="w-1.5 h-1.5 bg-neon-green rounded-full animate-pulse" />
+                        En línea
+                      </span>
                     )}
                   </DialogDescription>
                 </div>
@@ -263,14 +299,14 @@ export function ChatInterfaceIntegrated({ isOpen, onClose, chat, onUpdateChat }:
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setIsSettingsDialogOpen(true)}
-                  className="p-2 bg-white/10 rounded-lg text-gray-400 hover:text-white hover:bg-white/20 transition-colors"
+                  className="p-2.5 bg-white/5 rounded-xl text-gray-400 hover:text-neon-green hover:bg-neon-green/10 transition-all hover:scale-110 active:scale-95 border border-white/10"
                   title="Personalizar chat"
                 >
                   <Settings size={20} />
                 </button>
                 <button
                   onClick={onClose}
-                  className="p-2 bg-white/10 rounded-lg text-white hover:bg-white/20 transition-colors"
+                  className="p-2.5 bg-white/5 rounded-xl text-white hover:bg-red-500/20 hover:text-red-400 transition-all hover:scale-110 active:scale-95 border border-white/10"
                 >
                   <X size={20} />
                 </button>
@@ -280,60 +316,160 @@ export function ChatInterfaceIntegrated({ isOpen, onClose, chat, onUpdateChat }:
 
           <div 
             className={cn(
-              "flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide"
+              "flex-1 overflow-y-auto p-4 scrollbar-hide"
             )}
             style={currentChatBackgroundStyle}
           >
             {isLoading ? (
               <div className="flex justify-center items-center h-full">
-                <div className="text-gray-400">Cargando mensajes...</div>
+                <div className="relative">
+                  <div className="w-16 h-16 border-4 border-neon-green/20 border-t-neon-green rounded-full animate-spin" />
+                  <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-neon-blue rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }} />
+                </div>
               </div>
             ) : (
               <>
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={cn(
-                      'flex group',
-                      message.senderId === currentUser?.id ? 'justify-end' : 'justify-start'
-                    )}
-                  >
+                {messages.map((message, index) => {
+                  const isOwn = message.senderId === currentUser?.id;
+                  const prevMessage = index > 0 ? messages[index - 1] : null;
+                  const nextMessage = index < messages.length - 1 ? messages[index + 1] : null;
+                  const isSameSenderAsPrev = prevMessage?.senderId === message.senderId;
+                  const isSameSenderAsNext = nextMessage?.senderId === message.senderId;
+                  
+                  return (
                     <div
+                      key={message.id}
                       className={cn(
-                        'max-w-[70%] p-3 rounded-xl relative',
-                        message.senderId === currentUser?.id
-                          ? (chat.chatColor || 'bg-neon-green/20') + ' text-white rounded-br-none'
-                          : (chat.otherMessageColor || 'bg-white/10') + ' text-gray-200 rounded-bl-none'
+                        'flex group items-end gap-2 animate-in slide-in-from-bottom-2 duration-300',
+                        isOwn ? 'justify-end' : 'justify-start',
+                        isSameSenderAsPrev ? 'mt-0.5' : 'mt-3'
                       )}
                     >
-                      <p className="text-sm">{message.content}</p>
-                      <span className="text-xs text-gray-500 mt-1 block text-right">
-                        {formatTime(message.timestamp)}
-                      </span>
-                      
-                      {/* Botones de reacción */}
-                      <div className="absolute -top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="flex space-x-1 bg-black/50 rounded-full p-1">
-                          {['👍', '❤️', '😂', '⚽'].map((emoji) => (
-                            <button
-                              key={emoji}
-                              onClick={() => handleReaction(message.id, emoji)}
-                              className="hover:scale-110 transition-transform text-xs"
-                            >
-                              {emoji}
-                            </button>
-                          ))}
+                      {/* Avatar para mensajes del otro usuario */}
+                      {!isOwn && (
+                        <div className={cn(
+                          "w-7 h-7 rounded-full flex-shrink-0 transition-opacity",
+                          isSameSenderAsNext ? "opacity-0" : "opacity-100"
+                        )}>
+                          {!isSameSenderAsNext && (
+                            <img
+                              src={chat.otherUser?.avatar || '/default-avatar.png'}
+                              alt=""
+                              className="w-full h-full rounded-full ring-1 ring-white/20"
+                            />
+                          )}
                         </div>
+                      )}
+                      
+                      <div className="relative flex items-center gap-1">
+                        {/* Botones de reacción - Lado izquierdo para mensajes del otro */}
+                        {!isOwn && (
+                          <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:scale-100 scale-90">
+                            <div className="flex flex-col gap-1 bg-black/80 backdrop-blur-xl rounded-2xl p-1.5 border border-white/10 shadow-lg shadow-black/50">
+                              {['👍', '❤️', '😂', '⚽'].map((emoji) => (
+                                <button
+                                  key={emoji}
+                                  onClick={() => handleReaction(message.id, emoji)}
+                                  className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-xl transition-all hover:scale-125 active:scale-95 text-base"
+                                  title={`Reaccionar con ${emoji}`}
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Burbuja de mensaje */}
+                        <div
+                          className={cn(
+                            'relative px-4 py-2 max-w-[75%] backdrop-blur-sm transition-all duration-200',
+                            'shadow-lg',
+                            isOwn
+                              ? cn(
+                                  'bg-gradient-to-br from-neon-green/30 to-emerald-500/20 text-white',
+                                  'border border-neon-green/30',
+                                  'rounded-[20px]',
+                                  isSameSenderAsNext ? 'rounded-br-md' : 'rounded-br-[20px]',
+                                  isSameSenderAsPrev ? 'rounded-tr-md' : 'rounded-tr-[20px]',
+                                  'shadow-neon-green/10'
+                                )
+                              : cn(
+                                  'bg-white/10 text-gray-100',
+                                  'border border-white/10',
+                                  'rounded-[20px]',
+                                  isSameSenderAsNext ? 'rounded-bl-md' : 'rounded-bl-[20px]',
+                                  isSameSenderAsPrev ? 'rounded-tl-md' : 'rounded-tl-[20px]',
+                                  'shadow-black/20'
+                                )
+                          )}
+                        >
+                          {/* Efecto de brillo futurista */}
+                          <div className={cn(
+                            "absolute inset-0 rounded-[20px] opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+                            isOwn 
+                              ? "bg-gradient-to-br from-neon-green/10 to-transparent" 
+                              : "bg-gradient-to-br from-white/5 to-transparent"
+                          )} />
+                          
+                          <p className="text-[15px] leading-relaxed relative z-10 break-words">
+                            {message.content}
+                          </p>
+                          
+                          <div className={cn(
+                            "flex items-center gap-1.5 mt-1 relative z-10",
+                            isOwn ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-[11px] font-medium",
+                              isOwn ? "text-neon-green/70" : "text-gray-500"
+                            )}>
+                              {formatTime(message.timestamp)}
+                            </span>
+                            {isOwn && (
+                              <span className="text-neon-green/70 text-xs">✓✓</span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Botones de reacción - Lado derecho para mensajes propios */}
+                        {isOwn && (
+                          <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:scale-100 scale-90">
+                            <div className="flex flex-col gap-1 bg-black/80 backdrop-blur-xl rounded-2xl p-1.5 border border-neon-green/20 shadow-lg shadow-neon-green/10">
+                              {['👍', '❤️', '😂', '⚽'].map((emoji) => (
+                                <button
+                                  key={emoji}
+                                  onClick={() => handleReaction(message.id, emoji)}
+                                  className="w-8 h-8 flex items-center justify-center hover:bg-neon-green/10 rounded-xl transition-all hover:scale-125 active:scale-95 text-base"
+                                  title={`Reaccionar con ${emoji}`}
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 
-                {/* Indicador de escritura */}
+                {/* Indicador de escritura mejorado */}
                 {typingUsers.size > 0 && (
-                  <div className="flex justify-start">
-                    <div className="bg-white/10 text-gray-400 px-3 py-2 rounded-xl text-sm">
-                      Escribiendo...
+                  <div className="flex justify-start items-end gap-2 animate-in fade-in duration-300 mt-3">
+                    <div className="w-7 h-7 rounded-full">
+                      <img
+                        src={chat.otherUser?.avatar || '/default-avatar.png'}
+                        alt=""
+                        className="w-full h-full rounded-full ring-1 ring-white/20"
+                      />
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm px-4 py-3 rounded-[20px] rounded-bl-md border border-white/10 flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -343,36 +479,58 @@ export function ChatInterfaceIntegrated({ isOpen, onClose, chat, onUpdateChat }:
             )}
           </div>
 
-          <div className="p-4 border-t border-white/10 flex-shrink-0">
-            <div className="flex items-center space-x-2">
-              <button className="p-2 text-gray-400 hover:text-white transition-colors">
-                <Smile size={20} />
-              </button>
-              <button className="p-2 text-gray-400 hover:text-white transition-colors">
-                <ImageIcon size={20} />
-              </button>
-              <button className="p-2 text-gray-400 hover:text-white transition-colors">
-                <Video size={20} />
-              </button>
-              <Input
-                placeholder="Escribe un mensaje..."
-                value={newMessageContent}
-                onChange={handleInputChange}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                className="flex-1 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:ring-neon-green/50"
-                disabled={!isConnected}
-              />
-              <CyberButton 
-                onClick={handleSendMessage} 
+          <div className="p-4 border-t border-white/10 flex-shrink-0 bg-black/30 backdrop-blur-xl">
+            <div className="flex items-center gap-2">
+              {/* Botones de acción alineados con el input */}
+              <div className="flex items-center gap-1">
+                <button className="p-2 text-gray-400 hover:text-neon-green transition-all hover:bg-neon-green/10 rounded-xl hover:scale-110 active:scale-95">
+                  <Smile size={20} />
+                </button>
+                <button className="p-2 text-gray-400 hover:text-neon-blue transition-all hover:bg-neon-blue/10 rounded-xl hover:scale-110 active:scale-95">
+                  <ImageIcon size={20} />
+                </button>
+                <button className="p-2 text-gray-400 hover:text-purple-400 transition-all hover:bg-purple-400/10 rounded-xl hover:scale-110 active:scale-95">
+                  <Video size={20} />
+                </button>
+              </div>
+              
+              <div className="flex-1 relative group">
+                {/* Efecto de brillo en el input */}
+                <div className="absolute inset-0 bg-gradient-to-r from-neon-green/0 via-neon-green/5 to-neon-green/0 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-sm" />
+                
+                <Input
+                  placeholder="Escribe un mensaje..."
+                  value={newMessageContent}
+                  onChange={handleInputChange}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                  className="relative bg-white/5 border-white/10 text-white placeholder-gray-500 focus:ring-2 focus:ring-neon-green/50 focus:border-neon-green/50 rounded-2xl px-4 py-2.5 text-[15px] transition-all duration-200 focus:bg-white/10 h-[44px]"
+                  disabled={!isConnected}
+                />
+              </div>
+              
+              <button
+                onClick={handleSendMessage}
                 disabled={!newMessageContent.trim() || !isConnected}
+                className={cn(
+                  "p-2.5 rounded-2xl transition-all duration-200 shadow-lg flex-shrink-0",
+                  newMessageContent.trim() && isConnected
+                    ? "bg-gradient-to-br from-neon-green to-emerald-500 text-black hover:shadow-neon-green/50 hover:scale-110 active:scale-95"
+                    : "bg-white/5 text-gray-600 cursor-not-allowed"
+                )}
               >
-                <Send size={20} />
-              </CyberButton>
+                <Send size={20} className={cn(
+                  "transition-transform",
+                  newMessageContent.trim() && "group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                )} />
+              </button>
             </div>
             
             {!isConnected && (
-              <div className="text-center text-red-400 text-xs mt-2">
-                Desconectado - Reintentando conexión...
+              <div className="text-center mt-2 animate-pulse">
+                <div className="inline-flex items-center gap-2 text-red-400 text-xs bg-red-400/10 px-3 py-1.5 rounded-full border border-red-400/20">
+                  <div className="w-1.5 h-1.5 bg-red-400 rounded-full animate-ping" />
+                  Reconectando...
+                </div>
               </div>
             )}
           </div>

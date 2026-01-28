@@ -156,6 +156,7 @@ class Message(models.Model):
         ('file', 'Archivo'),
         ('emoji', 'Emoji'),
         ('system', 'Sistema'),
+        ('story_reply', 'Respuesta a Historia'),
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -164,7 +165,7 @@ class Message(models.Model):
     
     # Contenido del mensaje
     content = models.TextField(max_length=2000, verbose_name='Contenido')
-    message_type = models.CharField(max_length=10, choices=MESSAGE_TYPES, default='text', verbose_name='Tipo de mensaje')
+    message_type = models.CharField(max_length=15, choices=MESSAGE_TYPES, default='text', verbose_name='Tipo de mensaje')
     
     # Archivos multimedia
     image = models.ImageField(upload_to='messages/images/', null=True, blank=True, verbose_name='Imagen')
@@ -183,6 +184,9 @@ class Message(models.Model):
         related_name='replies',
         verbose_name='Respuesta a'
     )
+    
+    # Referencia a historia (para respuestas a historias)
+    story_id = models.UUIDField(null=True, blank=True, verbose_name='ID de la historia')
     
     # Estado del mensaje
     is_edited = models.BooleanField(default=False, verbose_name='Editado')

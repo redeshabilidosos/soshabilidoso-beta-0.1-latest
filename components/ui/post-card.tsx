@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Share, Trophy, MoreHorizontal, Play, Mic, Radio, Laugh, ThumbsDown, Pencil, Trash2, Zap } from 'lucide-react';
+import { useState, useEffect, memo } from 'react';
+import { Heart, MessageCircle, Share, Trophy, MoreHorizontal, Play, Mic, Radio, Pencil, Trash2, Zap } from 'lucide-react';
 import { Post, Comment } from '@/types/user';
-import { ReactionButton } from './reaction-button';
 import { CyberButton } from './cyber-button';
 import { SharePostDialog } from './share-post-dialog';
 import { PostDetailDialog } from './post-detail-dialog';
@@ -35,6 +34,42 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+
+// Componente de botón de reacción con emoji
+const EmojiReactionButton = memo(function EmojiReactionButton({
+  emoji,
+  count,
+  active,
+  onClick,
+  label,
+}: {
+  emoji: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all duration-200 ${
+        active
+          ? 'text-neon-green'
+          : 'text-gray-400 hover:text-white'
+      }`}
+      aria-label={label}
+      title={label}
+    >
+      <span className={`text-xl transition-all duration-300 inline-block ${active ? 'animate-reaction-pop' : ''}`}>
+        {emoji}
+      </span>
+      <span className="text-sm font-medium">{count > 0 ? count : ''}</span>
+    </button>
+  );
+});
 
 interface PostCardProps {
   post: Post;
@@ -302,8 +337,13 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
     }
   };
 
-  // Estado para likes de comentarios
-  const [commentLikes, setCommentLikes] = useState<Record<string, { count: number; liked: boolean }>>({});
+  // Estado para reacciones de comentarios (likes, laughs, dislikes)
+  const [commentReactions, setCommentReactions] = useState<Record<string, { 
+    likes: number; 
+    laughs: number; 
+    dislikes: number; 
+    userReaction: string | null;
+  }>>({});
   
   // Estado para responder a comentarios
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -436,46 +476,85 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
     }
   };
 
-  // Inicializar likes de comentarios
+  // Inicializar reacciones de comentarios
   useEffect(() => {
-    const initialLikes: Record<string, { count: number; liked: boolean }> = {};
+    const initialReactions: Record<string, { 
+      likes: number; 
+      laughs: number; 
+      dislikes: number; 
+      userReaction: string | null;
+    }> = {};
     postComments.forEach(comment => {
-      initialLikes[comment.id] = {
-        count: comment.likes || 0,
-        liked: false // TODO: obtener del backend si el usuario ya dio like
+      initialReactions[comment.id] = {
+        likes: comment.likes || 0,
+        laughs: 0, // comment.laughs || 0,
+        dislikes: 0, // comment.dislikes || 0,
+        userReaction: null // comment.userReaction || null
       };
     });
-    setCommentLikes(initialLikes);
+    setCommentReactions(initialReactions);
   }, [postComments]);
 
-  // Función para dar like a un comentario
-  const handleCommentLike = async (commentId: string) => {
+  // Función para reaccionar a un comentario
+  const handleCommentReaction = async (commentId: string, type: 'like' | 'laugh' | 'dislike') => {
     if (!currentUser) {
-      toast.error('Debes iniciar sesión para dar like.');
+      toast.error('Debes iniciar sesión para reaccionar.');
       return;
     }
 
-    const currentState = commentLikes[commentId] || { count: 0, liked: false };
-    const newLiked = !currentState.liked;
-    const newCount = newLiked ? currentState.count + 1 : Math.max(0, currentState.count - 1);
+    const currentState = commentReactions[commentId] || { 
+      likes: 0, 
+      laughs: 0, 
+      dislikes: 0, 
+      userReaction: null 
+    };
+    
+    const isRemovingReaction = currentState.userReaction === type;
+    const newUserReaction = isRemovingReaction ? null : type;
 
     // Actualizar UI optimísticamente
-    setCommentLikes(prev => ({
+    const newState = { ...currentState };
+    
+    if (isRemovingReaction) {
+      // Quitar la reacción actual
+      const key = type === 'like' ? 'likes' : type === 'laugh' ? 'laughs' : 'dislikes';
+      newState[key] = Math.max(0, newState[key] - 1);
+      newState.userReaction = null;
+    } else {
+      // Si tenía otra reacción, quitarla
+      if (currentState.userReaction) {
+        const oldKey = currentState.userReaction === 'like' ? 'likes' : 
+                      currentState.userReaction === 'laugh' ? 'laughs' : 'dislikes';
+        newState[oldKey] = Math.max(0, newState[oldKey] - 1);
+      }
+      
+      // Agregar la nueva reacción
+      const newKey = type === 'like' ? 'likes' : type === 'laugh' ? 'laughs' : 'dislikes';
+      newState[newKey] = newState[newKey] + 1;
+      newState.userReaction = type;
+    }
+
+    setCommentReactions(prev => ({
       ...prev,
-      [commentId]: { count: newCount, liked: newLiked }
+      [commentId]: newState
     }));
 
     try {
       const { postsService } = await import('@/lib/services/posts.service');
-      if (newLiked) {
-        await postsService.likeComment(commentId);
-      } else {
-        await postsService.unlikeComment(commentId);
+      // Por ahora usamos la API de like/unlike existente
+      // TODO: Actualizar backend para soportar múltiples reacciones en comentarios
+      if (type === 'like') {
+        if (isRemovingReaction) {
+          await postsService.unlikeComment(commentId);
+        } else {
+          await postsService.likeComment(commentId);
+        }
       }
+      // Para laugh y dislike, solo actualizamos UI por ahora
     } catch (error) {
-      console.error('Error al dar like al comentario:', error);
+      console.error('Error al reaccionar al comentario:', error);
       // Revertir en caso de error
-      setCommentLikes(prev => ({
+      setCommentReactions(prev => ({
         ...prev,
         [commentId]: currentState
       }));
@@ -552,7 +631,15 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
       
       setPostComments(updatedComments);
       setCommentsCount(prev => prev + 1);
-      setCommentLikes(prev => ({ ...prev, [mappedReply.id]: { count: 0, liked: false } }));
+      setCommentReactions(prev => ({ 
+        ...prev, 
+        [mappedReply.id]: { 
+          likes: 0, 
+          laughs: 0, 
+          dislikes: 0, 
+          userReaction: null 
+        } 
+      }));
       setReplyContent('');
       setReplyingTo(null);
       toast.success('Respuesta añadida!');
@@ -752,34 +839,25 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
         {/* Reactions */}
         <div className="flex items-center justify-between pt-2 border-t border-white/10">
           <div className="flex items-center gap-1">
-            <ReactionButton
-              icon={Heart}
+            <EmojiReactionButton
+              emoji="❤️"
               count={reactions.likes}
-              color="text-red-500"
-              hoverColor="hover:text-red-400"
-              activeBg="bg-red-500/20"
               active={userReaction === 'like'}
               onClick={() => handleReaction('like')}
               label="Me gusta"
             />
             
-            <ReactionButton
-              icon={Laugh}
+            <EmojiReactionButton
+              emoji="😂"
               count={reactions.laughs}
-              color="text-yellow-500"
-              hoverColor="hover:text-yellow-400"
-              activeBg="bg-yellow-500/20"
               active={userReaction === 'laugh'}
               onClick={() => handleReaction('laugh')}
               label="Jajaja"
             />
             
-            <ReactionButton
-              icon={ThumbsDown}
+            <EmojiReactionButton
+              emoji="👎"
               count={reactions.dislikes}
-              color="text-blue-500"
-              hoverColor="hover:text-blue-400"
-              activeBg="bg-blue-500/20"
               active={userReaction === 'dislike'}
               onClick={() => handleReaction('dislike')}
               label="No me gusta"
@@ -837,7 +915,12 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
                 <p className="text-gray-400 text-sm text-center py-4">Sé el primero en comentar esta publicación.</p>
               ) : (
                 postComments.map((comment) => {
-                  const likeState = commentLikes[comment.id] || { count: comment.likes || 0, liked: false };
+                  const reactionState = commentReactions[comment.id] || { 
+                    likes: comment.likes || 0, 
+                    laughs: 0, // comment.laughs || 0, 
+                    dislikes: 0, // comment.dislikes || 0, 
+                    userReaction: null // comment.userReaction || null 
+                  };
                   const isReply = !!comment.parentId;
                   
                   return (
@@ -849,7 +932,7 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
                         >
                           <img
                             src={comment.user?.avatar || 'https://ui-avatars.com/api/?name=User&background=00ff88&color=fff'}
-                            alt={comment.user?.displayName || 'Usuario'}
+                            alt={comment.user?.displayName || comment.user?.username || 'Usuario'}
                             className={`${isReply ? 'w-6 h-6' : 'w-8 h-8'} rounded-full ring-2 ring-neon-green/30 group-hover:ring-neon-blue transition-all duration-300`}
                           />
                         </button>
@@ -860,39 +943,93 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
                                 <MessageCircle size={10} className="text-neon-green" />
                               )}
                               <span className="font-medium text-white text-sm group-hover:text-neon-green transition-colors truncate">
-                                {comment.user?.displayName || 'Usuario'}
+                                {comment.user?.displayName || comment.user?.username || 'Usuario Anónimo'}
                               </span>
                               <span className="text-gray-400 text-xs group-hover:text-white transition-colors truncate">
-                                @{comment.user?.username || 'usuario'}
+                                @{comment.user?.username || 'anonimo'}
                               </span>
                             </div>
                             <p className="text-gray-300 text-sm break-words">{comment.content}</p>
                           </div>
-                          <div className="flex items-center space-x-4 mt-2 text-xs text-gray-400">
-                            <span>{formatTimeAgo(comment.createdAt)}</span>
+                          <div className="flex items-center space-x-3 mt-2 text-xs">
+                            <span className="text-gray-400">{formatTimeAgo(comment.createdAt)}</span>
                             {!isReply && (
                               <button 
                                 onClick={(e: React.MouseEvent) => { 
                                   e.stopPropagation(); 
-                                  handleReplyToComment(comment.id, comment.user?.username || 'usuario'); 
+                                  handleReplyToComment(comment.id, comment.user?.username || 'anonimo'); 
                                 }}
-                                className="hover:text-neon-green transition-colors"
+                                className="text-gray-400 hover:text-neon-green transition-colors"
                               >
                                 Responder
                               </button>
                             )}
-                            <button 
-                              onClick={(e: React.MouseEvent) => { 
-                                e.stopPropagation(); 
-                                handleCommentLike(comment.id); 
-                              }}
-                              className={`flex items-center space-x-1 transition-colors ${
-                                likeState.liked ? 'text-red-400' : 'hover:text-red-400'
-                              }`}
-                            >
-                              <Heart size={12} className={likeState.liked ? 'fill-current' : ''} />
-                              <span>{likeState.count}</span>
-                            </button>
+                            
+                            {/* Reacciones con emojis */}
+                            <div className="flex items-center gap-1">
+                              <button 
+                                onClick={(e: React.MouseEvent) => { 
+                                  e.stopPropagation(); 
+                                  handleCommentReaction(comment.id, 'like'); 
+                                }}
+                                className={`flex items-center gap-1 px-2 py-1 rounded transition-all duration-200 ${
+                                  reactionState.userReaction === 'like'
+                                    ? 'text-neon-green'
+                                    : 'text-gray-400 hover:text-white'
+                                }`}
+                              >
+                                <span className={`text-sm transition-all duration-300 inline-block ${
+                                  reactionState.userReaction === 'like' ? 'animate-reaction-pop' : ''
+                                }`}>
+                                  ❤️
+                                </span>
+                                {reactionState.likes > 0 && (
+                                  <span className="text-xs">{reactionState.likes}</span>
+                                )}
+                              </button>
+                              
+                              <button 
+                                onClick={(e: React.MouseEvent) => { 
+                                  e.stopPropagation(); 
+                                  handleCommentReaction(comment.id, 'laugh'); 
+                                }}
+                                className={`flex items-center gap-1 px-2 py-1 rounded transition-all duration-200 ${
+                                  reactionState.userReaction === 'laugh'
+                                    ? 'text-neon-green'
+                                    : 'text-gray-400 hover:text-white'
+                                }`}
+                              >
+                                <span className={`text-sm transition-all duration-300 inline-block ${
+                                  reactionState.userReaction === 'laugh' ? 'animate-reaction-pop' : ''
+                                }`}>
+                                  😂
+                                </span>
+                                {reactionState.laughs > 0 && (
+                                  <span className="text-xs">{reactionState.laughs}</span>
+                                )}
+                              </button>
+                              
+                              <button 
+                                onClick={(e: React.MouseEvent) => { 
+                                  e.stopPropagation(); 
+                                  handleCommentReaction(comment.id, 'dislike'); 
+                                }}
+                                className={`flex items-center gap-1 px-2 py-1 rounded transition-all duration-200 ${
+                                  reactionState.userReaction === 'dislike'
+                                    ? 'text-neon-green'
+                                    : 'text-gray-400 hover:text-white'
+                                }`}
+                              >
+                                <span className={`text-sm transition-all duration-300 inline-block ${
+                                  reactionState.userReaction === 'dislike' ? 'animate-reaction-pop' : ''
+                                }`}>
+                                  👎
+                                </span>
+                                {reactionState.dislikes > 0 && (
+                                  <span className="text-xs">{reactionState.dislikes}</span>
+                                )}
+                              </button>
+                            </div>
                           </div>
                           
                           {/* Formulario de respuesta */}
@@ -909,7 +1046,7 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
                                     type="text"
                                     value={replyContent}
                                     onChange={(e) => handleReplyContentChange(e.target.value)}
-                                    placeholder={`Responder a @${comment.user?.username || 'usuario'}... (usa @ para mencionar)`}
+                                    placeholder={`Responder a @${comment.user?.username || 'anonimo'}... (usa @ para mencionar)`}
                                     className="w-full px-3 py-1.5 bg-white/10 border border-neon-green/30 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
                                     onKeyDown={(e) => handleReplyKeyDown(e, comment.id)}
                                     autoFocus

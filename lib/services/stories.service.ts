@@ -174,16 +174,25 @@ class StoriesService {
 
   /**
    * Reaccionar a una historia
+   * Crea una notificación para el dueño de la historia
    */
-  async reactToStory(storyId: string, reactionType: 'like' | 'fire' | 'celebrate' | 'thumbsup'): Promise<void> {
+  async reactToStory(storyId: string, reactionType: 'like' | 'fire' | 'celebrate' | 'thumbsup'): Promise<{ success: boolean; notification_created: boolean }> {
     try {
-      await fetch(`${this.baseUrl}/stories/${storyId}/react/`, {
+      const response = await fetch(`${this.baseUrl}/stories/${storyId}/react/`, {
         method: 'POST',
         headers: await this.getAuthHeaders(),
         body: JSON.stringify({ reaction_type: reactionType }),
       });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return { success: true, notification_created: data.notification_created || false };
+      }
+      
+      return { success: false, notification_created: false };
     } catch (error) {
       console.error('Error reacting to story:', error);
+      return { success: false, notification_created: false };
     }
   }
 
@@ -203,16 +212,44 @@ class StoriesService {
 
   /**
    * Responder a una historia (enviar mensaje directo)
+   * Crea una notificación y un mensaje en la bandeja de entrada
    */
-  async replyToStory(storyId: string, message: string): Promise<void> {
+  async replyToStory(storyId: string, message: string): Promise<{ success: boolean; message_created: boolean; notification_created: boolean; error?: string }> {
     try {
-      await fetch(`${this.baseUrl}/stories/${storyId}/reply/`, {
+      const response = await fetch(`${this.baseUrl}/stories/${storyId}/reply/`, {
         method: 'POST',
         headers: await this.getAuthHeaders(),
         body: JSON.stringify({ message }),
       });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Respuesta del servidor:', data);
+        return { 
+          success: true, 
+          message_created: data.message_created || false,
+          notification_created: data.notification_created || false 
+        };
+      }
+      
+      // Obtener detalles del error
+      const errorData = await response.json().catch(() => ({ detail: 'Error desconocido' }));
+      console.error('❌ Error del servidor:', response.status, errorData);
+      
+      return { 
+        success: false, 
+        message_created: false, 
+        notification_created: false,
+        error: errorData.detail || errorData.error || `Error ${response.status}`
+      };
     } catch (error) {
-      console.error('Error replying to story:', error);
+      console.error('❌ Error de red al responder historia:', error);
+      return { 
+        success: false, 
+        message_created: false, 
+        notification_created: false,
+        error: 'Error de conexión. Verifica tu internet.'
+      };
     }
   }
 }

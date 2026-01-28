@@ -15,7 +15,13 @@ class IsChatParticipant(permissions.BasePermission):
         if not request.user.is_authenticated:
             return False
         
-        chat_room_id = view.kwargs.get('pk') or view.kwargs.get('chat_room_id')
+        # Obtener chat_room_id de diferentes fuentes
+        chat_room_id = (
+            view.kwargs.get('chat_room_pk') or  # Para rutas anidadas
+            view.kwargs.get('chat_room_id') or
+            view.kwargs.get('pk')
+        )
+        
         if not chat_room_id:
             return False
         
@@ -56,7 +62,13 @@ class IsChatParticipantOrReadOnly(permissions.BasePermission):
         if not request.user.is_authenticated:
             return False
         
-        chat_room_id = view.kwargs.get('pk') or view.kwargs.get('chat_room_id')
+        # Obtener chat_room_id de diferentes fuentes
+        chat_room_id = (
+            view.kwargs.get('chat_room_pk') or  # Para rutas anidadas
+            view.kwargs.get('chat_room_id') or
+            view.kwargs.get('pk')
+        )
+        
         if not chat_room_id:
             return True  # Para crear nuevos chats
         

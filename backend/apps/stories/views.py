@@ -4,7 +4,7 @@ Views para Stories
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.utils import timezone
 from django.db.models import Q, Exists, OuterRef
 from django.contrib.auth import get_user_model
@@ -23,7 +23,7 @@ class StoryViewSet(viewsets.ModelViewSet):
     
     serializer_class = StorySerializer
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     
     def get_queryset(self):
         """Obtener historias no expiradas"""
@@ -165,7 +165,7 @@ class StoryViewSet(viewsets.ModelViewSet):
         valid_types = ['like', 'fire', 'celebrate', 'thumbsup']
         if reaction_type not in valid_types:
             return Response(
-                {'error': f'Tipo de reacción inválido. Opciones: {valid_types}'},
+                {'error': f'Tipo de reaccion invalido. Opciones: {valid_types}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -176,10 +176,37 @@ class StoryViewSet(viewsets.ModelViewSet):
             defaults={'reaction_type': reaction_type}
         )
         
+        # Crear notificación si es una nueva reacción y no es la propia historia
+        notification_created = False
+        if created and story.user != request.user:
+            try:
+                from apps.notifications.models import Notification
+                
+                # Mapeo de emojis
+                emoji_map = {
+                    'like': 'corazon',
+                    'fire': 'fuego',
+                    'celebrate': 'celebracion',
+                    'thumbsup': 'pulgar arriba'
+                }
+                
+                Notification.objects.create(
+                    recipient=story.user,
+                    sender=request.user,
+                    notification_type='story_reaction',
+                    story_id=story.id,
+                    message=f'{request.user.username} reacciono con {emoji_map.get(reaction_type, reaction_type)} a tu historia'
+                )
+                notification_created = True
+                print(f'[OK] Notificacion creada para reaccion a historia de {story.user.username}')
+            except Exception as e:
+                print(f'[ERROR] No se pudo crear notificacion: {str(e)}')
+        
         serializer = StoryReactionSerializer(reaction)
         return Response({
             'reaction': serializer.data,
-            'created': created
+            'created': created,
+            'notification_created': notification_created
         })
     
     @action(detail=True, methods=['delete'])
@@ -208,7 +235,7 @@ class StoryViewSet(viewsets.ModelViewSet):
         
         if not message:
             return Response(
-                {'error': 'El mensaje no puede estar vacío'},
+                {'error': 'El mensaje no puede estar vacio'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -218,14 +245,88 @@ class StoryViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        # Crear respuesta en la tabla de story replies
         reply = StoryReply.objects.create(
             user=request.user,
             story=story,
             message=message
         )
         
+        # Crear o obtener chat privado con el dueño de la historia
+        message_created = False
+        notification_created = False
+        
+        if story.user != request.user:
+            try:
+                from apps.messaging.models import ChatRoom, ChatParticipant, Message
+                from apps.notifications.models import Notification
+                from django.db.models import Q
+                
+                # Buscar chat privado existente entre los dos usuarios
+                chat_room = ChatRoom.objects.filter(
+                    chat_type='private',
+                    participants=request.user
+                ).filter(
+                    participants=story.user
+                ).first()
+                
+                # Si no existe, crear nuevo chat
+                if not chat_room:
+                    chat_room = ChatRoom.objects.create(
+                        chat_type='private',
+                        created_by=request.user
+                    )
+                    # Agregar participantes
+                    ChatParticipant.objects.create(
+                        chat_room=chat_room,
+                        user=request.user,
+                        role='member'
+                    )
+                    ChatParticipant.objects.create(
+                        chat_room=chat_room,
+                        user=story.user,
+                        role='member'
+                    )
+                    print(f'[OK] Chat privado creado entre {request.user.username} y {story.user.username}')
+                
+                # Crear mensaje en el chat con referencia a la historia
+                chat_message = Message.objects.create(
+                    chat_room=chat_room,
+                    sender=request.user,
+                    content=message,
+                    message_type='story_reply',
+                    story_id=story.id
+                )
+                message_created = True
+                print(f'[OK] Mensaje creado en chat {chat_room.id} con referencia a historia {story.id}')
+                
+                # Actualizar última actividad del chat
+                from django.utils import timezone
+                chat_room.last_activity = timezone.now()
+                chat_room.save(update_fields=['last_activity'])
+                
+                # Crear notificación
+                Notification.objects.create(
+                    recipient=story.user,
+                    sender=request.user,
+                    notification_type='story_reply',
+                    story_id=story.id,
+                    message=f'{request.user.username} respondio a tu historia'
+                )
+                notification_created = True
+                print(f'[OK] Notificacion creada para respuesta a historia de {story.user.username}')
+                
+            except Exception as e:
+                print(f'[ERROR] Error al crear mensaje/notificacion: {str(e)}')
+                import traceback
+                traceback.print_exc()
+        
         serializer = StoryReplySerializer(reply, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({
+            **serializer.data,
+            'message_created': message_created,
+            'notification_created': notification_created
+        }, status=status.HTTP_201_CREATED)
     
     @action(detail=True, methods=['get'])
     def replies(self, request, pk=None):

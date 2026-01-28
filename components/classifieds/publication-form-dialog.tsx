@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X, Sparkles } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { DynamicPublicationForm } from './dynamic-publication-form';
 import { PublicationType } from './publication-type-selector';
 import { classifiedsService } from '@/lib/services/classifieds';
@@ -155,30 +156,41 @@ export function PublicationFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900/95 border-white/10">
-        <DialogHeader className="space-y-4">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900/98 border-neon-green/20 backdrop-blur-xl">
+        <DialogHeader className="space-y-4 border-b border-white/10 pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white hover:bg-white/10 transition-all"
               >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
-              <div>
-                <h2 className="text-xl font-bold text-white">Crear {publicationType.title}</h2>
-                <p className="text-gray-400 text-sm">{publicationType.subtitle}</p>
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${publicationType.bgGradient} flex items-center justify-center border border-white/10`}>
+                  {publicationType.icon && <publicationType.icon className={`w-5 h-5 ${publicationType.color}`} />}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    Crear {publicationType.title}
+                    <Badge variant="outline" className="text-xs border-neon-green/30 text-neon-green">
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Nuevo
+                    </Badge>
+                  </h2>
+                  <p className="text-gray-400 text-sm">{publicationType.subtitle}</p>
+                </div>
               </div>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-gray-400 hover:text-white"
+              className="text-gray-400 hover:text-white hover:bg-red-500/10 hover:border-red-400/30 transition-all"
             >
-              ✕
+              <X className="w-4 h-4" />
             </Button>
           </div>
         </DialogHeader>

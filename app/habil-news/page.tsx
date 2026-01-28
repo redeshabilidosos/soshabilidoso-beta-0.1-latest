@@ -71,7 +71,7 @@ export default function HabilNewsPage() {
   const otherPosts = filteredPosts.filter(p => p.category === 'other').length;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-transparent">
       <Sidebar />
       
       <main className="pb-24 xl:ml-64 xl:pb-0">

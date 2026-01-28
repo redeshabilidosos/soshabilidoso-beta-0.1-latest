@@ -69,11 +69,12 @@ export function useForceBlackBackground() {
       document.body.prepend(starsContainer);
     }
     
-    // Asegurar que el contenedor de estrellas esté visible
+    // Asegurar que el contenedor de estrellas esté visible y NO bloquee clicks
     if (starsContainer) {
       starsContainer.style.display = 'block';
-      starsContainer.style.visibility = 'hidden';
+      starsContainer.style.visibility = 'visible';
       starsContainer.style.opacity = '1';
+      starsContainer.style.pointerEvents = 'none'; // CRÍTICO: No bloquear clicks
     }
     
     return () => {

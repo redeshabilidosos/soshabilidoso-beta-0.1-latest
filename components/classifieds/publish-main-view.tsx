@@ -110,7 +110,8 @@ export function PublishMainView({ onCreatePublication, onBrowseRequested }: Publ
 
   const handleActionSelect = (action: 'sell' | 'hire') => {
     if (action === 'hire') {
-      onBrowseRequested();
+      // Abrir directamente el formulario de freelancer
+      onCreatePublication('freelancer');
     } else {
       setSelectedAction(action);
     }

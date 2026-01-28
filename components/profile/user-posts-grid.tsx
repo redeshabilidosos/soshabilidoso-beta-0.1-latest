@@ -330,65 +330,77 @@ export function UserPostsGrid({ username, isOwnProfile = false, refreshTrigger }
 
   return (
     <div className="space-y-6">
-      {/* Estadísticas */}
+      {/* Estadísticas - Mejoradas para móvil */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{stats.stats.total_posts}</div>
-              <div className="text-sm text-gray-600">Publicaciones</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <Card className="rounded-2xl">
+            <CardContent className="p-3 md:p-4 text-center">
+              <div className="text-xl md:text-2xl font-bold text-primary">{stats.stats.total_posts}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Publicaciones</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-red-500">
+          <Card className="rounded-2xl">
+            <CardContent className="p-3 md:p-4 text-center">
+              <div className="text-xl md:text-2xl font-bold text-red-500">
                 {stats.stats.total_reactions.likes + stats.stats.total_reactions.celebrations + stats.stats.total_reactions.golazos}
               </div>
-              <div className="text-sm text-gray-600">Reacciones</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Reacciones</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-500">{stats.stats.total_reactions.comments}</div>
-              <div className="text-sm text-gray-600">Comentarios</div>
+          <Card className="rounded-2xl">
+            <CardContent className="p-3 md:p-4 text-center">
+              <div className="text-xl md:text-2xl font-bold text-blue-500">{stats.stats.total_reactions.comments}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Comentarios</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-500">{stats.stats.total_reactions.views}</div>
-              <div className="text-sm text-gray-600">Visualizaciones</div>
+          <Card className="rounded-2xl">
+            <CardContent className="p-3 md:p-4 text-center">
+              <div className="text-xl md:text-2xl font-bold text-green-500">{stats.stats.total_reactions.views}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Visualizaciones</div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Filtros y vista */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <Tabs value={selectedType} onValueChange={setSelectedType} className="w-full sm:w-auto">
-          <TabsList className="grid grid-cols-4 sm:grid-cols-7 w-full sm:w-auto">
-            {postTypes.map((type) => (
-              <TabsTrigger key={type.value} value={type.value} className="flex items-center space-x-1">
-                {type.icon}
-                <span className="hidden sm:inline">{type.label}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      {/* Filtros y vista - Mejorado para móvil */}
+      <div className="flex flex-col gap-4">
+        {/* Tabs responsive con scroll horizontal en móvil */}
+        <div className="w-full overflow-x-auto scrollbar-hide">
+          <Tabs value={selectedType} onValueChange={setSelectedType} className="w-full">
+            <TabsList className="inline-flex w-auto min-w-full">
+              {postTypes.map((type) => (
+                <TabsTrigger 
+                  key={type.value} 
+                  value={type.value} 
+                  className="flex items-center gap-1.5 px-3 md:px-4 whitespace-nowrap"
+                >
+                  <span className="flex-shrink-0">{type.icon}</span>
+                  <span className="text-xs md:text-sm">{type.label}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
 
-        <div className="flex items-center space-x-2">
+        {/* Botones de vista - Alineados a la derecha */}
+        <div className="flex items-center justify-end gap-2">
           <Button
             variant={viewMode === 'grid' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('grid')}
+            className="flex items-center gap-1.5"
           >
             <Grid className="w-4 h-4" />
+            <span className="hidden sm:inline text-xs">Cuadrícula</span>
           </Button>
           <Button
             variant={viewMode === 'list' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('list')}
+            className="flex items-center gap-1.5"
           >
             <List className="w-4 h-4" />
+            <span className="hidden sm:inline text-xs">Lista</span>
           </Button>
         </div>
       </div>

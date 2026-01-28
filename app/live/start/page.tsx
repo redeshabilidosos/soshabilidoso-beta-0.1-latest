@@ -99,27 +99,86 @@ export default function StartLivePage() {
 
   const startCamera = async (videoDeviceId?: string, audioDeviceId?: string) => {
     try {
+      console.log('[CAMERA] Solicitando acceso a cámara y micrófono...');
+      console.log('[CAMERA] Navegador:', navigator.userAgent);
+      
       // Detener stream anterior si existe
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
 
+      // Verificar si getUserMedia está disponible
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Tu navegador no soporta acceso a cámara y micrófono');
+      }
+
       const constraints: MediaStreamConstraints = {
-        video: videoDeviceId ? { deviceId: { exact: videoDeviceId } } : true,
-        audio: audioDeviceId ? { deviceId: { exact: audioDeviceId } } : true
+        video: videoDeviceId 
+          ? { deviceId: { exact: videoDeviceId } } 
+          : { 
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              facingMode: 'user'
+            },
+        audio: audioDeviceId 
+          ? { deviceId: { exact: audioDeviceId } } 
+          : {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
       };
 
+      console.log('[CAMERA] Constraints:', constraints);
       const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('[CAMERA] Stream obtenido:', newStream);
+      console.log('[CAMERA] Video tracks:', newStream.getVideoTracks());
+      console.log('[CAMERA] Audio tracks:', newStream.getAudioTracks());
+      
       setStream(newStream);
       
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
+        await videoRef.current.play();
+        console.log('[CAMERA] Video reproduciendo correctamente');
       }
       
       toast.success('Cámara iniciada correctamente');
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast.error('No se pudo acceder a la cámara. Verifica los permisos.');
+    } catch (error: any) {
+      console.error('[CAMERA ERROR]', error);
+      console.error('[CAMERA ERROR] Name:', error.name);
+      console.error('[CAMERA ERROR] Message:', error.message);
+      
+      let errorMessage = 'No se pudo acceder a la cámara.';
+      let errorDetails = '';
+      
+      // Detectar navegador Brave
+      const isBrave = (navigator as any).brave && typeof (navigator as any).brave.isBrave === 'function';
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMessage = 'Permiso denegado para acceder a la cámara y micrófono.';
+        if (isBrave) {
+          errorDetails = 'En Brave: Haz clic en el icono del escudo en la barra de direcciones y permite el acceso a la cámara.';
+        } else {
+          errorDetails = 'Por favor, permite el acceso en la configuración de tu navegador.';
+        }
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        errorMessage = 'No se encontró ninguna cámara o micrófono conectado.';
+        errorDetails = 'Verifica que tus dispositivos estén conectados correctamente.';
+      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+        errorMessage = 'La cámara está siendo usada por otra aplicación.';
+        errorDetails = 'Cierra otras aplicaciones que puedan estar usando la cámara.';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage = 'No se pudo satisfacer las restricciones de video solicitadas.';
+        errorDetails = 'Intenta con otra cámara si tienes múltiples dispositivos.';
+      } else if (error.name === 'TypeError') {
+        errorMessage = 'Error de configuración del navegador.';
+        errorDetails = 'Asegúrate de estar usando HTTPS o localhost.';
+      }
+      
+      toast.error(errorMessage + (errorDetails ? ' ' + errorDetails : ''), {
+        duration: 6000
+      });
     }
   };
 

@@ -2,6 +2,7 @@
 {% load i18n admin_urls static %}
 
 {% block submit_buttons_bottom %}
+{% if original %}
 <div class="submit-row" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
     <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
         <a href="{% url 'admin:sitesettings_enable_button_and_form' original.pk %}" 
@@ -28,6 +29,7 @@
         </p>
     </div>
 </div>
+{% endif %}
 
 {{ block.super }}
 {% endblock %}

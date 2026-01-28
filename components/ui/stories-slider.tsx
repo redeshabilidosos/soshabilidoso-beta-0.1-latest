@@ -3,11 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Plus, X, ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX, Heart, PartyPopper, Flame, ThumbsUp, Send } from 'lucide-react';
+import { Plus, X, ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX, Heart, PartyPopper, Flame, ThumbsUp, Send, Smile, Eye, ChevronDown, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserProfileDialog } from '@/components/ui/user-profile-dialog';
 import { User } from '@/types/user';
 import { storiesService } from '@/lib/services/stories.service';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Story {
   id: string;
@@ -23,6 +25,14 @@ export interface Story {
   createdAt: string;
   expiresAt: string;
   viewed: boolean;
+  viewsCount?: number;
+  reactions?: {
+    like: number;
+    fire: number;
+    celebrate: number;
+    thumbsup: number;
+  };
+  repliesCount?: number;
 }
 
 export interface UserStories {
@@ -63,6 +73,7 @@ const StoryAvatar = ({
 }) => {
   const hasStories = userStory.stories.length > 0;
   const hasUnviewed = userStory.hasUnviewed;
+  const latestStory = hasStories ? userStory.stories[userStory.stories.length - 1] : null;
 
   return (
     <div className="flex flex-col items-center space-y-1 min-w-[70px] cursor-pointer group">
@@ -85,19 +96,26 @@ const StoryAvatar = ({
           )}
         </div>
         
-        {/* Avatar */}
-        <Avatar className={cn(
-          "w-14 h-14 border-[3px] border-[#0a0a0f] relative z-10 transition-transform group-hover:scale-105"
+        {/* Avatar con preview de la historia */}
+        <div className={cn(
+          "w-14 h-14 border-[3px] border-[#0a0a0f] relative z-10 transition-transform group-hover:scale-105 rounded-full overflow-hidden"
         )}>
-          <AvatarImage 
-            src={userStory.user.avatar} 
-            alt={userStory.user.displayName}
-            className="object-cover"
-          />
-          <AvatarFallback className="bg-dark-lighter text-white">
-            {userStory.user.displayName.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+          {hasStories && latestStory ? (
+            // Mostrar preview de la última historia
+            <img 
+              src={latestStory.mediaUrl} 
+              alt={userStory.user.displayName}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            // Mostrar avatar del usuario si no tiene historias
+            <img 
+              src={userStory.user.avatar} 
+              alt={userStory.user.displayName}
+              className="w-full h-full object-cover"
+            />
+          )}
+        </div>
 
         {/* Botón de agregar historia para el usuario actual */}
         {isCurrentUser && (
@@ -106,7 +124,7 @@ const StoryAvatar = ({
               e.stopPropagation();
               onAddClick?.();
             }}
-            className="absolute -bottom-1 -right-1 w-5 h-5 bg-neon-green rounded-full flex items-center justify-center z-20 hover:bg-neon-green/80 transition-colors"
+            className="absolute -bottom-1 -right-1 w-5 h-5 bg-neon-green rounded-full flex items-center justify-center z-20 hover:bg-neon-green/80 transition-colors border-2 border-[#0a0a0f]"
           >
             <Plus size={12} className="text-black" />
           </button>
@@ -121,33 +139,70 @@ const StoryAvatar = ({
 };
 
 
-// Tipos de reacciones disponibles
+// Tipos de reacciones disponibles con emojis
 const STORY_REACTIONS = [
-  { type: 'like', icon: Heart, color: 'text-red-500', bg: 'bg-red-500', emoji: '❤️' },
-  { type: 'fire', icon: Flame, color: 'text-orange-500', bg: 'bg-orange-500', emoji: '🔥' },
-  { type: 'celebrate', icon: PartyPopper, color: 'text-yellow-500', bg: 'bg-yellow-500', emoji: '🎉' },
-  { type: 'thumbsup', icon: ThumbsUp, color: 'text-neon-green', bg: 'bg-neon-green', emoji: '👍' },
+  { type: 'like', emoji: '❤️', color: 'from-red-500 to-pink-500' },
+  { type: 'fire', emoji: '🔥', color: 'from-orange-500 to-yellow-500' },
+  { type: 'celebrate', emoji: '🎉', color: 'from-purple-500 to-pink-500' },
+  { type: 'thumbsup', emoji: '👍', color: 'from-blue-500 to-cyan-500' },
 ];
 
-// Componente de partícula flotante para efecto de reacción
-const FloatingReaction = ({ emoji, onComplete }: { emoji: string; onComplete: () => void }) => {
+// Componente de partícula flotante mejorado con animaciones dinámicas
+const FloatingReaction = ({ emoji, onComplete, index }: { emoji: string; onComplete: () => void; index: number }) => {
   useEffect(() => {
-    const timer = setTimeout(onComplete, 2000);
+    const timer = setTimeout(onComplete, 3000);
     return () => clearTimeout(timer);
   }, [onComplete]);
 
-  const randomX = Math.random() * 60 - 30; // -30 a 30
-  const randomDelay = Math.random() * 0.3;
+  const randomX = (Math.random() - 0.5) * 100; // -50 a 50
+  const randomRotation = (Math.random() - 0.5) * 360; // Rotación aleatoria
+  const randomDelay = index * 0.1; // Delay escalonado
+  const randomScale = 0.8 + Math.random() * 0.4; // 0.8 a 1.2
 
   return (
     <div 
-      className="absolute bottom-20 left-1/2 pointer-events-none z-30 animate-float-up"
+      className="absolute bottom-32 left-1/2 pointer-events-none z-40"
       style={{
         transform: `translateX(${randomX}px)`,
         animationDelay: `${randomDelay}s`,
+        animation: 'floatUpBounce 3s ease-out forwards',
       }}
     >
-      <span className="text-4xl drop-shadow-lg">{emoji}</span>
+      <div
+        style={{
+          animation: `spin ${2 + Math.random()}s linear infinite`,
+          transform: `scale(${randomScale}) rotate(${randomRotation}deg)`,
+        }}
+      >
+        <span className="text-5xl drop-shadow-2xl filter brightness-110">
+          {emoji}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// Componente de explosión de reacción (efecto burst)
+const ReactionBurst = ({ emoji, onComplete }: { emoji: string; onComplete: () => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(onComplete, 1000);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center">
+      <div className="relative">
+        {/* Emoji central grande */}
+        <div className="animate-ping-once">
+          <span className="text-9xl drop-shadow-2xl filter brightness-125">
+            {emoji}
+          </span>
+        </div>
+        {/* Anillo de expansión */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-32 h-32 border-4 border-white rounded-full animate-expand-fade" />
+        </div>
+      </div>
     </div>
   );
 };
@@ -173,12 +228,26 @@ const StoryViewer = ({
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [floatingReactions, setFloatingReactions] = useState<{ id: number; emoji: string }[]>([]);
+  const [floatingReactions, setFloatingReactions] = useState<{ id: number; emoji: string; index: number }[]>([]);
+  const [reactionBurst, setReactionBurst] = useState<{ id: number; emoji: string } | null>(null);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [replyText, setReplyText] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
+  const [lastTap, setLastTap] = useState<number>(0);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [swipeDownDistance, setSwipeDownDistance] = useState(0);
+  const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({
+    like: 0,
+    fire: 0,
+    celebrate: 0,
+    thumbsup: 0,
+  });
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
   const reactionIdRef = useRef(0);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   
   // Estados para swipe/touch
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -218,6 +287,13 @@ const StoryViewer = ({
       if (onStoryViewed) {
         onStoryViewed(currentStory.id);
       }
+    }
+    
+    // Cargar contadores de reacciones
+    if (currentStory?.reactions) {
+      setReactionCounts(currentStory.reactions);
+    } else {
+      setReactionCounts({ like: 0, fire: 0, celebrate: 0, thumbsup: 0 });
     }
   }, [currentStory?.id, onStoryViewed]);
 
@@ -276,20 +352,52 @@ const StoryViewer = ({
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
+    const touchY = e.targetTouches[0].clientY;
     setIsDragging(true);
+    handleLongPressStart();
+    
+    // Solo activar double tap si el toque es en el contenido (no en botones)
+    const target = e.target as HTMLElement;
+    const isOnButton = target.closest('button') !== null;
+    if (!isOnButton) {
+      handleDoubleTap(e, true);
+    }
+    
+    // Guardar posición Y para swipe down
+    (e.currentTarget as any).startY = touchY;
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
     if (!touchStart) return;
     const currentTouch = e.targetTouches[0].clientX;
+    const currentTouchY = e.targetTouches[0].clientY;
+    const startY = (e.currentTarget as any).startY || 0;
+    
     setTouchEnd(currentTouch);
     setDragOffset(currentTouch - touchStart);
+    
+    // Detectar swipe down
+    const verticalDistance = currentTouchY - startY;
+    if (verticalDistance > 0) {
+      setSwipeDownDistance(verticalDistance);
+    }
+    
+    handleLongPressEnd();
   };
 
   const onTouchEnd = () => {
+    handleLongPressEnd();
+    
     if (!touchStart || !touchEnd) {
       setIsDragging(false);
       setDragOffset(0);
+      setSwipeDownDistance(0);
+      return;
+    }
+    
+    // Swipe down para cerrar
+    if (swipeDownDistance > 150) {
+      onClose();
       return;
     }
     
@@ -305,6 +413,7 @@ const StoryViewer = ({
     
     setIsDragging(false);
     setDragOffset(0);
+    setSwipeDownDistance(0);
     setTouchStart(null);
     setTouchEnd(null);
   };
@@ -313,14 +422,18 @@ const StoryViewer = ({
   const onMouseDown = (e: React.MouseEvent) => {
     setTouchStart(e.clientX);
     setIsDragging(true);
+    handleLongPressStart();
   };
 
   const onMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !touchStart) return;
     setDragOffset(e.clientX - touchStart);
+    handleLongPressEnd();
   };
 
   const onMouseUp = (e: React.MouseEvent) => {
+    handleLongPressEnd();
+    
     if (!touchStart) {
       setIsDragging(false);
       return;
@@ -331,6 +444,13 @@ const StoryViewer = ({
     // Si no hubo movimiento significativo, tratar como tap
     if (Math.abs(distance) < 10) {
       handleTap(e);
+      
+      // Solo activar double tap si el click es en el contenido (no en botones)
+      const target = e.target as HTMLElement;
+      const isOnButton = target.closest('button') !== null;
+      if (!isOnButton) {
+        handleDoubleTap(e, true);
+      }
     } else if (distance > minSwipeDistance) {
       goToNextStory();
     } else if (distance < -minSwipeDistance) {
@@ -361,15 +481,37 @@ const StoryViewer = ({
     }
   };
 
-  const handleReaction = (reactionType: string, emoji: string) => {
-    const newReactions = Array.from({ length: 5 }, () => ({
+  const handleReaction = async (reactionType: string, emoji: string) => {
+    // Efecto burst central
+    setReactionBurst({ id: Date.now(), emoji });
+    setTimeout(() => setReactionBurst(null), 1000);
+    
+    // Partículas flotantes (más cantidad para efecto dramático)
+    const newReactions = Array.from({ length: 8 }, (_, i) => ({
       id: reactionIdRef.current++,
-      emoji
+      emoji,
+      index: i
     }));
     setFloatingReactions(prev => [...prev, ...newReactions]);
     
+    // Incrementar contador local
+    setReactionCounts(prev => ({
+      ...prev,
+      [reactionType]: (prev[reactionType] || 0) + 1
+    }));
+    
+    // Vibración háptica más intensa
+    if ('vibrate' in navigator) {
+      navigator.vibrate([30, 10, 30]);
+    }
+    
     if (currentStory) {
-      storiesService.reactToStory(currentStory.id, reactionType as 'like' | 'fire' | 'celebrate' | 'thumbsup').catch(() => {});
+      const result = await storiesService.reactToStory(currentStory.id, reactionType as 'like' | 'fire' | 'celebrate' | 'thumbsup');
+      
+      // Mostrar feedback si se creó una notificación
+      if (result.notification_created) {
+        console.log('✅ Notificación enviada al creador de la historia');
+      }
     }
     
     if (onStoryReaction && currentStory) {
@@ -380,6 +522,111 @@ const StoryViewer = ({
   const removeFloatingReaction = (id: number) => {
     setFloatingReactions(prev => prev.filter(r => r.id !== id));
   };
+
+  // Función para enviar respuesta a la historia
+  const handleSendReply = async () => {
+    if (!replyText.trim() || !currentStory) return;
+    
+    const message = replyText.trim();
+    setReplyText('');
+    setShowEmojiPicker(false);
+    setIsPaused(false);
+    
+    // Enviar respuesta
+    const result = await storiesService.replyToStory(currentStory.id, message);
+    
+    // Mostrar feedback
+    if (result.success) {
+      // Toast de éxito
+      toast({
+        title: "✅ Mensaje enviado",
+        description: "Tu respuesta se envió a la bandeja de entrada",
+        duration: 3000,
+        className: "bg-gradient-to-r from-neon-green/20 to-neon-blue/20 border-neon-green/50",
+      });
+      
+      if (result.message_created) {
+        console.log('✅ Mensaje enviado a la bandeja de entrada');
+      }
+      if (result.notification_created) {
+        console.log('✅ Notificación enviada al creador de la historia');
+      }
+      
+      // Vibración háptica
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+    } else {
+      // Toast de error con detalles
+      const errorMessage = result.error || "No se pudo enviar el mensaje. Intenta de nuevo.";
+      console.error('❌ Error al enviar mensaje:', errorMessage);
+      
+      toast({
+        title: "❌ Error",
+        description: errorMessage,
+        duration: 5000,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setReplyText(prev => prev + emojiData.emoji);
+  };
+
+  // Double tap para like rápido (solo en el área de la imagen, no en botones)
+  const handleDoubleTap = (e: React.MouseEvent | React.TouchEvent, isOnContent: boolean = false) => {
+    // Solo activar double tap si es en el contenido, no en botones
+    if (!isOnContent) return;
+    
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    
+    if (now - lastTap < DOUBLE_TAP_DELAY) {
+      // Es un double tap
+      handleReaction('like', '❤️');
+      // Vibración háptica si está disponible
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+    }
+    setLastTap(now);
+  };
+
+  // Long press para pausar
+  const handleLongPressStart = () => {
+    const timer = setTimeout(() => {
+      setIsPaused(true);
+      if ('vibrate' in navigator) {
+        navigator.vibrate(30);
+      }
+    }, 500);
+    setLongPressTimer(timer);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  // Cerrar emoji picker al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   const handleAvatarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -414,20 +661,25 @@ const StoryViewer = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-lg w-full h-[90vh] p-0 bg-black border-none overflow-hidden">
+        <DialogContent className="max-w-lg w-full h-[90vh] p-0 bg-black border-none overflow-visible [&>button]:hidden">
           <div 
             ref={containerRef}
-            className="relative w-full h-full select-none"
+            className="relative w-full h-full select-none overflow-hidden rounded-lg"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
             onMouseDown={onMouseDown}
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
-            onMouseLeave={() => { setIsDragging(false); setDragOffset(0); }}
+            onMouseLeave={() => { setIsDragging(false); setDragOffset(0); handleLongPressEnd(); }}
             style={{
-              transform: isDragging ? `translateX(${dragOffset * 0.3}px)` : 'translateX(0)',
-              transition: isDragging ? 'none' : 'transform 0.3s ease-out',
+              transform: swipeDownDistance > 0 
+                ? `translateY(${swipeDownDistance}px) scale(${1 - swipeDownDistance / 1000})`
+                : isDragging 
+                  ? `translateX(${dragOffset * 0.3}px)` 
+                  : 'translateX(0)',
+              transition: isDragging || swipeDownDistance > 0 ? 'none' : 'transform 0.3s ease-out',
+              opacity: swipeDownDistance > 0 ? 1 - swipeDownDistance / 300 : 1,
             }}
           >
             {/* Partículas flotantes de reacciones */}
@@ -435,20 +687,35 @@ const StoryViewer = ({
               <FloatingReaction
                 key={reaction.id}
                 emoji={reaction.emoji}
+                index={reaction.index}
                 onComplete={() => removeFloatingReaction(reaction.id)}
               />
             ))}
 
-            {/* Barras de progreso - clickeables para saltar */}
+            {/* Efecto burst de reacción */}
+            {reactionBurst && (
+              <ReactionBurst
+                key={reactionBurst.id}
+                emoji={reactionBurst.emoji}
+                onComplete={() => setReactionBurst(null)}
+              />
+            )}
+
+            {/* Barras de progreso mejoradas con glow - clickeables para saltar */}
             <div className="absolute top-2 left-2 right-2 z-20 flex space-x-1">
               {currentUser.stories.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={(e) => { e.stopPropagation(); goToStoryByIndex(idx); }}
-                  className="flex-1 h-2 bg-white/30 rounded-full overflow-hidden hover:bg-white/40 transition-colors cursor-pointer"
+                  className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden hover:bg-white/30 transition-colors cursor-pointer relative"
                 >
                   <div 
-                    className="h-full bg-white rounded-full transition-all duration-100"
+                    className={cn(
+                      "h-full rounded-full transition-all duration-100",
+                      idx === currentStoryIndex 
+                        ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" 
+                        : "bg-white"
+                    )}
                     style={{ 
                       width: idx < currentStoryIndex ? '100%' : 
                              idx === currentStoryIndex ? `${progress}%` : '0%' 
@@ -457,6 +724,30 @@ const StoryViewer = ({
                 </button>
               ))}
             </div>
+
+            {/* Thumbnails de historias múltiples - solo si hay más de una */}
+            {currentUser.stories.length > 1 && (
+              <div className="absolute top-5 left-2 right-2 z-20 flex gap-1 justify-center mt-1">
+                {currentUser.stories.map((story, idx) => (
+                  <button
+                    key={story.id}
+                    onClick={(e) => { e.stopPropagation(); goToStoryByIndex(idx); }}
+                    className={cn(
+                      "w-8 h-8 rounded-md overflow-hidden border-2 transition-all hover:scale-110",
+                      idx === currentStoryIndex 
+                        ? "border-neon-green shadow-lg shadow-neon-green/50" 
+                        : "border-white/30 opacity-70 hover:opacity-100"
+                    )}
+                  >
+                    <img 
+                      src={story.mediaUrl} 
+                      alt={`Historia ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Contador de historias */}
             {currentUser.stories.length > 1 && (
@@ -468,15 +759,32 @@ const StoryViewer = ({
             )}
 
             {/* Header con info del usuario */}
-            <div className="absolute top-8 left-2 right-2 z-20 flex items-center justify-between">
+            <div className={cn(
+              "absolute left-2 right-2 z-20 flex items-center justify-between",
+              currentUser.stories.length > 1 ? "top-16" : "top-8"
+            )}>
               <div 
                 className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={(e) => { e.stopPropagation(); handleAvatarClick(e); }}
               >
-                <Avatar className="w-10 h-10 border-2 border-neon-green/50 ring-2 ring-neon-green/30">
-                  <AvatarImage src={currentUser.user.avatar} />
-                  <AvatarFallback className="bg-dark-lighter">{currentUser.user.displayName.charAt(0)}</AvatarFallback>
-                </Avatar>
+                <div className="w-10 h-10 rounded-full border-2 border-neon-green/50 ring-2 ring-neon-green/30 overflow-hidden bg-gradient-to-br from-neon-green/20 to-neon-blue/20 flex items-center justify-center">
+                  {currentUser.user.avatar ? (
+                    <img 
+                      src={currentUser.user.avatar} 
+                      alt={currentUser.user.displayName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback si la imagen no carga - ocultar imagen y mostrar inicial
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  ) : null}
+                  {/* Fallback con inicial - siempre presente pero detrás de la imagen */}
+                  <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg pointer-events-none">
+                    {currentUser.user.displayName.charAt(0).toUpperCase()}
+                  </div>
+                </div>
                 <div>
                   <p className="text-white text-sm font-medium">{currentUser.user.displayName}</p>
                   <p className="text-white/60 text-xs">
@@ -484,29 +792,52 @@ const StoryViewer = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-2">
+                {/* Contador de vistas (solo para historias propias) */}
+                {currentStory.userId === currentUser.user.id && currentStory.viewsCount !== undefined && (
+                  <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full">
+                    <Eye size={14} className="text-white/80" />
+                    <span className="text-white/80 text-xs font-medium">{currentStory.viewsCount}</span>
+                  </div>
+                )}
                 {currentStory.mediaType === 'video' && (
                   <button 
                     onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
-                    className="p-2 text-white/80 hover:text-white"
+                    className="p-2 text-white/80 hover:text-white bg-black/30 rounded-full backdrop-blur-sm"
                   >
                     {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                   </button>
                 )}
                 <button 
                   onClick={(e) => { e.stopPropagation(); setIsPaused(!isPaused); }}
-                  className="p-2 text-white/80 hover:text-white"
+                  className="p-2 text-white/80 hover:text-white bg-black/30 rounded-full backdrop-blur-sm"
                 >
                   {isPaused ? <Play size={20} /> : <Pause size={20} />}
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onClose(); }}
-                  className="p-2 text-white/80 hover:text-white"
+                  className="p-2 text-white/80 hover:text-white bg-black/30 rounded-full backdrop-blur-sm"
                 >
                   <X size={20} />
                 </button>
               </div>
             </div>
+
+            {/* Indicador de swipe down */}
+            {swipeDownDistance > 20 && (
+              <div 
+                className={cn(
+                  "absolute left-1/2 -translate-x-1/2 z-20 bg-black/70 backdrop-blur-sm px-4 py-2 rounded-full",
+                  currentUser.stories.length > 1 ? "top-28" : "top-20"
+                )}
+                style={{ opacity: Math.min(swipeDownDistance / 150, 1) }}
+              >
+                <p className="text-white text-sm flex items-center gap-2">
+                  <ChevronDown size={16} />
+                  Desliza para cerrar
+                </p>
+              </div>
+            )}
 
             {/* Contenido de la historia con transición */}
             <div className="w-full h-full flex items-center justify-center">
@@ -544,60 +875,131 @@ const StoryViewer = ({
               <ChevronRight size={32} />
             </button>
 
-            {/* Barra de reacciones en la parte inferior */}
+            {/* Barra de reacciones y comentarios en la parte inferior */}
             <div 
-              className="absolute bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-black/80 to-transparent"
+              className="absolute bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-black via-black/98 to-transparent pt-8 pb-safe"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Botones de reacción */}
-              <div className="flex justify-center gap-4 mb-3">
-                {STORY_REACTIONS.map((reaction) => (
-                  <button
-                    key={reaction.type}
-                    onClick={() => handleReaction(reaction.type, reaction.emoji)}
-                    className={cn(
-                      "p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20",
-                      "hover:scale-125 hover:bg-white/20 active:scale-95",
-                      "transition-all duration-200 ease-out",
-                      reaction.color
-                    )}
-                  >
-                    <reaction.icon size={24} fill="currentColor" />
-                  </button>
-                ))}
-              </div>
-
-              {/* Input de respuesta */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Enviar mensaje..."
-                  className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 text-white placeholder-white/50 text-sm focus:outline-none focus:border-neon-green/50"
-                  onFocus={() => setIsPaused(true)}
-                  onBlur={() => !replyText.trim() && setIsPaused(false)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && replyText.trim() && currentStory) {
-                      storiesService.replyToStory(currentStory.id, replyText.trim());
-                      setReplyText('');
-                      setIsPaused(false);
-                    }
-                  }}
-                />
-                <button 
-                  className="p-2 bg-neon-green rounded-full text-black hover:bg-neon-green/80 transition-colors disabled:opacity-50"
-                  disabled={!replyText.trim()}
-                  onClick={() => {
-                    if (replyText.trim() && currentStory) {
-                      storiesService.replyToStory(currentStory.id, replyText.trim());
-                      setReplyText('');
-                      setIsPaused(false);
-                    }
-                  }}
+              {/* Emoji Picker */}
+              {showEmojiPicker && (
+                <div 
+                  ref={emojiPickerRef}
+                  className="absolute bottom-full left-0 right-0 mb-2 flex justify-center"
                 >
-                  <Send size={18} />
-                </button>
+                  <div className="bg-gray-900 rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
+                    <EmojiPicker
+                      onEmojiClick={handleEmojiClick}
+                      width={320}
+                      height={400}
+                      theme="dark"
+                      searchPlaceHolder="Buscar emoji..."
+                      previewConfig={{ showPreview: false }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="p-4 space-y-3">
+                {/* Botones de reacción rápida con emojis y contadores */}
+                <div className="flex justify-center gap-3">
+                  {STORY_REACTIONS.map((reaction) => {
+                    const count = reactionCounts[reaction.type] || 0;
+                    return (
+                      <button
+                        key={reaction.type}
+                        onClick={() => handleReaction(reaction.type, reaction.emoji)}
+                        className={cn(
+                          "relative group"
+                        )}
+                        title={`Reaccionar con ${reaction.emoji}`}
+                      >
+                        {/* Fondo con gradiente animado */}
+                        <div className={cn(
+                          "absolute inset-0 rounded-full bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md",
+                          reaction.color
+                        )} />
+                        
+                        {/* Botón principal */}
+                        <div className={cn(
+                          "relative p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20",
+                          "group-hover:scale-125 group-hover:bg-white/20 group-active:scale-95",
+                          "transition-all duration-200 ease-out"
+                        )}>
+                          <span className="text-2xl filter drop-shadow-lg group-hover:brightness-125 transition-all">
+                            {reaction.emoji}
+                          </span>
+                        </div>
+                        
+                        {/* Contador con animación */}
+                        {count > 0 && (
+                          <span className={cn(
+                            "absolute -top-1 -right-1 bg-gradient-to-br text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg border-2 border-black/20",
+                            "animate-bounce-in",
+                            reaction.color
+                          )}>
+                            {count > 99 ? '99+' : count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Botón para ver respuestas */}
+                {currentStory.repliesCount && currentStory.repliesCount > 0 && (
+                  <button
+                    onClick={() => setShowReplies(!showReplies)}
+                    className="w-full flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 text-white/80 hover:text-white hover:bg-white/15 transition-all"
+                  >
+                    <MessageCircle size={16} />
+                    <span className="text-sm">Ver {currentStory.repliesCount} {currentStory.repliesCount === 1 ? 'respuesta' : 'respuestas'}</span>
+                  </button>
+                )}
+
+                {/* Input de respuesta con emoji picker */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className={cn(
+                      "p-2 rounded-full transition-all",
+                      showEmojiPicker 
+                        ? "bg-neon-green/20 text-neon-green" 
+                        : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+                    )}
+                    title="Agregar emoji"
+                  >
+                    <Smile size={20} />
+                  </button>
+                  
+                  <input
+                    type="text"
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Enviar mensaje..."
+                    className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2.5 text-white placeholder-white/50 text-sm focus:outline-none focus:border-neon-green/50 focus:bg-white/15 transition-all"
+                    onFocus={() => setIsPaused(true)}
+                    onBlur={() => !replyText.trim() && !showEmojiPicker && setIsPaused(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && replyText.trim()) {
+                        handleSendReply();
+                      }
+                    }}
+                  />
+                  
+                  <button 
+                    className={cn(
+                      "p-2.5 rounded-full transition-all",
+                      replyText.trim()
+                        ? "bg-neon-green text-black hover:bg-neon-green/80 hover:scale-105"
+                        : "bg-white/10 text-white/30 cursor-not-allowed"
+                    )}
+                    disabled={!replyText.trim()}
+                    onClick={handleSendReply}
+                    title="Enviar mensaje"
+                  >
+                    <Send size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -633,36 +1035,42 @@ export function StoriesSlider({
   // Normalizar el ID del usuario actual a string
   const normalizedCurrentUserId = currentUserId ? String(currentUserId) : 'current-user';
   
-  // Encontrar el usuario actual en la lista o crear uno con los datos del usuario logueado
-  const existingUserStory = userStories.find(us => 
+  // Encontrar el usuario actual en la lista
+  const currentUserIndex = userStories.findIndex(us => 
     String(us.user.id) === normalizedCurrentUserId
   );
   
-  const currentUserStory: UserStories = existingUserStory || {
-    user: {
-      id: normalizedCurrentUserId,
-      username: currentUser?.username || 'tu_usuario',
-      displayName: currentUser?.displayName || currentUser?.username || 'Tu Historia',
-      avatar: currentUser?.avatar || ''
-    },
-    stories: [],
-    hasUnviewed: false
-  };
+  // Si el usuario actual existe en la lista, usarlo; si no, crear uno nuevo
+  let currentUserStory: UserStories;
+  let otherUserStories: UserStories[];
   
-  // Si existe pero no tiene avatar actualizado, usar el del usuario logueado
-  if (existingUserStory && currentUser?.avatar && !existingUserStory.user.avatar) {
-    currentUserStory.user.avatar = currentUser.avatar;
+  if (currentUserIndex >= 0) {
+    // El usuario ya está en la lista, usarlo directamente
+    currentUserStory = userStories[currentUserIndex];
+    // Filtrar para obtener solo los otros usuarios
+    otherUserStories = userStories.filter((_, idx) => idx !== currentUserIndex);
+  } else {
+    // El usuario no está en la lista, crear uno nuevo
+    currentUserStory = {
+      user: {
+        id: normalizedCurrentUserId,
+        username: currentUser?.username || 'tu_usuario',
+        displayName: currentUser?.displayName || currentUser?.username || 'Tu Historia',
+        avatar: currentUser?.avatar || ''
+      },
+      stories: [],
+      hasUnviewed: false
+    };
+    // Todos los usuarios son "otros"
+    otherUserStories = userStories;
   }
-  
-  // Filtrar otros usuarios (excluyendo al actual)
-  const otherUserStories = userStories.filter(us => 
-    String(us.user.id) !== normalizedCurrentUserId
-  );
   
   // Duplicar items para el efecto infinito (solo si hay suficientes)
   const duplicatedStories = otherUserStories.length > 3 
     ? [...otherUserStories, ...otherUserStories, ...otherUserStories]
-    : [...otherUserStories, ...otherUserStories];
+    : otherUserStories.length > 0 
+      ? [...otherUserStories, ...otherUserStories]
+      : [];
 
   const handleStoryClick = (userId: string) => {
     // Encontrar el índice del usuario en la lista original (comparar como strings)

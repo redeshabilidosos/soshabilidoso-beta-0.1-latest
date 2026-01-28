@@ -58,29 +58,35 @@ export const MobileNav = memo(function MobileNav() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { unreadCount } = useNotifications();
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showCreateMenu, setShowCreateMenu] = useState(false);
-  const [showUploadReel, setShowUploadReel] = useState(false);
-  const [showNewPost, setShowNewPost] = useState(false);
+  
+  // Consolidar estados de modales en un solo objeto
+  const [modals, setModals] = useState({
+    dropdown: false,
+    createMenu: false,
+    uploadReel: false,
+    newPost: false,
+  });
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const closeDropdown = useCallback(() => setShowDropdown(false), []);
-  const toggleDropdown = useCallback(() => setShowDropdown(prev => !prev), []);
-  const openCreateMenu = useCallback(() => setShowCreateMenu(true), []);
-  const closeCreateMenu = useCallback(() => setShowCreateMenu(false), []);
-  const closeUploadReel = useCallback(() => setShowUploadReel(false), []);
+  // Función única para manejar todos los modales
+  const toggleModal = useCallback((modal: keyof typeof modals, value?: boolean) => {
+    setModals(prev => ({
+      ...prev,
+      [modal]: value ?? !prev[modal]
+    }));
+  }, []);
 
   const handleSelectCreateType = useCallback((type: string) => {
     if (type === 'reel') {
-      setShowUploadReel(true);
+      toggleModal('uploadReel', true);
     } else if (type === 'post' || type === 'photo') {
-      setShowNewPost(true);
+      toggleModal('newPost', true);
     }
-  }, []);
+  }, [toggleModal]);
 
   if (!user) return null;
 
@@ -119,7 +125,7 @@ export const MobileNav = memo(function MobileNav() {
         })}
 
         <button
-          onClick={openCreateMenu}
+          onClick={() => toggleModal('createMenu', true)}
           className="flex items-center justify-center p-1 rounded-lg transition-all duration-300 flex-1"
         >
           <div className="w-12 h-12 bg-gradient-to-r from-neon-green to-neon-blue rounded-full flex items-center justify-center shadow-lg shadow-neon-green/50 hover:shadow-neon-green/70 hover:scale-110 transition-all duration-300">
@@ -156,10 +162,10 @@ export const MobileNav = memo(function MobileNav() {
         })}
 
         <button
-          onClick={toggleDropdown}
+          onClick={() => toggleModal('dropdown')}
           className={cn(
             'flex items-center justify-center p-2 rounded-lg transition-all duration-300 flex-1',
-            showDropdown || isSecondaryActive
+            modals.dropdown || isSecondaryActive
               ? 'text-neon-green bg-neon-green/10' 
               : 'text-white hover:text-neon-green'
           )}
@@ -176,7 +182,7 @@ export const MobileNav = memo(function MobileNav() {
     <div 
       className={cn(
         "lg:hidden fixed inset-0 transition-all duration-300",
-        showDropdown ? "pointer-events-auto" : "pointer-events-none"
+        modals.dropdown ? "pointer-events-auto" : "pointer-events-none"
       )}
       style={{ zIndex: 2147483646 }}
     >
@@ -184,16 +190,16 @@ export const MobileNav = memo(function MobileNav() {
       <div 
         className={cn(
           "absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300",
-          showDropdown ? "opacity-100" : "opacity-0"
+          modals.dropdown ? "opacity-100" : "opacity-0"
         )}
-        onClick={closeDropdown}
+        onClick={() => toggleModal('dropdown', false)}
       />
 
       {/* Dropdown Menu */}
       <div 
         className={cn(
           "absolute right-4 left-4 glass-card border border-neon-green/20 rounded-2xl p-4 transition-all duration-300 transform",
-          showDropdown 
+          modals.dropdown 
             ? "opacity-100 translate-y-0 scale-100" 
             : "opacity-0 translate-y-4 scale-95 pointer-events-none"
         )}
@@ -202,7 +208,7 @@ export const MobileNav = memo(function MobileNav() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white font-semibold">Más opciones</h3>
           <button
-            onClick={closeDropdown}
+            onClick={() => toggleModal('dropdown', false)}
             className="p-1 hover:bg-white/10 rounded-full transition-colors"
           >
             <X className="w-5 h-5 text-gray-400" />
@@ -218,7 +224,7 @@ export const MobileNav = memo(function MobileNav() {
               <Link
                 key={item.name}
                 href={item.href}
-                onClick={closeDropdown}
+                onClick={() => toggleModal('dropdown', false)}
                 className={cn(
                   'flex flex-col items-center space-y-2 p-3 rounded-xl transition-all duration-300',
                   isActive 
@@ -258,7 +264,7 @@ export const MobileNav = memo(function MobileNav() {
             <button
               onClick={() => {
                 logout();
-                closeDropdown();
+                toggleModal('dropdown', false);
               }}
               className="flex items-center space-x-2 py-2 px-3 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
             >
@@ -277,26 +283,26 @@ export const MobileNav = memo(function MobileNav() {
       {/* Modals - hidden on desktop */}
       <div className="lg:hidden">
         <CreateMenuModal
-          isOpen={showCreateMenu}
-          onClose={closeCreateMenu}
+          isOpen={modals.createMenu}
+          onClose={() => toggleModal('createMenu', false)}
           onSelectType={handleSelectCreateType}
         />
 
         <NewPostDialog
-          isOpen={showNewPost}
-          onClose={() => setShowNewPost(false)}
+          isOpen={modals.newPost}
+          onClose={() => toggleModal('newPost', false)}
           onPostCreated={(post) => {
             console.log('✅ Publicación creada:', post);
-            setShowNewPost(false);
+            toggleModal('newPost', false);
           }}
         />
 
         <UploadReelModal 
-          isOpen={showUploadReel} 
-          onClose={closeUploadReel}
+          isOpen={modals.uploadReel} 
+          onClose={() => toggleModal('uploadReel', false)}
           onReelUploaded={(reel) => {
             console.log('✅ Reel subido:', reel);
-            closeUploadReel();
+            toggleModal('uploadReel', false);
           }}
         />
 

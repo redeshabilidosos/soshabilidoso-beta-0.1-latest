@@ -95,8 +95,33 @@ export class APIClient {
   }
 
   async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response: AxiosResponse<T> = await this.client.post(url, data, config);
-    return response.data;
+    console.log('📤 [API CLIENT] POST request:', {
+      url,
+      baseURL: API_BASE_URL,
+      fullURL: `${API_BASE_URL}${url}`,
+      hasData: !!data,
+      dataKeys: data ? Object.keys(data) : [],
+      payload: data // MOSTRAR EL PAYLOAD COMPLETO
+    });
+    
+    try {
+      const response: AxiosResponse<T> = await this.client.post(url, data, config);
+      console.log('✅ [API CLIENT] POST response:', {
+        url,
+        status: response.status,
+        hasData: !!response.data
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [API CLIENT] POST error:', {
+        url,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      throw error;
+    }
   }
 
   async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {

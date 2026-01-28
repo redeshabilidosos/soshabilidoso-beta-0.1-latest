@@ -7,13 +7,18 @@ from . import views
 app_name = 'users'
 
 urlpatterns = [
+    # Lista de usuarios y sugerencias
+    path('', views.UserListView.as_view(), name='user_list'),
+    path('suggested/', views.SuggestedUsersView.as_view(), name='suggested_users'),
+    
     # Búsqueda de usuarios
     path('search/', views.UserSearchView.as_view(), name='user_search'),
     path('profile/<str:username>/', views.UserProfileView.as_view(), name='user_profile'),
     path('profile/', views.UserProfileUpdateView.as_view(), name='user_profile_update'),
     
     # Seguimientos
-    path('follow/<str:username>/', views.follow_user, name='follow_user'),
+    path('<str:username>/follow/', views.follow_user, name='follow_user'),
+    path('follow/<str:username>/', views.follow_user, name='follow_user_alt'),
     path('unfollow/<str:username>/', views.unfollow_user, name='unfollow_user'),
     path('followers/<str:username>/', views.get_followers, name='get_followers'),
     path('following/<str:username>/', views.get_following, name='get_following'),

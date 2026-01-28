@@ -73,31 +73,31 @@ export class AuthService {
       localStorage.setItem('user', JSON.stringify(mappedUser));
       
       return { ...response, user: mappedUser };
-    } catch (error) {
+    } catch (error: any) {
       // Fallback a usuarios mock si el backend no está disponible
-      console.log('Backend no disponible, usando usuarios de prueba...');
-      
-      const mockUser = mockCredentials.find(
-        cred => cred.login === credentials.login && cred.password === credentials.password
-      );
-      
-      if (mockUser) {
-        const mockTokens = {
-          access: 'mock_access_token_' + Date.now(),
-          refresh: 'mock_refresh_token_' + Date.now()
-        };
+      if (!error.response || error.response.status >= 500) {
+        const mockUser = mockCredentials.find(
+          cred => cred.login === credentials.login && cred.password === credentials.password
+        );
         
-        // Guardar tokens mock en localStorage
-        localStorage.setItem('access_token', mockTokens.access);
-        localStorage.setItem('refresh_token', mockTokens.refresh);
-        localStorage.setItem('user', JSON.stringify(mockUser.user));
-        localStorage.setItem('mock_mode', 'true');
-        
-        return {
-          access: mockTokens.access,
-          refresh: mockTokens.refresh,
-          user: mockUser.user
-        };
+        if (mockUser) {
+          const mockTokens = {
+            access: 'mock_access_token_' + Date.now(),
+            refresh: 'mock_refresh_token_' + Date.now()
+          };
+          
+          // Guardar tokens mock en localStorage
+          localStorage.setItem('access_token', mockTokens.access);
+          localStorage.setItem('refresh_token', mockTokens.refresh);
+          localStorage.setItem('user', JSON.stringify(mockUser.user));
+          localStorage.setItem('mock_mode', 'true');
+          
+          return {
+            access: mockTokens.access,
+            refresh: mockTokens.refresh,
+            user: mockUser.user
+          };
+        }
       }
       
       throw error;
@@ -243,26 +243,50 @@ export class AuthService {
 
   // Subir avatar
   async uploadAvatar(file: File): Promise<{ avatar_url: string; user?: User }> {
+    console.log('📤 [AUTH SERVICE] Iniciando subida de avatar:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type
+    });
+    
     const formData = new FormData();
     formData.append('avatar', file);
     
-    return api.post('/auth/upload-avatar/', formData, {
+    console.log('📤 [AUTH SERVICE] FormData creado, enviando a /auth/upload-avatar/');
+    
+    const response = await api.post('/auth/upload-avatar/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
+    
+    console.log('✅ [AUTH SERVICE] Respuesta del servidor:', response);
+    
+    return response;
   }
 
   // Subir foto de portada
   async uploadCoverPhoto(file: File): Promise<{ cover_photo_url: string; user?: User }> {
+    console.log('📤 [AUTH SERVICE] Iniciando subida de foto de portada:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type
+    });
+    
     const formData = new FormData();
     formData.append('cover_photo', file);
     
-    return api.post('/auth/upload-cover/', formData, {
+    console.log('📤 [AUTH SERVICE] FormData creado, enviando a /auth/upload-cover/');
+    
+    const response = await api.post('/auth/upload-cover/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
+    
+    console.log('✅ [AUTH SERVICE] Respuesta del servidor:', response);
+    
+    return response;
   }
 }
 

@@ -4,13 +4,43 @@ import { useEffect, useState, useRef, useCallback, lazy, Suspense, memo } from '
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';
 import { useCachedUser } from '@/lib/hooks/use-cached-auth';
-import { CyberButton } from '@/components/ui/cyber-button';
-import { Plus, TrendingUp } from 'lucide-react';
+import { Plus, TrendingUp, Loader2, Users } from 'lucide-react';
 import { Post } from '@/types/user';
 import { Advertisement } from '@/lib/services/advertising.service';
 import { Toaster } from 'sonner';
 import { toast } from 'sonner';
-import { UserStories } from '@/components/ui/stories-slider';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+// Define UserStories type locally to avoid importing from lazy-loaded module
+interface UserStories {
+  user: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatar: string;
+  };
+  stories: Array<{
+    id: string;
+    userId: string;
+    user: {
+      id: string;
+      username: string;
+      displayName: string;
+      avatar: string;
+    };
+    mediaUrl: string;
+    mediaType: 'image' | 'video';
+    createdAt: string;
+    expiresAt: string;
+    viewed: boolean;
+  }>;
+  hasUnviewed: boolean;
+}
 
 // Lazy loading de componentes pesados
 const Sidebar = lazy(() => import('@/components/navigation/sidebar').then(mod => ({ default: mod.Sidebar })));
@@ -20,7 +50,7 @@ const RealtimeIndicator = lazy(() => import('@/components/ui/realtime-indicator'
 const MeetingNotifications = lazy(() => import('@/components/communities/meeting-notifications').then(mod => ({ default: mod.MeetingNotifications })));
 const NewPostDialog = lazy(() => import('@/components/ui/new-post-dialog').then(mod => ({ default: mod.NewPostDialog })));
 const AdCard = lazy(() => import('@/components/advertising/ad-card').then(mod => ({ default: mod.AdCard })));
-const StoriesSlider = lazy(() => import('@/components/ui/stories-slider').then(mod => ({ default: mod.StoriesSlider })));
+const StoriesSlider = lazy(() => import('@/components/ui/stories-slider'));
 const NewStoryDialog = lazy(() => import('@/components/ui/new-story-dialog').then(mod => ({ default: mod.NewStoryDialog })));
 
 export default function FeedPage() {
@@ -35,6 +65,9 @@ export default function FeedPage() {
   const [feedAds, setFeedAds] = useState<Advertisement[]>([]);
   const [userStories, setUserStories] = useState<UserStories[]>([]);
   const [isLoadingStories, setIsLoadingStories] = useState(true);
+  const [suggestedUsers, setSuggestedUsers] = useState<any[]>([]);
+  const [suggestedCommunities, setSuggestedCommunities] = useState<any[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(true);
   const postsLoadedRef = useRef(false);
   const adsLoadedRef = useRef(false);
   const storiesLoadedRef = useRef(false);
@@ -345,6 +378,99 @@ export default function FeedPage() {
     loadAds();
   }, []);
 
+  // Cargar sugerencias de usuarios y comunidades
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      if (!effectiveUser) return;
+      
+      try {
+        setLoadingSuggestions(true);
+        const token = localStorage.getItem('access_token');
+        
+        // Cargar usuarios reales de la base de datos
+        try {
+          // Intentar endpoint de sugerencias primero
+          let usersResponse = await fetch('http://127.0.0.1:8000/api/users/suggested/', {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          
+          // Si no existe, usar el endpoint de todos los usuarios
+          if (!usersResponse.ok) {
+            console.log('Endpoint de sugerencias no disponible, usando lista de usuarios');
+            usersResponse = await fetch('http://127.0.0.1:8000/api/users/', {
+              headers: { 'Authorization': `Bearer ${token}` },
+            });
+          }
+          
+          if (usersResponse.ok) {
+            const usersData = await usersResponse.json();
+            const users = usersData.results || usersData;
+            
+            // Filtrar el usuario actual y tomar los primeros 5
+            const filteredUsers = users
+              .filter((u: any) => u.id !== effectiveUser.id && u.username !== effectiveUser.username)
+              .slice(0, 5)
+              .map((u: any) => ({
+                id: u.id,
+                username: u.username,
+                display_name: u.display_name || u.displayName || u.username,
+                avatar_url: u.avatar_url || u.avatar || u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.display_name || u.username)}&background=39FF14&color=000`,
+                mutual_friends_count: u.mutual_friends_count || Math.floor(Math.random() * 5) + 1
+              }));
+            
+            setSuggestedUsers(filteredUsers);
+            console.log('✅ Usuarios reales cargados:', filteredUsers.length);
+          }
+        } catch (error) {
+          console.error('Error cargando usuarios:', error);
+        }
+
+        // Cargar comunidades reales de la base de datos
+        try {
+          // Intentar endpoint de sugerencias primero
+          let communitiesResponse = await fetch('http://127.0.0.1:8000/api/communities/suggested/', {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          
+          // Si no existe, usar el endpoint de todas las comunidades
+          if (!communitiesResponse.ok) {
+            console.log('Endpoint de sugerencias no disponible, usando lista de comunidades');
+            communitiesResponse = await fetch('http://127.0.0.1:8000/api/communities/', {
+              headers: { 'Authorization': `Bearer ${token}` },
+            });
+          }
+          
+          if (communitiesResponse.ok) {
+            const communitiesData = await communitiesResponse.json();
+            const communities = communitiesData.results || communitiesData;
+            
+            // Tomar las primeras 5 comunidades
+            const mappedCommunities = communities
+              .slice(0, 5)
+              .map((c: any) => ({
+                id: c.id,
+                name: c.name,
+                description: c.description || 'Únete a esta comunidad',
+                image_url: c.image_url || c.image || c.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=8B5CF6&color=fff&size=128`,
+                members_count: c.members_count || c.membersCount || c.subscribers_count || 0
+              }));
+            
+            setSuggestedCommunities(mappedCommunities);
+            console.log('✅ Comunidades reales cargadas:', mappedCommunities.length);
+          }
+        } catch (error) {
+          console.error('Error cargando comunidades:', error);
+        }
+      } catch (error) {
+        console.error('Error cargando sugerencias:', error);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    };
+    
+    loadSuggestions();
+  }, [effectiveUser]);
+
   // Manejar mensajes del WebSocket
   useEffect(() => {
     if (!lastMessage) return;
@@ -450,129 +576,153 @@ export default function FeedPage() {
     setPosts(prevPosts => prevPosts.filter(p => p.id !== postId));
   };
 
+  const handleFollowUser = async (username: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`http://127.0.0.1:8000/api/users/${username}/follow/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Remover usuario de sugerencias
+        setSuggestedUsers(prev => prev.filter(u => u.username !== username));
+        toast.success('Ahora sigues a este usuario');
+      }
+    } catch (error) {
+      console.error('Error siguiendo usuario:', error);
+      toast.error('Error al seguir usuario');
+    }
+  };
+
+  const handleJoinCommunity = async (communityId: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`http://127.0.0.1:8000/api/communities/${communityId}/subscribe/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Remover comunidad de sugerencias
+        setSuggestedCommunities(prev => prev.filter(c => c.id !== communityId));
+        toast.success('Te has unido a la comunidad');
+      }
+    } catch (error) {
+      console.error('Error uniéndose a comunidad:', error);
+      toast.error('Error al unirse a la comunidad');
+    }
+  };
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-transparent">
       <Suspense fallback={
         <div className="fixed left-0 top-0 h-screen w-64 bg-black/50 backdrop-blur-sm animate-pulse" />
       }>
         <Sidebar />
       </Suspense>
       
-      <main className="pb-24 lg:ml-64 lg:pb-0">
-        <div className="max-w-4xl mx-auto p-4 space-y-6">
-          {/* Header */}
-          <div className="glass-card p-4 lg:p-6">
-            {/* Mobile Layout */}
-            <div className="lg:hidden">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="text-neon-green" size={20} />
-                  <h1 className="text-lg font-bold text-white">Feed Principal</h1>
-                  <Suspense fallback={<div className="w-2 h-2 bg-gray-500 rounded-full" />}>
-                    <RealtimeIndicator 
-                      isConnected={isConnected} 
-                      showLabel={false}
-                      size="sm"
-                    />
-                  </Suspense>
-                </div>
-                <CyberButton 
-                  size="sm"
-                  className="flex items-center space-x-1 px-2 py-2 text-xs"
-                  onClick={() => setIsNewPostDialogOpen(true)}
-                >
-                  <Plus size={14} />
-                  <span>Nueva Publicación</span>
-                </CyberButton>
-              </div>
-              <p className="text-gray-400 text-sm mb-4">
-                Descubre las últimas novedades de tu comunidad futbolística
-              </p>
-            </div>
-
-            {/* Desktop Layout */}
-            <div className="hidden lg:block">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="text-2xl font-bold text-white flex items-center space-x-2">
-                    <TrendingUp className="text-neon-green" />
-                    <span>Feed Principal</span>
-                    <Suspense fallback={<div className="w-3 h-3 bg-gray-500 rounded-full" />}>
+      <main className="pb-24 lg:ml-64 lg:pb-0 lg:pr-80">
+        <div className="max-w-3xl mx-auto p-3 md:p-4 lg:p-6 space-y-4 md:space-y-6">
+          {/* Header Card - Responsive */}
+          <Card className="border-0 bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-xl rounded-2xl">
+            <CardHeader className="p-4 md:p-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 md:gap-3 mb-2">
+                    <TrendingUp className="text-primary w-5 h-5 md:w-6 md:h-6" />
+                    <CardTitle className="text-lg md:text-2xl">Feed Principal</CardTitle>
+                    <Suspense fallback={<Skeleton className="w-20 h-5" />}>
                       <RealtimeIndicator 
                         isConnected={isConnected} 
-                        showLabel={true}
-                        size="lg"
+                        showLabel={false}
+                        size="sm"
+                        className="md:flex"
                       />
                     </Suspense>
-                  </h1>
-                  <p className="text-gray-400">
-                    Descubre las últimas novedades de tu comunidad futbolística
-                  </p>
+                  </div>
+                  <CardDescription className="text-xs md:text-sm">
+                    Descubre las últimas novedades de tu comunidad
+                  </CardDescription>
                 </div>
-                <CyberButton 
-                  className="flex items-center space-x-2"
+                
+                {/* Botón Nueva Publicación - Responsive */}
+                <Button 
                   onClick={() => setIsNewPostDialogOpen(true)}
+                  className="w-full md:w-auto"
+                  size="default"
                 >
-                  <Plus size={18} />
-                  <span>Nueva Publicación</span>
-                </CyberButton>
-              </div>
-            </div>
-
-            {/* Stories Slider */}
-            <Suspense fallback={
-              <div className="flex space-x-3 overflow-x-auto pb-2">
-                {[1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className="flex-shrink-0 w-20 h-28 bg-gray-800 rounded-lg animate-pulse" />
-                ))}
-              </div>
-            }>
-              <StoriesSlider 
-                userStories={userStories}
-                currentUserId={displayUser.id}
-                currentUser={{
-                  id: displayUser.id,
-                  username: displayUser.username,
-                  displayName: displayUser.displayName || displayUser.username,
-                  avatar: displayUser.avatar || displayUser.avatarUrl || ''
-                }}
-                onAddStory={() => setIsNewStoryDialogOpen(true)}
-                onStoryViewed={(storyId) => {
-                  // Marcar historia como vista
-                  setUserStories(prev => prev.map(us => ({
-                    ...us,
-                    stories: us.stories.map(s => 
-                      s.id === storyId ? { ...s, viewed: true } : s
-                    ),
-                    hasUnviewed: us.stories.some(s => s.id !== storyId && !s.viewed)
-                  })));
-                }}
-              />
-            </Suspense>
-          </div>
-
-          {/* Posts Feed */}
-          <div className="space-y-6">
-            {isLoadingPosts ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neon-green mx-auto mb-4"></div>
-                <p className="text-gray-400">Cargando publicaciones...</p>
-              </div>
-            ) : posts.length === 0 ? (
-              <div className="glass-card p-12 text-center">
-                <TrendingUp className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">No hay publicaciones aún</h3>
-                <p className="text-gray-400 mb-6">
-                  Sé el primero en compartir algo con la comunidad
-                </p>
-                <CyberButton onClick={() => setIsNewPostDialogOpen(true)}>
                   <Plus size={18} className="mr-2" />
-                  Crear Publicación
-                </CyberButton>
+                  <span className="hidden sm:inline">Nueva Publicación</span>
+                  <span className="sm:hidden">Publicar</span>
+                </Button>
               </div>
+
+              <Separator className="my-4" />
+
+              {/* Stories Slider - Responsive */}
+              <Suspense fallback={
+                <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <Skeleton key={i} className="flex-shrink-0 w-16 h-24 md:w-20 md:h-28 rounded-xl" />
+                  ))}
+                </div>
+              }>
+                <StoriesSlider 
+                  userStories={userStories}
+                  currentUserId={displayUser.id}
+                  currentUser={{
+                    id: displayUser.id,
+                    username: displayUser.username,
+                    displayName: displayUser.displayName || displayUser.username,
+                    avatar: displayUser.avatar || displayUser.avatarUrl || ''
+                  }}
+                  onAddStory={() => setIsNewStoryDialogOpen(true)}
+                  onStoryViewed={(storyId) => {
+                    setUserStories(prev => prev.map(us => ({
+                      ...us,
+                      stories: us.stories.map(s => 
+                        s.id === storyId ? { ...s, viewed: true } : s
+                      ),
+                      hasUnviewed: us.stories.some(s => s.id !== storyId && !s.viewed)
+                    })));
+                  }}
+                />
+              </Suspense>
+            </CardHeader>
+          </Card>
+
+          {/* Posts Feed - Responsive */}
+          <div className="space-y-4 md:space-y-6">
+            {isLoadingPosts ? (
+              <Card className="rounded-2xl">
+                <CardContent className="py-12 text-center">
+                  <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
+                  <p className="text-muted-foreground">Cargando publicaciones...</p>
+                </CardContent>
+              </Card>
+            ) : posts.length === 0 ? (
+              <Card className="rounded-2xl border-dashed">
+                <CardContent className="py-12 text-center">
+                  <TrendingUp className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg md:text-xl font-bold mb-2">No hay publicaciones aún</h3>
+                  <p className="text-sm md:text-base text-muted-foreground mb-6">
+                    Sé el primero en compartir algo con la comunidad
+                  </p>
+                  <Button onClick={() => setIsNewPostDialogOpen(true)} size="lg">
+                    <Plus size={18} className="mr-2" />
+                    Crear Publicación
+                  </Button>
+                </CardContent>
+              </Card>
             ) : (
               posts.map((post, index) => {
-                // Calcular si debemos mostrar un anuncio después de este post
                 const shouldShowAd = feedAds.length > 0 && (index + 1) % AD_FREQUENCY === 0;
                 const adIndex = Math.floor((index + 1) / AD_FREQUENCY) - 1;
                 const adToShow = shouldShowAd && adIndex < feedAds.length ? feedAds[adIndex % feedAds.length] : null;
@@ -581,22 +731,34 @@ export default function FeedPage() {
                   <div key={post.id}>
                     <div id={`post-${post.id}`}>
                       <Suspense fallback={
-                        <div className="glass-card p-6 animate-pulse">
-                          <div className="h-20 bg-gray-800 rounded mb-4" />
-                          <div className="h-40 bg-gray-800 rounded" />
-                        </div>
+                        <Card className="rounded-2xl">
+                          <CardContent className="p-4 md:p-6">
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-3">
+                                <Skeleton className="w-10 h-10 md:w-12 md:h-12 rounded-full" />
+                                <div className="flex-1 space-y-2">
+                                  <Skeleton className="h-4 w-32" />
+                                  <Skeleton className="h-3 w-24" />
+                                </div>
+                              </div>
+                              <Skeleton className="h-20 w-full" />
+                              <Skeleton className="h-48 w-full rounded-xl" />
+                            </div>
+                          </CardContent>
+                        </Card>
                       }>
                         <PostCard post={post} onPostUpdated={handlePostUpdated} onPostDeleted={handlePostDeleted} />
                       </Suspense>
                     </div>
                     
-                    {/* Mostrar anuncio cada AD_FREQUENCY posts */}
                     {adToShow && (
-                      <div className="mt-6">
+                      <div className="mt-4 md:mt-6">
                         <Suspense fallback={
-                          <div className="glass-card p-6 animate-pulse">
-                            <div className="h-32 bg-gray-800 rounded" />
-                          </div>
+                          <Card className="rounded-2xl">
+                            <CardContent className="p-4 md:p-6">
+                              <Skeleton className="h-32 w-full rounded-xl" />
+                            </CardContent>
+                          </Card>
                         }>
                           <AdCard 
                             ad={adToShow} 
@@ -612,22 +774,195 @@ export default function FeedPage() {
             )}
           </div>
 
-          {/* Load More */}
-          <div className="text-center">
-            <CyberButton variant="outline" size="lg">
-              Cargar más publicaciones
-            </CyberButton>
-          </div>
+          {/* Load More Button - Responsive */}
+          {posts.length > 0 && (
+            <div className="text-center pt-4">
+              <Button variant="outline" size="lg" className="w-full md:w-auto">
+                Cargar más publicaciones
+              </Button>
+            </div>
+          )}
         </div>
+
+        {/* Sidebar Derecho - Solo Desktop */}
+        <aside className="hidden lg:block fixed right-0 top-0 w-80 h-screen overflow-y-auto p-6 border-l border-border/30 bg-transparent">
+          <div className="space-y-6">
+            {/* Sugerencias de Usuarios */}
+            <Card className="rounded-2xl bg-gray-900/80 backdrop-blur-xl border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-lg">Sugerencias para ti</CardTitle>
+                <CardDescription>Personas que podrían interesarte</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {loadingSuggestions ? (
+                  <>
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="w-10 h-10 rounded-full" />
+                          <div className="space-y-1">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-3 w-16" />
+                          </div>
+                        </div>
+                        <Skeleton className="h-8 w-16" />
+                      </div>
+                    ))}
+                  </>
+                ) : suggestedUsers.length > 0 ? (
+                  suggestedUsers.map(user => (
+                    <div key={user.id} className="flex items-center justify-between group">
+                      <div 
+                        className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                        onClick={() => router.push(`/profile/${user.username}`)}
+                      >
+                        <Avatar className="w-10 h-10 ring-2 ring-transparent group-hover:ring-primary/50 transition-all">
+                          <AvatarImage src={user.avatar_url || user.avatar} alt={user.display_name} />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600">
+                            {user.display_name?.charAt(0) || user.username?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
+                            {user.display_name || user.username}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            @{user.username}
+                          </p>
+                          {user.mutual_friends_count > 0 && (
+                            <p className="text-xs text-primary">
+                              {user.mutual_friends_count} amigo{user.mutual_friends_count > 1 ? 's' : ''} en común
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleFollowUser(user.username)}
+                        className="flex-shrink-0"
+                      >
+                        Seguir
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No hay sugerencias disponibles
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Comunidades Sugeridas */}
+            <Card className="rounded-2xl bg-gray-900/80 backdrop-blur-xl border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users size={18} className="text-primary" />
+                  Comunidades para ti
+                </CardTitle>
+                <CardDescription>Únete a comunidades que te interesen</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {loadingSuggestions ? (
+                  <>
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="p-3 rounded-lg border border-border">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Skeleton className="w-10 h-10 rounded-lg" />
+                          <Skeleton className="h-4 w-32 flex-1" />
+                        </div>
+                        <Skeleton className="h-3 w-full mb-2" />
+                        <Skeleton className="h-8 w-full" />
+                      </div>
+                    ))}
+                  </>
+                ) : suggestedCommunities.length > 0 ? (
+                  suggestedCommunities.map(community => (
+                    <div 
+                      key={community.id}
+                      className="p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-secondary/50 transition-all cursor-pointer group"
+                      onClick={() => router.push(`/communities/${community.id}`)}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <Avatar className="w-10 h-10 rounded-lg">
+                          <AvatarImage src={community.image_url || community.image} alt={community.name} />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 rounded-lg">
+                            {community.name?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
+                            {community.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {community.members_count || 0} miembros
+                          </p>
+                        </div>
+                      </div>
+                      {community.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                          {community.description}
+                        </p>
+                      )}
+                      <Button 
+                        size="sm" 
+                        className="w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleJoinCommunity(community.id);
+                        }}
+                      >
+                        Unirse
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No hay comunidades sugeridas
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Tendencias */}
+            <Card className="rounded-2xl bg-gray-900/80 backdrop-blur-xl border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <TrendingUp size={18} className="text-primary" />
+                  Tendencias
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {['#Habilidosos', '#FútbolLibre', '#TécnicaBalón', '#Golazo', '#EntrenamientoFC'].map((tag, i) => (
+                  <div 
+                    key={i} 
+                    className="flex items-center justify-between hover:bg-secondary/50 p-2 rounded-lg transition-colors cursor-pointer group"
+                    onClick={() => router.push(`/search?q=${encodeURIComponent(tag)}`)}
+                  >
+                    <div>
+                      <p className="font-medium text-sm group-hover:text-primary transition-colors">{tag}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {Math.floor(Math.random() * 1000) + 100} publicaciones
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      Tendencia
+                    </Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </aside>
       </main>
 
       <Suspense fallback={
-        <div className="fixed bottom-0 left-0 right-0 h-16 bg-black/50 backdrop-blur-sm animate-pulse" />
+        <div className="fixed bottom-0 left-0 right-0 h-16 bg-black/50 backdrop-blur-sm animate-pulse lg:hidden" />
       }>
         <MobileNav />
       </Suspense>
       
-      {/* Meeting Notifications */}
       <Suspense fallback={null}>
         <MeetingNotifications userSubscriptions={userSubscriptions} />
       </Suspense>
@@ -651,25 +986,21 @@ export default function FeedPage() {
             avatar: displayUser.avatar || displayUser.avatarUrl || ''
           }}
           onStoryCreated={(newStory) => {
-            // Agregar la nueva historia al usuario actual
             setUserStories(prev => {
-              // Buscar el usuario actual en la lista (comparar como strings)
               const currentUserIndex = prev.findIndex(us => 
                 String(us.user.id) === String(displayUser.id)
               );
               
               if (currentUserIndex >= 0) {
-                // Usuario encontrado, agregar historia a su lista
                 const updated = [...prev];
                 updated[currentUserIndex] = {
                   ...updated[currentUserIndex],
                   stories: [newStory, ...updated[currentUserIndex].stories],
-                  hasUnviewed: false // Las propias historias no se marcan como no vistas
+                  hasUnviewed: false
                 };
                 return updated;
               }
               
-              // Si el usuario no está en la lista, agregarlo al inicio
               return [{
                 user: {
                   id: String(displayUser.id),

@@ -24,6 +24,53 @@ class UserSearchPagination(PageNumberPagination):
     max_page_size = 50
 
 
+class UserListView(generics.ListAPIView):
+    """Vista para listar todos los usuarios"""
+    serializer_class = UserSearchSerializer
+    pagination_class = UserSearchPagination
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return User.objects.filter(
+            is_active=True
+        ).exclude(
+            id=self.request.user.id
+        ).order_by('-followers_count', '-posts_count')
+
+
+class SuggestedUsersView(generics.ListAPIView):
+    """Vista para obtener usuarios sugeridos basados en amigos en común"""
+    serializer_class = UserSearchSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        
+        # Obtener amigos del usuario actual
+        user_friends = Friendship.objects.filter(
+            Q(user1=user) | Q(user2=user)
+        ).values_list('user1_id', 'user2_id')
+        
+        friend_ids = set()
+        for user1_id, user2_id in user_friends:
+            if user1_id != user.id:
+                friend_ids.add(user1_id)
+            if user2_id != user.id:
+                friend_ids.add(user2_id)
+        
+        # Obtener usuarios que no son amigos pero tienen amigos en común
+        # También incluir usuarios populares si no hay suficientes sugerencias
+        suggested = User.objects.filter(
+            is_active=True
+        ).exclude(
+            id=user.id
+        ).exclude(
+            id__in=friend_ids
+        ).order_by('-followers_count', '-posts_count')[:10]
+        
+        return suggested
+
+
 class UserSearchView(generics.ListAPIView):
     """Vista para buscar usuarios"""
     serializer_class = UserSearchSerializer

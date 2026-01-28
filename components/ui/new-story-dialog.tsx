@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CyberButton } from '@/components/ui/cyber-button';
-import { Image, Video, X, Upload, Loader2 } from 'lucide-react';
+import { Image, Video, X, Upload, Loader2, Check, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Story } from './stories-slider';
 import { toast } from 'sonner';
@@ -26,12 +26,17 @@ export function NewStoryDialog({ isOpen, onClose, onStoryCreated, currentUser }:
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    processFile(file);
+  };
+
+  const processFile = (file: File) => {
     // Validar tipo de archivo
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
@@ -54,12 +59,34 @@ export function NewStoryDialog({ isOpen, onClose, onStoryCreated, currentUser }:
         setMediaFile(file);
         setMediaType('video');
         setMediaPreview(URL.createObjectURL(file));
+        toast.success('Video cargado correctamente');
       };
       video.src = URL.createObjectURL(file);
     } else {
       setMediaFile(file);
       setMediaType('image');
       setMediaPreview(URL.createObjectURL(file));
+      toast.success('Imagen cargada correctamente');
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processFile(file);
     }
   };
 
@@ -125,7 +152,9 @@ export function NewStoryDialog({ isOpen, onClose, onStoryCreated, currentUser }:
       }
 
       onStoryCreated(newStory);
-      toast.success('¡Historia publicada!');
+      toast.success('¡Historia publicada exitosamente!', {
+        icon: '🎉',
+      });
       handleClose();
     } catch (error) {
       console.error('Error subiendo historia:', error);
@@ -139,6 +168,7 @@ export function NewStoryDialog({ isOpen, onClose, onStoryCreated, currentUser }:
     setMediaFile(null);
     setMediaPreview(null);
     setMediaType('image');
+    setIsDragging(false);
     onClose();
   };
 
@@ -152,59 +182,119 @@ export function NewStoryDialog({ isOpen, onClose, onStoryCreated, currentUser }:
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-dark-card border-white/10">
-        <DialogHeader>
-          <DialogTitle className="text-white flex items-center gap-2">
-            <Upload size={20} className="text-neon-green" />
+      <DialogContent className="max-w-[380px] w-[95vw] bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border border-neon-green/20 p-4 shadow-2xl shadow-neon-green/10">
+        <DialogHeader className="mb-2 pr-8">
+          <DialogTitle className="text-white flex items-center gap-2 text-base">
+            <div className="p-1.5 bg-neon-green/20 rounded-lg">
+              <Upload size={14} className="text-neon-green" />
+            </div>
             Nueva Historia
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Área de preview/upload */}
           {mediaPreview ? (
-            <div className="relative aspect-[9/16] max-h-[400px] bg-black rounded-xl overflow-hidden">
-              {mediaType === 'image' ? (
-                <img 
-                  src={mediaPreview} 
-                  alt="Preview" 
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <video 
-                  src={mediaPreview} 
-                  className="w-full h-full object-contain"
-                  controls
-                  autoPlay
-                  muted
-                />
-              )}
-              <button
-                onClick={clearMedia}
-                className="absolute top-2 right-2 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
-              >
-                <X size={16} className="text-white" />
-              </button>
+            <div className="relative w-full mx-auto" style={{ maxWidth: '280px' }}>
+              <div className="relative aspect-[9/16] bg-black rounded-xl overflow-hidden border-2 border-neon-green/30 shadow-lg shadow-neon-green/20">
+                {mediaType === 'image' ? (
+                  <img 
+                    src={mediaPreview} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <video 
+                    src={mediaPreview} 
+                    className="w-full h-full object-cover"
+                    controls
+                    autoPlay
+                    muted
+                  />
+                )}
+                
+                {/* Overlay con info del archivo */}
+                <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/70 to-transparent p-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-white text-xs">
+                      {mediaType === 'image' ? (
+                        <Image size={12} className="text-neon-green" />
+                      ) : (
+                        <Video size={12} className="text-neon-blue" />
+                      )}
+                      <span className="font-medium">
+                        {mediaType === 'image' ? 'Imagen' : 'Video'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={clearMedia}
+                      className="p-1 bg-red-500/90 rounded-full hover:bg-red-500 transition-all hover:scale-110"
+                    >
+                      <X size={12} className="text-white" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Badge de éxito */}
+                <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-1.5 bg-neon-green/20 backdrop-blur-sm border border-neon-green/30 rounded-full px-2 py-1">
+                  <Check size={12} className="text-neon-green" />
+                  <span className="text-neon-green text-xs font-medium">Listo para publicar</span>
+                </div>
+              </div>
             </div>
           ) : (
             <div 
               onClick={() => fileInputRef.current?.click()}
-              className="aspect-[9/16] max-h-[400px] border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-neon-green/50 transition-colors"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={cn(
+                "w-full mx-auto border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 p-6 relative overflow-hidden",
+                isDragging 
+                  ? "border-neon-green bg-neon-green/10 scale-[0.98]" 
+                  : "border-white/20 hover:border-neon-green/50 hover:bg-white/5"
+              )}
+              style={{ maxWidth: '280px', aspectRatio: '9/16' }}
             >
-              <div className="flex gap-4 mb-4">
-                <div className="p-4 bg-white/5 rounded-full">
-                  <Image size={32} className="text-neon-green" />
+              {/* Animated background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br from-neon-green/5 via-transparent to-neon-blue/5 opacity-50" />
+              
+              <div className="relative z-10 flex flex-col items-center">
+                {/* Iconos con animación */}
+                <div className="flex gap-3 mb-4">
+                  <div className={cn(
+                    "p-3 bg-gradient-to-br from-neon-green/20 to-neon-green/10 rounded-xl transition-all duration-300 border border-neon-green/30",
+                    !isDragging && "hover:scale-110 hover:shadow-lg hover:shadow-neon-green/20"
+                  )}>
+                    <Image size={24} className="text-neon-green" />
+                  </div>
+                  <div className={cn(
+                    "p-3 bg-gradient-to-br from-neon-blue/20 to-neon-blue/10 rounded-xl transition-all duration-300 border border-neon-blue/30",
+                    !isDragging && "hover:scale-110 hover:shadow-lg hover:shadow-neon-blue/20"
+                  )}>
+                    <Video size={24} className="text-neon-blue" />
+                  </div>
                 </div>
-                <div className="p-4 bg-white/5 rounded-full">
-                  <Video size={32} className="text-neon-blue" />
+
+                {/* Texto principal */}
+                <div className="text-center space-y-2">
+                  <p className="text-white text-sm font-semibold">
+                    {isDragging ? '¡Suelta aquí!' : 'Selecciona tu contenido'}
+                  </p>
+                  <p className="text-gray-400 text-xs px-2">
+                    {isDragging 
+                      ? 'Suelta el archivo para cargarlo' 
+                      : 'Haz clic o arrastra una imagen o video'
+                    }
+                  </p>
+                  
+                  {/* Requisitos */}
+                  <div className="flex items-center justify-center gap-1.5 text-gray-500 text-xs mt-2 pt-2 border-t border-white/10">
+                    <Clock size={10} />
+                    <span>Videos máx. 30s</span>
+                  </div>
                 </div>
               </div>
-              <p className="text-gray-400 text-sm text-center px-4">
-                Haz clic para seleccionar una imagen o video
-              </p>
-              <p className="text-gray-500 text-xs mt-2">
-                Videos de máximo 30 segundos
-              </p>
             </div>
           )}
 
@@ -216,34 +306,42 @@ export function NewStoryDialog({ isOpen, onClose, onStoryCreated, currentUser }:
             className="hidden"
           />
 
-          {/* Info de duración */}
-          <div className="flex items-center justify-center gap-2 text-gray-400 text-sm">
-            <span className="w-2 h-2 bg-neon-green rounded-full animate-pulse" />
-            Tu historia durará 24 horas
+          {/* Info de duración con mejor diseño */}
+          <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-neon-green/10 via-neon-green/5 to-transparent rounded-lg px-3 py-2 border border-neon-green/20">
+            <span className="w-1.5 h-1.5 bg-neon-green rounded-full animate-pulse shadow-lg shadow-neon-green/50" />
+            <span className="text-gray-300 text-xs font-medium">Tu historia durará 24 horas</span>
           </div>
 
-          {/* Botones */}
-          <div className="flex gap-3">
+          {/* Botones mejorados */}
+          <div className="flex gap-2">
             <CyberButton
               variant="outline"
-              className="flex-1"
+              className="flex-1 text-xs border-white/20 hover:border-white/40"
+              size="sm"
               onClick={handleClose}
               disabled={isUploading}
             >
               Cancelar
             </CyberButton>
             <CyberButton
-              className="flex-1"
+              className={cn(
+                "flex-1 text-xs transition-all duration-300",
+                mediaFile && !isUploading && "shadow-lg shadow-neon-green/30 hover:shadow-neon-green/50"
+              )}
+              size="sm"
               onClick={handleUpload}
               disabled={!mediaFile || isUploading}
             >
               {isUploading ? (
                 <>
-                  <Loader2 size={16} className="animate-spin mr-2" />
+                  <Loader2 size={12} className="animate-spin mr-1.5" />
                   Publicando...
                 </>
               ) : (
-                'Publicar Historia'
+                <>
+                  <Upload size={12} className="mr-1.5" />
+                  Publicar Historia
+                </>
               )}
             </CyberButton>
           </div>

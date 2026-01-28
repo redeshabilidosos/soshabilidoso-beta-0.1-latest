@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { CyberButton } from '@/components/ui/cyber-button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { 
   Radio, Users, Eye, Play, Clock, 
-  GraduationCap, Gamepad2, Key, Search
+  GraduationCap, Gamepad2, Key, Search, Video, Plus
 } from 'lucide-react';
 import { StreamingModal } from '@/components/streaming/streaming-modal';
 import { Sidebar } from '@/components/navigation/sidebar';
@@ -68,154 +71,273 @@ export default function LivePage() {
   });
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-transparent">
       <Sidebar />
       <MobileNav />
       
-      <main className="pb-24 lg:ml-64 lg:pb-0 pt-28 md:pt-12 lg:pt-6 relative z-10 min-h-screen">
-        <div className="p-4 lg:pl-8">
-          <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-white flex items-center">
-                <Radio className="w-8 h-8 text-red-500 mr-3" />
-                Transmisiones en Vivo
-              </h1>
-              <p className="text-gray-400 mt-1">Mira o inicia una transmisión</p>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <CyberButton onClick={() => setShowStreamModal(true)} className="bg-neon-green/20 border-neon-green/50">
-                <GraduationCap className="w-4 h-4 mr-2" />
-                Crear Clase
-              </CyberButton>
-              <CyberButton onClick={() => setShowStreamModal(true)} className="bg-purple-500/20 border-purple-500/50">
-                <Gamepad2 className="w-4 h-4 mr-2" />
-                Iniciar Stream
-              </CyberButton>
-            </div>
-          </div>
-
-          {/* Join with Code */}
-          <Card className="glass-card border-neon-green/20 mb-6">
-            <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center space-x-3">
-                <Key className="w-6 h-6 text-neon-green" />
-                <div>
-                  <p className="text-white font-medium">¿Tienes un código de acceso?</p>
-                  <p className="text-gray-400 text-sm">Únete a una clase privada con el código del instructor</p>
+      <main className="pb-24 lg:ml-64 lg:pb-0">
+        <div className="max-w-7xl mx-auto p-3 md:p-4 lg:p-6 space-y-4 md:space-y-6">
+          {/* Header Card */}
+          <Card className="border-0 bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-xl rounded-2xl">
+            <CardHeader className="p-4 md:p-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 md:gap-3 mb-2">
+                    <div className="relative">
+                      <Radio className="w-6 h-6 md:w-7 md:h-7 text-red-500" />
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                    </div>
+                    <CardTitle className="text-xl md:text-2xl lg:text-3xl">Transmisiones en Vivo</CardTitle>
+                  </div>
+                  <CardDescription className="text-xs md:text-sm">
+                    Descubre transmisiones en vivo o inicia la tuya
+                  </CardDescription>
+                </div>
+                
+                {/* Action Buttons - Responsive */}
+                <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
+                  <Link href="/live/meeting/create" className="w-full sm:w-auto">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      <span className="hidden sm:inline">Crear Reunión</span>
+                      <span className="sm:hidden">Reunión</span>
+                    </Button>
+                  </Link>
+                  <Link href="/live/class/create" className="w-full sm:w-auto">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                    >
+                      <GraduationCap className="w-4 h-4 mr-2" />
+                      <span className="hidden sm:inline">Crear Clase</span>
+                      <span className="sm:hidden">Clase</span>
+                    </Button>
+                  </Link>
+                  <Button 
+                    onClick={() => setShowStreamModal(true)}
+                    className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
+                  >
+                    <Video className="w-4 h-4 mr-2" />
+                    <span className="hidden sm:inline">Iniciar Stream</span>
+                    <span className="sm:hidden">Stream</span>
+                  </Button>
                 </div>
               </div>
-              <Link href="/live/join">
-                <CyberButton variant="outline">Ingresar código</CyberButton>
-              </Link>
+
+              <Separator className="my-4" />
+
+              {/* Join with Code Card */}
+              <Card className="rounded-xl border-primary/20 bg-gradient-to-r from-primary/5 to-purple-500/5">
+                <CardContent className="p-3 md:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-start sm:items-center gap-3 flex-1">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Key className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm md:text-base font-medium mb-1">¿Tienes un código de acceso?</p>
+                      <p className="text-xs md:text-sm text-muted-foreground">
+                        Únete a una clase privada con el código del instructor
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/live/join" className="w-full sm:w-auto">
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      Ingresar código
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </CardHeader>
+          </Card>
+
+          {/* Filters and Search */}
+          <Card className="rounded-2xl bg-gray-900/80 backdrop-blur-xl border-gray-800">
+            <CardContent className="p-3 md:p-4 space-y-3 md:space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 md:pl-10 h-9 md:h-10"
+                  placeholder="Buscar transmisiones..."
+                />
+              </div>
+
+              {/* Filter Tabs */}
+              <Tabs value={filter} onValueChange={(v) => setFilter(v as any)} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 h-auto">
+                  <TabsTrigger value="all" className="text-xs md:text-sm py-2">
+                    <Radio className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                    <span className="hidden sm:inline">Todas</span>
+                    <span className="sm:hidden">Todo</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="class" className="text-xs md:text-sm py-2">
+                    <GraduationCap className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                    Clases
+                  </TabsTrigger>
+                  <TabsTrigger value="stream" className="text-xs md:text-sm py-2">
+                    <Gamepad2 className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                    Streams
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </CardContent>
           </Card>
 
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-neon-green focus:outline-none"
-                placeholder="Buscar transmisiones..."
-              />
-            </div>
-            <div className="flex space-x-2">
-              {(['all', 'class', 'stream'] as const).map(f => (
-                <CyberButton
-                  key={f}
-                  variant={filter === f ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setFilter(f)}
-                >
-                  {f === 'all' && 'Todas'}
-                  {f === 'class' && <><GraduationCap className="w-4 h-4 mr-1" />Clases</>}
-                  {f === 'stream' && <><Gamepad2 className="w-4 h-4 mr-1" />Streams</>}
-                </CyberButton>
-              ))}
-            </div>
-          </div>
-
           {/* Streams Grid */}
           {filteredStreams.length === 0 ? (
-            <Card className="glass-card">
-              <CardContent className="p-12 text-center">
-                <Radio className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">No hay transmisiones en vivo</h3>
-                <p className="text-gray-400 mb-6">Sé el primero en iniciar una transmisión</p>
-                <div className="flex justify-center space-x-3">
-                  <CyberButton onClick={() => setShowStreamModal(true)}>
-                    <GraduationCap className="w-4 h-4 mr-2" />
-                    Crear Clase
-                  </CyberButton>
-                  <CyberButton onClick={() => setShowStreamModal(true)} variant="outline">
-                    <Gamepad2 className="w-4 h-4 mr-2" />
-                    Iniciar Stream
-                  </CyberButton>
+            <Card className="rounded-2xl border-dashed bg-gray-900/60 backdrop-blur-xl border-gray-800">
+              <CardContent className="py-12 md:py-16 text-center">
+                <div className="max-w-md mx-auto space-y-4">
+                  <div className="relative inline-block">
+                    <Radio className="w-16 h-16 md:w-20 md:h-20 text-muted-foreground" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg md:text-xl font-bold mb-2">No hay transmisiones en vivo</h3>
+                    <p className="text-sm md:text-base text-muted-foreground mb-6">
+                      Sé el primero en iniciar una transmisión y comparte tu contenido
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row justify-center gap-3">
+                    <Link href="/live/meeting/create">
+                      <Button 
+                        size="lg"
+                        className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700"
+                      >
+                        <Users className="w-4 h-4 mr-2" />
+                        Crear Reunión
+                      </Button>
+                    </Link>
+                    <Link href="/live/class/create">
+                      <Button 
+                        size="lg"
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                      >
+                        <GraduationCap className="w-4 h-4 mr-2" />
+                        Crear Clase
+                      </Button>
+                    </Link>
+                    <Button 
+                      onClick={() => setShowStreamModal(true)}
+                      size="lg"
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Video className="w-4 h-4 mr-2" />
+                      Iniciar Stream
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
               {filteredStreams.map(stream => (
-                <Card key={stream.id} className="glass-card hover:border-neon-green/50 transition-all cursor-pointer group">
-                  <CardContent className="p-0">
-                    <div className="relative aspect-video bg-gray-800">
-                      <img src="/api/placeholder/400/225" alt={stream.title} className="w-full h-full object-cover" />
-                      <div className="absolute top-2 left-2 flex items-center space-x-2">
-                        <Badge className="bg-red-500 text-white">
-                          <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
-                          EN VIVO
-                        </Badge>
-                        {stream.type === 'class' && (
-                          <Badge className="bg-neon-green/80 text-black">
-                            <GraduationCap className="w-3 h-3 mr-1" />Clase
+                <Link key={stream.id} href={`/live/stream/${stream.id}`}>
+                  <Card className="rounded-2xl overflow-hidden hover:border-primary/50 transition-all cursor-pointer group h-full bg-gray-900/80 backdrop-blur-xl border-gray-800">
+                    <CardContent className="p-0">
+                      {/* Thumbnail */}
+                      <div className="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900">
+                        <img 
+                          src="/api/placeholder/400/225" 
+                          alt={stream.title} 
+                          className="w-full h-full object-cover"
+                        />
+                        
+                        {/* Top Badges */}
+                        <div className="absolute top-2 left-2 flex flex-wrap items-center gap-1.5">
+                          <Badge className="bg-red-500 text-white text-xs">
+                            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse mr-1" />
+                            EN VIVO
                           </Badge>
+                          {stream.type === 'class' && (
+                            <Badge className="bg-green-500 text-white text-xs">
+                              <GraduationCap className="w-3 h-3 mr-1" />
+                              Clase
+                            </Badge>
+                          )}
+                          {stream.type === 'stream' && (
+                            <Badge className="bg-purple-500 text-white text-xs">
+                              <Gamepad2 className="w-3 h-3 mr-1" />
+                              Stream
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Private Badge */}
+                        {stream.isPrivate && (
+                          <div className="absolute top-2 right-2">
+                            <Badge className="bg-yellow-500 text-black text-xs">
+                              <Key className="w-3 h-3 mr-1" />
+                              Privado
+                            </Badge>
+                          </div>
                         )}
-                        {stream.type === 'stream' && (
-                          <Badge className="bg-purple-500/80 text-white">
-                            <Gamepad2 className="w-3 h-3 mr-1" />Stream
+
+                        {/* Bottom Stats */}
+                        <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+                          <Badge className="bg-black/70 text-white text-xs backdrop-blur-sm">
+                            <Eye className="w-3 h-3 mr-1" />
+                            {stream.viewers}
                           </Badge>
+                          <Badge className="bg-black/70 text-white text-xs backdrop-blur-sm">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {stream.duration}
+                          </Badge>
+                        </div>
+
+                        {/* Hover Play Button */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="w-12 h-12 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm transform group-hover:scale-110 transition-transform">
+                            <Play className="w-6 h-6 md:w-8 md:h-8 text-white ml-1" fill="white" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stream Info */}
+                      <div className="p-3 md:p-4 space-y-2">
+                        <h3 className="font-semibold text-sm md:text-base line-clamp-2 group-hover:text-primary transition-colors">
+                          {stream.title}
+                        </h3>
+                        
+                        <div className="flex items-center gap-2">
+                          <Avatar className="w-6 h-6 md:w-7 md:h-7 ring-2 ring-transparent group-hover:ring-primary/50 transition-all">
+                            <AvatarImage src={stream.hostAvatar || '/api/placeholder/32/32'} />
+                            <AvatarFallback className="text-xs">
+                              {stream.hostName?.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs md:text-sm text-muted-foreground truncate">
+                            {stream.hostName}
+                          </span>
+                        </div>
+
+                        {(stream.communityName || stream.category) && (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {stream.communityName && (
+                              <Badge variant="outline" className="text-xs">
+                                <Users className="w-3 h-3 mr-1" />
+                                {stream.communityName}
+                              </Badge>
+                            )}
+                            {stream.category && (
+                              <Badge variant="secondary" className="text-xs">
+                                {stream.category}
+                              </Badge>
+                            )}
+                          </div>
                         )}
                       </div>
-                      <div className="absolute bottom-2 right-2 flex items-center space-x-2">
-                        <Badge className="bg-black/70 text-white"><Eye className="w-3 h-3 mr-1" />{stream.viewers}</Badge>
-                        <Badge className="bg-black/70 text-white"><Clock className="w-3 h-3 mr-1" />{stream.duration}</Badge>
-                      </div>
-                      {stream.isPrivate && (
-                        <div className="absolute top-2 right-2">
-                          <Badge className="bg-yellow-500/80 text-black"><Key className="w-3 h-3 mr-1" />Privado</Badge>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                          <Play className="w-8 h-8 text-white ml-1" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-white font-semibold mb-2 line-clamp-1 group-hover:text-neon-green transition-colors">{stream.title}</h3>
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Avatar className="w-6 h-6">
-                          <AvatarImage src={stream.hostAvatar || '/api/placeholder/32/32'} />
-                          <AvatarFallback className="text-xs">{stream.hostName?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span className="text-gray-400 text-sm">{stream.hostName}</span>
-                      </div>
-                      {stream.communityName && <Badge variant="outline" className="text-xs"><Users className="w-3 h-3 mr-1" />{stream.communityName}</Badge>}
-                      {stream.category && <Badge variant="outline" className="text-xs ml-2">{stream.category}</Badge>}
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}
-          </div>
         </div>
       </main>
 

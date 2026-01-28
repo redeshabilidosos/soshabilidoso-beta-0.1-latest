@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Upload, X, Loader2 } from 'lucide-react';
+import { Camera, Upload, X, Loader2, Settings } from 'lucide-react';
 import { CyberButton } from './cyber-button';
+import { ImageCropEditor } from './image-crop-editor';
 import { toast } from 'sonner';
 
 interface ImageUploadProps {
@@ -15,49 +16,76 @@ interface ImageUploadProps {
 export function ImageUpload({ currentImage, onImageUpload, type, className = '' }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    console.log('[IMAGE UPLOAD] Archivo seleccionado:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      uploadType: type
+    });
+
     // Validar tipo de archivo
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
+      console.error('[IMAGE UPLOAD] Tipo de archivo no permitido:', file.type);
       toast.error('Tipo de archivo no permitido. Use JPG, PNG o WebP');
       return;
     }
 
     // Validar tamaño
-    const maxSize = type === 'avatar' ? 5 * 1024 * 1024 : 10 * 1024 * 1024; // 5MB para avatar, 10MB para portada
+    const maxSize = type === 'avatar' ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
     if (file.size > maxSize) {
       const maxSizeMB = maxSize / (1024 * 1024);
+      console.error('[IMAGE UPLOAD] Archivo demasiado grande:', file.size, 'Max:', maxSize);
       toast.error(`El archivo es demasiado grande. Máximo ${maxSizeMB}MB`);
       return;
     }
 
-    // Crear preview
+    console.log('[IMAGE UPLOAD] Validaciones pasadas, abriendo editor...');
+
+    // Crear preview y abrir editor
     const reader = new FileReader();
     reader.onload = (e) => {
-      setPreviewUrl(e.target?.result as string);
+      const imageUrl = e.target?.result as string;
+      console.log('[IMAGE UPLOAD] Imagen cargada, abriendo editor');
+      setSelectedFile(imageUrl);
+      setShowEditor(true);
     };
     reader.readAsDataURL(file);
-
-    // Subir archivo
-    handleUpload(file);
   };
 
-  const handleUpload = async (file: File) => {
+  const handleEditorSave = async (croppedBlob: Blob) => {
+    console.log('[IMAGE UPLOAD] Imagen editada, iniciando subida...');
     setIsUploading(true);
+    
     try {
+      // Convertir blob a file
+      const file = new File([croppedBlob], `${type}-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      
+      // Crear preview
+      const previewUrl = URL.createObjectURL(croppedBlob);
+      setPreviewUrl(previewUrl);
+      
+      console.log('[IMAGE UPLOAD] Llamando a onImageUpload...');
       await onImageUpload(file);
+      console.log('[IMAGE UPLOAD] onImageUpload completado exitosamente');
       toast.success(`${type === 'avatar' ? 'Avatar' : 'Foto de portada'} actualizada exitosamente`);
     } catch (error: any) {
-      console.error('Error uploading image:', error);
+      console.error('[IMAGE UPLOAD] Error en handleEditorSave:', error);
       toast.error(error.message || 'Error al subir la imagen');
       setPreviewUrl(null);
     } finally {
+      console.log('[IMAGE UPLOAD] handleEditorSave finalizado');
       setIsUploading(false);
+      setShowEditor(false);
+      setSelectedFile(null);
     }
   };
 
@@ -120,6 +148,24 @@ export function ImageUpload({ currentImage, onImageUpload, type, className = '' 
           </button>
         )}
 
+        {/* Editor de imagen */}
+        {selectedFile && (
+          <ImageCropEditor
+            isOpen={showEditor}
+            onClose={() => {
+              setShowEditor(false);
+              setSelectedFile(null);
+              if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+              }
+            }}
+            imageSrc={selectedFile}
+            onSave={handleEditorSave}
+            aspectRatio={1}
+            shape="round"
+          />
+        )}
+
         <input
           ref={fileInputRef}
           type="file"
@@ -158,21 +204,44 @@ export function ImageUpload({ currentImage, onImageUpload, type, className = '' 
           ) : (
             <div className="flex items-center space-x-2 text-white">
               <Camera className="w-6 h-6" />
-              <span>Cambiar foto</span>
+              <span>Cambiar foto de portada</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Botón de cambiar */}
-      <CyberButton
-        className="absolute top-4 right-4"
-        onClick={handleButtonClick}
-        disabled={isUploading}
-      >
-        <Camera size={16} className="mr-2" />
-        Cambiar
-      </CyberButton>
+      {/* Botones de acción */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        {/* Botón de editar posición (solo si ya hay imagen) */}
+        {displayImage && (
+          <CyberButton
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              if (displayImage) {
+                setSelectedFile(displayImage);
+                setShowEditor(true);
+              }
+            }}
+            disabled={isUploading}
+            className="bg-black/50 backdrop-blur-sm border-white/30 hover:bg-black/70"
+          >
+            <Settings size={16} className="mr-2" />
+            Editar posición
+          </CyberButton>
+        )}
+        
+        {/* Botón de cambiar foto */}
+        <CyberButton
+          size="sm"
+          onClick={handleButtonClick}
+          disabled={isUploading}
+          className="bg-neon-green/20 border-neon-green hover:bg-neon-green/30"
+        >
+          <Camera size={16} className="mr-2" />
+          {displayImage ? 'Cambiar foto' : 'Subir foto'}
+        </CyberButton>
+      </div>
 
       {/* Preview controls */}
       {previewUrl && (
@@ -183,6 +252,24 @@ export function ImageUpload({ currentImage, onImageUpload, type, className = '' 
           <X size={14} />
           <span className="text-sm">Cancelar</span>
         </button>
+      )}
+
+      {/* Editor de imagen */}
+      {selectedFile && (
+        <ImageCropEditor
+          isOpen={showEditor}
+          onClose={() => {
+            setShowEditor(false);
+            setSelectedFile(null);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
+          }}
+          imageSrc={selectedFile}
+          onSave={handleEditorSave}
+          aspectRatio={16 / 9}
+          shape="rect"
+        />
       )}
 
       <input

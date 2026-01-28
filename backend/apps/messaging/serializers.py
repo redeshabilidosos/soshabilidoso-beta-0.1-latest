@@ -33,6 +33,7 @@ class MessageSerializer(serializers.ModelSerializer):
     user_reaction = serializers.SerializerMethodField()
     is_read = serializers.SerializerMethodField()
     read_by_count = serializers.SerializerMethodField()
+    story_preview = serializers.SerializerMethodField()
     
     class Meta:
         model = Message
@@ -40,11 +41,45 @@ class MessageSerializer(serializers.ModelSerializer):
             'id', 'chat_room', 'sender', 'content', 'message_type',
             'image', 'video', 'audio', 'file_url', 'file_name', 'file_size',
             'reply_to', 'is_edited', 'is_deleted', 'created_at', 'updated_at',
-            'reactions', 'user_reaction', 'is_read', 'read_by_count', 'is_reply'
+            'reactions', 'user_reaction', 'is_read', 'read_by_count', 'is_reply',
+            'story_id', 'story_preview'
         ]
         read_only_fields = [
             'id', 'sender', 'is_edited', 'is_deleted', 'created_at', 'updated_at'
         ]
+    
+    def get_story_preview(self, obj):
+        """Obtener preview de la historia si el mensaje es una respuesta a historia"""
+        if obj.story_id and obj.message_type == 'story_reply':
+            try:
+                from apps.stories.models import Story
+                story = Story.objects.filter(id=obj.story_id).select_related('user').first()
+                if story:
+                    # Obtener avatar del usuario
+                    avatar_url = None
+                    if hasattr(story.user, 'avatar') and story.user.avatar:
+                        avatar_url = story.user.avatar.url
+                    elif hasattr(story.user, 'avatar_url') and story.user.avatar_url:
+                        avatar_url = story.user.avatar_url
+                    
+                    return {
+                        'id': str(story.id),
+                        'media_url': story.media_url,
+                        'media_type': story.media_type,
+                        'user': {
+                            'id': str(story.user.id),
+                            'username': story.user.username,
+                            'display_name': getattr(story.user, 'display_name', story.user.username),
+                            'avatar_url': avatar_url,
+                        },
+                        'created_at': story.created_at.isoformat(),
+                        'is_expired': story.is_expired
+                    }
+            except Exception as e:
+                print(f'[ERROR] Error al obtener preview de historia: {str(e)}')
+                import traceback
+                traceback.print_exc()
+        return None
     
     def get_reply_to(self, obj):
         """Obtener mensaje al que responde (versión simplificada)"""

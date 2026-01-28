@@ -57,7 +57,7 @@ export interface Message {
     avatar_url: string;
   };
   content: string;
-  message_type: 'text' | 'image' | 'video' | 'audio' | 'file' | 'emoji' | 'system';
+  message_type: 'text' | 'image' | 'video' | 'audio' | 'file' | 'emoji' | 'system' | 'story_reply';
   image?: string;
   video?: string;
   audio?: string;
@@ -71,6 +71,19 @@ export interface Message {
   updated_at: string;
   reactions: MessageReaction[];
   read_by: MessageRead[];
+  story_id?: string;
+  story_preview?: {
+    id: string;
+    media_url: string;
+    media_type: 'image' | 'video';
+    user: {
+      id: string;
+      username: string;
+      display_name: string;
+    };
+    created_at: string;
+    is_expired: boolean;
+  };
 }
 
 export interface MessageReaction {

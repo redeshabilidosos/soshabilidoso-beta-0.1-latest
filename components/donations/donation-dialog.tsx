@@ -119,10 +119,10 @@ export function DonationDialog({ isOpen, onClose, athlete }: DonationDialogProps
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-gray-900 border border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-gray-900/95 backdrop-blur-xl border border-gray-800 text-white max-w-lg max-h-[90vh] overflow-y-auto z-[100]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center space-x-2">
-            <Heart className="text-neon-green" />
+            <Heart className="text-primary" />
             <span>Donar a {athlete.name}</span>
           </DialogTitle>
         </DialogHeader>

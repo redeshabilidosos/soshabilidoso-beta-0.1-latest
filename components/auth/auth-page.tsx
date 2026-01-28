@@ -65,6 +65,7 @@ export function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     setErrors({});
     setIsLoading(true);
 
@@ -74,10 +75,24 @@ export function AuthPage() {
           login: formData.email, // Ahora se llama login y puede ser email o username
           password: formData.password
         });
+        
         if (success) {
-          router.push('/feed');
+          toast.success('¡Login exitoso! Redirigiendo...');
+          
+          // Forzar redirección con window.location como fallback
+          setTimeout(() => {
+            router.push('/feed');
+            
+            // Fallback: Si router.push no funciona después de 500ms, usar window.location
+            setTimeout(() => {
+              if (window.location.pathname === '/login') {
+                window.location.href = '/feed';
+              }
+            }, 500);
+          }, 100);
         } else {
           setErrors({ auth: 'Verifique su correo o contraseña' });
+          toast.error('Credenciales inválidas');
         }
       } else {
         // Validaciones para el registro
@@ -127,6 +142,8 @@ export function AuthPage() {
         });
 
         if (success) {
+          console.log('✅ Registro exitoso, redirigiendo a /feed...');
+          // Redirigir inmediatamente
           router.push('/feed');
         }
       }
@@ -155,10 +172,10 @@ export function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start lg:justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
-      <div className="relative z-10 w-full max-w-7xl">
+    <div className="min-h-screen flex flex-col items-center justify-start lg:justify-center p-4 sm:p-6 lg:p-12 relative overflow-hidden">
+      <div className="relative z-10 w-full max-w-6xl mx-auto">
         {/* Logo centrado como título - visible en desktop */}
-        <div className="hidden lg:flex flex-col items-center justify-center mb-10">
+        <div className="hidden lg:flex flex-col items-center justify-center mb-8">
           <SimpleLogo
             logoSrc="/logososbetav1.png"
             logoAlt="sos habilidoso logo beta"
@@ -177,49 +194,49 @@ export function AuthPage() {
           />
         </div>
 
-        {/* Contenedor principal con grid */}
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
-          {/* Columna izquierda - Descripción (en desktop) */}
-          <div className="hidden lg:flex flex-col space-y-8 order-1">
-            <p className="text-2xl text-gray-300 leading-relaxed">
+        {/* Contenedor principal con grid - más espaciado lateral */}
+        <div className="grid lg:grid-cols-[1fr_480px] gap-10 lg:gap-20 items-start px-0 lg:px-8">
+          {/* Columna izquierda - Descripción (en desktop) - más compacta */}
+          <div className="hidden lg:flex flex-col space-y-6 order-1">
+            <p className="text-lg text-gray-300 leading-relaxed">
               Conecta con personas de todo el mundo, comparte tus pasiones
               y descubre nuevos talentos en la plataforma más avanzada para entusiastas.
             </p>
 
-            <div className="grid grid-cols-2 gap-5">
-              <div className="glass-card p-5 space-y-3">
-                <Users className="text-neon-green" size={36} />
-                <h3 className="text-white font-semibold text-base">Comunidad Global</h3>
-                <p className="text-gray-400 text-sm">Miles de personas conectadas</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="glass-card p-4 space-y-2">
+                <Users className="text-neon-green" size={28} />
+                <h3 className="text-white font-semibold text-sm">Comunidad Global</h3>
+                <p className="text-gray-400 text-xs">Miles de personas conectadas</p>
               </div>
 
-              <div className="glass-card p-5 space-y-3">
-                <Trophy className="text-neon-blue" size={36} />
-                <h3 className="text-white font-semibold text-base">Momentos Destacados</h3>
-                <p className="text-gray-400 text-sm">Comparte tus mejores experiencias</p>
+              <div className="glass-card p-4 space-y-2">
+                <Trophy className="text-neon-blue" size={28} />
+                <h3 className="text-white font-semibold text-sm">Momentos Destacados</h3>
+                <p className="text-gray-400 text-xs">Comparte tus mejores experiencias</p>
               </div>
 
-              <div className="glass-card p-5 space-y-3">
-                <Zap className="text-neon-green" size={36} />
-                <h3 className="text-white font-semibold text-base">Tiempo Real</h3>
-                <p className="text-gray-400 text-sm">Actualizaciones instantáneas</p>
+              <div className="glass-card p-4 space-y-2">
+                <Zap className="text-neon-green" size={28} />
+                <h3 className="text-white font-semibold text-sm">Tiempo Real</h3>
+                <p className="text-gray-400 text-xs">Actualizaciones instantáneas</p>
               </div>
 
-              <div className="glass-card p-5 space-y-3">
-                <Star className="text-neon-blue" size={36} />
-                <h3 className="text-white font-semibold text-base">Descubrimiento</h3>
-                <p className="text-gray-400 text-sm">Encuentra nuevas pasiones</p>
+              <div className="glass-card p-4 space-y-2">
+                <Star className="text-neon-blue" size={28} />
+                <h3 className="text-white font-semibold text-sm">Descubrimiento</h3>
+                <p className="text-gray-400 text-xs">Encuentra nuevas pasiones</p>
               </div>
             </div>
           </div>
 
-          {/* Columna derecha - Formulario (en desktop es derecha, en móvil es primero) */}
-          <div className="glass-card p-8 lg:p-10 space-y-8 order-1 lg:order-2 shadow-2xl shadow-neon-green/10 border-2 border-white/20">
-          <div className="space-y-3 text-center">
-            <h2 className="text-3xl lg:text-4xl font-bold text-white">
+          {/* Columna derecha - Formulario (en desktop es derecha, en móvil es primero) - más compacto */}
+          <div className="glass-card p-6 lg:p-7 space-y-5 order-1 lg:order-2 shadow-2xl shadow-neon-green/10 border-2 border-white/20">
+          <div className="space-y-2 text-center">
+            <h2 className="text-2xl lg:text-3xl font-bold text-white">
               {isLogin ? 'Bienvenido de vuelta' : 'Únete a la comunidad'}
             </h2>
-            <p className="text-gray-400 text-lg">
+            <p className="text-gray-400 text-sm">
               {isLogin
                 ? 'Inicia sesión para continuar tu aventura'
                 : 'Crea tu perfil y comienza a conectar'
@@ -405,7 +422,7 @@ export function AuthPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full px-5 py-4 text-lg bg-white/10 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                  className={`w-full pl-5 pr-14 py-4 text-lg bg-white/10 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
                     errors.password ? 'border-red-500/50 focus:ring-red-500/50' : 'border-white/20 focus:ring-neon-green/50'
                   }`}
                   placeholder="••••••••"
@@ -414,9 +431,9 @@ export function AuthPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                 >
-                  {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
+                  {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                 </button>
               </div>
               {errors.password && (
@@ -438,7 +455,7 @@ export function AuthPage() {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full px-5 py-4 text-lg bg-white/10 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                    className={`w-full pl-5 pr-14 py-4 text-lg bg-white/10 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
                       errors.confirmPassword ? 'border-red-500/50 focus:ring-red-500/50' : 'border-white/20 focus:ring-neon-green/50'
                     }`}
                     placeholder="••••••••"
@@ -447,9 +464,9 @@ export function AuthPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                    className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                   >
-                    {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
+                    {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                   </button>
                 </div>
                 {errors.confirmPassword && (

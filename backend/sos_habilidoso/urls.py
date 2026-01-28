@@ -56,6 +56,7 @@ urlpatterns = [
     path('api/enterprises/', include('apps.enterprises.urls')),
     path('api/payments/', include('apps.payments.urls')),
     path('api/site-settings/', include('apps.site_settings.urls')),
+    path('api/streaming/', include('apps.streaming.urls')),
 ]
 
 # Agregar URLs de documentación si está habilitado y disponible

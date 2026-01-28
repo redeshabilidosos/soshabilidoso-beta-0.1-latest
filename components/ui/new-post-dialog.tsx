@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { Post } from '@/types/user';
 import { StreamingModal } from '@/components/streaming/streaming-modal';
 import { postsService, CreatePostData } from '@/lib/services/posts.service';
+import { EmojiPickerButton } from '@/components/ui/emoji-picker-button';
 
 interface NewPostDialogProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export function NewPostDialog({ isOpen, onClose, onPostCreated, communityId }: N
   const imageFileInputRef = useRef<HTMLInputElement>(null);
   const videoFileInputRef = useRef<HTMLInputElement>(null);
   const podcastFileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Estados para controlar si se usa URL o archivo local para Video/Podcast
   const [videoInputMode, setVideoInputMode] = useState<'url' | 'file'>('url');
@@ -101,6 +103,26 @@ export function NewPostDialog({ isOpen, onClose, onPostCreated, communityId }: N
     setIsLiveStreamingActive(false);
     toast.info('Transmisión en vivo finalizada.');
     // En una aplicación real, aquí se cerraría la conexión.
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = content;
+    const before = text.substring(0, start);
+    const after = text.substring(end);
+    
+    setContent(before + emoji + after);
+    
+    // Restaurar el foco y posición del cursor
+    setTimeout(() => {
+      textarea.focus();
+      const newPosition = start + emoji.length;
+      textarea.setSelectionRange(newPosition, newPosition);
+    }, 0);
   };
 
   const handleSubmit = async () => {
@@ -296,12 +318,18 @@ export function NewPostDialog({ isOpen, onClose, onPostCreated, communityId }: N
           </div>
 
           {/* Content Textarea */}
-          <Textarea
-            placeholder="¿Qué tienes en mente, Habilidoso?"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="min-h-[100px] bg-white/10 border-white/20 text-white placeholder-gray-400 focus:ring-neon-green/50"
-          />
+          <div className="relative">
+            <Textarea
+              ref={textareaRef}
+              placeholder="¿Qué tienes en mente, Habilidoso?"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="min-h-[100px] bg-white/10 border-white/20 text-white placeholder-gray-400 focus:ring-neon-green/50 pr-12"
+            />
+            <div className="absolute bottom-2 right-2">
+              <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
+            </div>
+          </div>
 
           {/* Image URL/File Inputs */}
           {(postType === 'image' || postType === 'highlight') && (

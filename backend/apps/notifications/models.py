@@ -22,6 +22,8 @@ class Notification(models.Model):
         ('friend_request', 'Solicitud de amistad'),
         ('friend_accept', 'Amistad aceptada'),
         ('mention', 'Mención'),
+        ('story_reaction', 'Reacción a historia'),
+        ('story_reply', 'Respuesta a historia'),
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -48,6 +50,7 @@ class Notification(models.Model):
     post_id = models.UUIDField(null=True, blank=True, verbose_name='ID del post')
     comment_id = models.UUIDField(null=True, blank=True, verbose_name='ID del comentario')
     friend_request_id = models.UUIDField(null=True, blank=True, verbose_name='ID de solicitud de amistad')
+    story_id = models.UUIDField(null=True, blank=True, verbose_name='ID de la historia')
     
     # Contenido
     message = models.TextField(max_length=500, verbose_name='Mensaje')

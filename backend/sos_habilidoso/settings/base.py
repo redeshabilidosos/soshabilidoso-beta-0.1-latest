@@ -62,6 +62,7 @@ LOCAL_APPS = [
     'apps.enterprises',
     'apps.payments',
     'apps.site_settings',
+    'apps.streaming',  # Sistema de streaming en vivo
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -440,7 +441,8 @@ if ENABLE_API_DOCS:
         
         # Configuración de ejemplos
         'ENUM_NAME_OVERRIDES': {
-            'ValidationErrorEnum': 'django.core.exceptions.ValidationError',
+            # Aquí puedes agregar overrides específicos para enums si es necesario
+            # Ejemplo: 'StatusEnum': 'apps.posts.models.Post.status.field.choices'
         },
         
         # Configuración de componentes
