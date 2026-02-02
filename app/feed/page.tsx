@@ -16,6 +16,12 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+// OPTIMIZACIÓN: Importar directamente componentes pequeños (no lazy)
+import { Sidebar } from '@/components/navigation/sidebar';
+import { MobileNav } from '@/components/navigation/mobile-nav';
+import { PostCard } from '@/components/ui/post-card';
+import { RealtimeIndicator } from '@/components/ui/realtime-indicator';
+
 // Define UserStories type locally to avoid importing from lazy-loaded module
 interface UserStories {
   user: {
@@ -42,11 +48,7 @@ interface UserStories {
   hasUnviewed: boolean;
 }
 
-// Lazy loading de componentes pesados
-const Sidebar = lazy(() => import('@/components/navigation/sidebar').then(mod => ({ default: mod.Sidebar })));
-const MobileNav = lazy(() => import('@/components/navigation/mobile-nav').then(mod => ({ default: mod.MobileNav })));
-const PostCard = lazy(() => import('@/components/ui/post-card').then(mod => ({ default: mod.PostCard })));
-const RealtimeIndicator = lazy(() => import('@/components/ui/realtime-indicator').then(mod => ({ default: mod.RealtimeIndicator })));
+// OPTIMIZACIÓN: Lazy loading SOLO para componentes pesados
 const MeetingNotifications = lazy(() => import('@/components/communities/meeting-notifications').then(mod => ({ default: mod.MeetingNotifications })));
 const NewPostDialog = lazy(() => import('@/components/ui/new-post-dialog').then(mod => ({ default: mod.NewPostDialog })));
 const AdCard = lazy(() => import('@/components/advertising/ad-card').then(mod => ({ default: mod.AdCard })));
@@ -192,149 +194,237 @@ export default function FeedPage() {
     }
   }, [effectiveUser, isLoading, router]);
 
-  // Cargar posts del backend - optimizado para evitar cargas duplicadas
+  // OPTIMIZACIÓN: Cargar TODOS los datos en paralelo
   useEffect(() => {
-    const loadPosts = async () => {
-      if (!effectiveUser || postsLoadedRef.current) return;
-      postsLoadedRef.current = true;
+    const loadAllFeedData = async () => {
+      if (!effectiveUser) return;
       
-      try {
-        setIsLoadingPosts(true);
-        const { postsService } = await import('@/lib/services/posts.service');
-        const response = await postsService.getPosts();
-        
-        // Mapear posts del backend al formato del frontend
-        const mappedPosts = response.results.map((post: any) => ({
-          id: post.id,
-          userId: post.user.id,
-          user: {
-            id: post.user.id,
-            username: post.user.username,
-            displayName: post.user.display_name,
-            avatar: post.user.avatar_url,
-            isVerified: post.user.is_verified,
-            position: post.user.position,
-            team: post.user.team,
-          },
-          content: post.content,
-          images: post.images || [],
-          video: post.video,
-          thumbnail: post.thumbnail,
-          podcastUrl: post.podcast_url,
-          streamingUrl: post.streaming_url,
-          type: post.post_type,
-          category: post.category,
-          likes: post.likes_count || 0,
-          celebrations: post.celebrations_count || 0,
-          golazos: post.golazos_count || 0,
-          laughs: post.laughs_count || post.celebrations_count || 0,
-          dislikes: post.dislikes_count || post.golazos_count || 0,
-          comments: post.comments || [],
-          commentsCount: post.comments_count || 0,
-          userReaction: post.user_reaction || null,
-          createdAt: post.created_at,
-        }));
-        
-        setPosts(mappedPosts);
-        console.log('✅ Posts cargados del backend:', mappedPosts.length);
-      } catch (error) {
-        console.error('❌ Error cargando posts:', error);
-        toast.error('Error al cargar las publicaciones');
-      } finally {
-        setIsLoadingPosts(false);
-      }
-    };
-    
-    loadPosts();
-  }, [effectiveUser]);
-
-  // Cargar historias de amigos/contactos
-  useEffect(() => {
-    const loadStories = async () => {
-      if (!effectiveUser || storiesLoadedRef.current) return;
+      // Prevenir cargas duplicadas
+      if (postsLoadedRef.current) return;
+      postsLoadedRef.current = true;
+      adsLoadedRef.current = true;
       storiesLoadedRef.current = true;
       
       try {
+        setIsLoadingPosts(true);
         setIsLoadingStories(true);
-        // Import dinámico del servicio
-        const { storiesService } = await import('@/lib/services/stories.service');
-        const backendStories = await storiesService.getFriendsStories();
+        setLoadingSuggestions(true);
         
-        // Mapear historias del backend al formato del frontend
-        const mappedStories: UserStories[] = backendStories.map((userStory: any) => ({
-          user: {
-            id: userStory.user.id,
-            username: userStory.user.username,
-            displayName: userStory.user.display_name,
-            avatar: userStory.user.avatar_url,
-          },
-          stories: userStory.stories.map((story: any) => ({
-            id: story.id,
-            userId: story.user.id,
+        const token = localStorage.getItem('access_token');
+        
+        // CARGAR TODO EN PARALELO con Promise.allSettled
+        const [
+          postsResult,
+          storiesResult,
+          adsResult,
+          usersResult,
+          communitiesResult
+        ] = await Promise.allSettled([
+          // 1. Posts
+          import('@/lib/services/posts.service').then(m => m.postsService.getPosts()),
+          
+          // 2. Stories
+          import('@/lib/services/stories.service').then(m => m.storiesService.getFriendsStories()),
+          
+          // 3. Ads
+          import('@/lib/services/advertising.service').then(m => m.advertisingService.getFeedAds(0, 5)),
+          
+          // 4. Usuarios sugeridos
+          fetch('http://127.0.0.1:8000/api/users/suggested/', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).catch(() => 
+            fetch('http://127.0.0.1:8000/api/users/', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            })
+          ),
+          
+          // 5. Comunidades sugeridas
+          fetch('http://127.0.0.1:8000/api/communities/suggested/', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).catch(() =>
+            fetch('http://127.0.0.1:8000/api/communities/', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            })
+          )
+        ]);
+        
+        // Procesar Posts
+        if (postsResult.status === 'fulfilled') {
+          const response = postsResult.value;
+          const mappedPosts = response.results.map((post: any) => ({
+            id: post.id,
+            userId: post.user.id,
             user: {
-              id: story.user.id,
-              username: story.user.username,
-              displayName: story.user.display_name,
-              avatar: story.user.avatar_url,
+              id: post.user.id,
+              username: post.user.username,
+              displayName: post.user.display_name,
+              avatar: post.user.avatar_url,
+              isVerified: post.user.is_verified,
+              position: post.user.position,
+              team: post.user.team,
             },
-            mediaUrl: story.media_url,
-            mediaType: story.media_type,
-            createdAt: story.created_at,
-            expiresAt: story.expires_at,
-            viewed: story.viewed,
-          })),
-          hasUnviewed: userStory.has_unviewed,
-        }));
-
-        // Agregar el usuario actual al inicio (para que pueda crear historias)
-        const currentUserId = String(effectiveUser.id);
-        const currentUserStory: UserStories = {
-          user: {
-            id: currentUserId,
-            username: effectiveUser.username,
-            displayName: effectiveUser.displayName || effectiveUser.username,
-            avatar: effectiveUser.avatar || effectiveUser.avatarUrl || '',
-          },
-          stories: [], // Se cargarán las historias propias si existen
-          hasUnviewed: false,
-        };
-
-        // Verificar si el usuario actual ya está en la lista (comparar como strings)
-        const currentUserInList = mappedStories.find(us => 
-          String(us.user.id) === currentUserId
-        );
-        
-        if (currentUserInList) {
-          // Mover al inicio y asegurar que el ID sea string
-          currentUserInList.user.id = currentUserId;
-          const filtered = mappedStories.filter(us => 
-            String(us.user.id) !== currentUserId
-          );
-          setUserStories([currentUserInList, ...filtered]);
+            content: post.content,
+            images: post.images || [],
+            video: post.video,
+            thumbnail: post.thumbnail,
+            podcastUrl: post.podcast_url,
+            streamingUrl: post.streaming_url,
+            type: post.post_type,
+            category: post.category,
+            likes: post.likes_count || 0,
+            celebrations: post.celebrations_count || 0,
+            golazos: post.golazos_count || 0,
+            laughs: post.laughs_count || post.celebrations_count || 0,
+            dislikes: post.dislikes_count || post.golazos_count || 0,
+            comments: post.comments || [],
+            commentsCount: post.comments_count || 0,
+            userReaction: post.user_reaction || null,
+            createdAt: post.created_at,
+          }));
+          setPosts(mappedPosts);
+          console.log('✅ Posts cargados:', mappedPosts.length);
         } else {
-          setUserStories([currentUserStory, ...mappedStories]);
+          console.error('❌ Error cargando posts:', postsResult.reason);
+          toast.error('Error al cargar las publicaciones');
         }
+        
+        // Procesar Stories
+        if (storiesResult.status === 'fulfilled') {
+          const backendStories = storiesResult.value;
+          
+          const mappedStories: UserStories[] = backendStories.map((userStory: any) => ({
+            user: {
+              id: userStory.user.id,
+              username: userStory.user.username,
+              displayName: userStory.user.display_name,
+              avatar: userStory.user.avatar_url,
+            },
+            stories: userStory.stories.map((story: any) => ({
+              id: story.id,
+              userId: story.user.id,
+              user: {
+                id: story.user.id,
+                username: story.user.username,
+                displayName: story.user.display_name,
+                avatar: story.user.avatar_url,
+              },
+              mediaUrl: story.media_url,
+              mediaType: story.media_type,
+              createdAt: story.created_at,
+              expiresAt: story.expires_at,
+              viewed: story.viewed,
+            })),
+            hasUnviewed: userStory.has_unviewed,
+          }));
 
-        console.log('✅ Historias cargadas:', mappedStories.length);
+          const currentUserId = String(effectiveUser.id);
+          const currentUserStory: UserStories = {
+            user: {
+              id: currentUserId,
+              username: effectiveUser.username,
+              displayName: effectiveUser.displayName || effectiveUser.username,
+              avatar: effectiveUser.avatar || effectiveUser.avatarUrl || '',
+            },
+            stories: [],
+            hasUnviewed: false,
+          };
+
+          const currentUserInList = mappedStories.find(us => 
+            String(us.user.id) === currentUserId
+          );
+          
+          if (currentUserInList) {
+            currentUserInList.user.id = currentUserId;
+            const filtered = mappedStories.filter(us => 
+              String(us.user.id) !== currentUserId
+            );
+            setUserStories([currentUserInList, ...filtered]);
+          } else {
+            setUserStories([currentUserStory, ...mappedStories]);
+          }
+          console.log('✅ Historias cargadas:', mappedStories.length);
+        } else {
+          console.error('❌ Error cargando historias:', storiesResult.reason);
+          setUserStories([{
+            user: {
+              id: String(effectiveUser.id),
+              username: effectiveUser.username,
+              displayName: effectiveUser.displayName || effectiveUser.username,
+              avatar: effectiveUser.avatar || effectiveUser.avatarUrl || '',
+            },
+            stories: [],
+            hasUnviewed: false,
+          }]);
+        }
+        
+        // Procesar Ads
+        if (adsResult.status === 'fulfilled') {
+          const response = adsResult.value;
+          if (response.ads.length > 0) {
+            setFeedAds(response.ads);
+            console.log('✅ Anuncios cargados:', response.ads.length);
+          } else {
+            setFeedAds([demoAd]);
+          }
+        } else {
+          setFeedAds([demoAd]);
+        }
+        
+        // Procesar Usuarios sugeridos
+        if (usersResult.status === 'fulfilled') {
+          const usersResponse = usersResult.value;
+          if (usersResponse.ok) {
+            const usersData = await usersResponse.json();
+            const users = usersData.results || usersData;
+            
+            const filteredUsers = users
+              .filter((u: any) => u.id !== effectiveUser.id && u.username !== effectiveUser.username)
+              .slice(0, 5)
+              .map((u: any) => ({
+                id: u.id,
+                username: u.username,
+                display_name: u.display_name || u.displayName || u.username,
+                avatar_url: u.avatar_url || u.avatar || u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.display_name || u.username)}&background=39FF14&color=000`,
+                mutual_friends_count: u.mutual_friends_count || Math.floor(Math.random() * 5) + 1
+              }));
+            
+            setSuggestedUsers(filteredUsers);
+            console.log('✅ Usuarios cargados:', filteredUsers.length);
+          }
+        }
+        
+        // Procesar Comunidades sugeridas
+        if (communitiesResult.status === 'fulfilled') {
+          const communitiesResponse = communitiesResult.value;
+          if (communitiesResponse.ok) {
+            const communitiesData = await communitiesResponse.json();
+            const communities = communitiesData.results || communitiesData;
+            
+            const mappedCommunities = communities
+              .slice(0, 5)
+              .map((c: any) => ({
+                id: c.id,
+                name: c.name,
+                description: c.description || 'Únete a esta comunidad',
+                image_url: c.image_url || c.image || c.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=8B5CF6&color=fff&size=128`,
+                members_count: c.members_count || c.membersCount || c.subscribers_count || 0
+              }));
+            
+            setSuggestedCommunities(mappedCommunities);
+            console.log('✅ Comunidades cargadas:', mappedCommunities.length);
+          }
+        }
+        
       } catch (error) {
-        console.error('❌ Error cargando historias:', error);
-        // Si falla, al menos mostrar el usuario actual para que pueda crear historias
-        setUserStories([{
-          user: {
-            id: String(effectiveUser.id),
-            username: effectiveUser.username,
-            displayName: effectiveUser.displayName || effectiveUser.username,
-            avatar: effectiveUser.avatar || effectiveUser.avatarUrl || '',
-          },
-          stories: [],
-          hasUnviewed: false,
-        }]);
+        console.error('❌ Error cargando datos del feed:', error);
       } finally {
+        setIsLoadingPosts(false);
         setIsLoadingStories(false);
+        setLoadingSuggestions(false);
       }
     };
     
-    loadStories();
+    loadAllFeedData();
   }, [effectiveUser]);
 
   // Anuncio de prueba con video local
@@ -350,126 +440,6 @@ export default function FeedPage() {
     call_to_action: 'Ver Capacitaciones',
     carousel_images: [],
   };
-
-  // Cargar anuncios para el feed
-  useEffect(() => {
-    const loadAds = async () => {
-      if (adsLoadedRef.current) return;
-      adsLoadedRef.current = true;
-      
-      try {
-        // Import dinámico del servicio
-        const { advertisingService } = await import('@/lib/services/advertising.service');
-        // Cargar varios anuncios para rotar en el feed
-        const response = await advertisingService.getFeedAds(0, 5);
-        if (response.ads.length > 0) {
-          setFeedAds(response.ads);
-          console.log('✅ Anuncios cargados:', response.ads.length);
-        } else {
-          // Si no hay anuncios del backend, usar el de demostración
-          setFeedAds([demoAd]);
-          console.log('✅ Usando anuncio de demostración');
-        }
-      } catch (error) {
-        console.error('Error cargando anuncios:', error);
-      }
-    };
-    
-    loadAds();
-  }, []);
-
-  // Cargar sugerencias de usuarios y comunidades
-  useEffect(() => {
-    const loadSuggestions = async () => {
-      if (!effectiveUser) return;
-      
-      try {
-        setLoadingSuggestions(true);
-        const token = localStorage.getItem('access_token');
-        
-        // Cargar usuarios reales de la base de datos
-        try {
-          // Intentar endpoint de sugerencias primero
-          let usersResponse = await fetch('http://127.0.0.1:8000/api/users/suggested/', {
-            headers: { 'Authorization': `Bearer ${token}` },
-          });
-          
-          // Si no existe, usar el endpoint de todos los usuarios
-          if (!usersResponse.ok) {
-            console.log('Endpoint de sugerencias no disponible, usando lista de usuarios');
-            usersResponse = await fetch('http://127.0.0.1:8000/api/users/', {
-              headers: { 'Authorization': `Bearer ${token}` },
-            });
-          }
-          
-          if (usersResponse.ok) {
-            const usersData = await usersResponse.json();
-            const users = usersData.results || usersData;
-            
-            // Filtrar el usuario actual y tomar los primeros 5
-            const filteredUsers = users
-              .filter((u: any) => u.id !== effectiveUser.id && u.username !== effectiveUser.username)
-              .slice(0, 5)
-              .map((u: any) => ({
-                id: u.id,
-                username: u.username,
-                display_name: u.display_name || u.displayName || u.username,
-                avatar_url: u.avatar_url || u.avatar || u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.display_name || u.username)}&background=39FF14&color=000`,
-                mutual_friends_count: u.mutual_friends_count || Math.floor(Math.random() * 5) + 1
-              }));
-            
-            setSuggestedUsers(filteredUsers);
-            console.log('✅ Usuarios reales cargados:', filteredUsers.length);
-          }
-        } catch (error) {
-          console.error('Error cargando usuarios:', error);
-        }
-
-        // Cargar comunidades reales de la base de datos
-        try {
-          // Intentar endpoint de sugerencias primero
-          let communitiesResponse = await fetch('http://127.0.0.1:8000/api/communities/suggested/', {
-            headers: { 'Authorization': `Bearer ${token}` },
-          });
-          
-          // Si no existe, usar el endpoint de todas las comunidades
-          if (!communitiesResponse.ok) {
-            console.log('Endpoint de sugerencias no disponible, usando lista de comunidades');
-            communitiesResponse = await fetch('http://127.0.0.1:8000/api/communities/', {
-              headers: { 'Authorization': `Bearer ${token}` },
-            });
-          }
-          
-          if (communitiesResponse.ok) {
-            const communitiesData = await communitiesResponse.json();
-            const communities = communitiesData.results || communitiesData;
-            
-            // Tomar las primeras 5 comunidades
-            const mappedCommunities = communities
-              .slice(0, 5)
-              .map((c: any) => ({
-                id: c.id,
-                name: c.name,
-                description: c.description || 'Únete a esta comunidad',
-                image_url: c.image_url || c.image || c.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=8B5CF6&color=fff&size=128`,
-                members_count: c.members_count || c.membersCount || c.subscribers_count || 0
-              }));
-            
-            setSuggestedCommunities(mappedCommunities);
-            console.log('✅ Comunidades reales cargadas:', mappedCommunities.length);
-          }
-        } catch (error) {
-          console.error('Error cargando comunidades:', error);
-        }
-      } catch (error) {
-        console.error('Error cargando sugerencias:', error);
-      } finally {
-        setLoadingSuggestions(false);
-      }
-    };
-    
-    loadSuggestions();
-  }, [effectiveUser]);
 
   // Manejar mensajes del WebSocket
   useEffect(() => {
@@ -622,11 +592,8 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-transparent">
-      <Suspense fallback={
-        <div className="fixed left-0 top-0 h-screen w-64 bg-black/50 backdrop-blur-sm animate-pulse" />
-      }>
-        <Sidebar />
-      </Suspense>
+      {/* OPTIMIZACIÓN: Sidebar sin Suspense ya que no es lazy */}
+      <Sidebar />
       
       <main className="pb-24 lg:ml-64 lg:pb-0 lg:pr-80">
         <div className="max-w-3xl mx-auto p-3 md:p-4 lg:p-6 space-y-4 md:space-y-6">
@@ -638,14 +605,13 @@ export default function FeedPage() {
                   <div className="flex items-center gap-2 md:gap-3 mb-2">
                     <TrendingUp className="text-primary w-5 h-5 md:w-6 md:h-6" />
                     <CardTitle className="text-lg md:text-2xl">Feed Principal</CardTitle>
-                    <Suspense fallback={<Skeleton className="w-20 h-5" />}>
-                      <RealtimeIndicator 
-                        isConnected={isConnected} 
-                        showLabel={false}
-                        size="sm"
-                        className="md:flex"
-                      />
-                    </Suspense>
+                    {/* OPTIMIZACIÓN: Sin Suspense ya que no es lazy */}
+                    <RealtimeIndicator 
+                      isConnected={isConnected} 
+                      showLabel={false}
+                      size="sm"
+                      className="md:flex"
+                    />
                   </div>
                   <CardDescription className="text-xs md:text-sm">
                     Descubre las últimas novedades de tu comunidad
@@ -730,25 +696,8 @@ export default function FeedPage() {
                 return (
                   <div key={post.id}>
                     <div id={`post-${post.id}`}>
-                      <Suspense fallback={
-                        <Card className="rounded-2xl">
-                          <CardContent className="p-4 md:p-6">
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-3">
-                                <Skeleton className="w-10 h-10 md:w-12 md:h-12 rounded-full" />
-                                <div className="flex-1 space-y-2">
-                                  <Skeleton className="h-4 w-32" />
-                                  <Skeleton className="h-3 w-24" />
-                                </div>
-                              </div>
-                              <Skeleton className="h-20 w-full" />
-                              <Skeleton className="h-48 w-full rounded-xl" />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      }>
-                        <PostCard post={post} onPostUpdated={handlePostUpdated} onPostDeleted={handlePostDeleted} />
-                      </Suspense>
+                      {/* OPTIMIZACIÓN: Sin Suspense ya que PostCard no es lazy */}
+                      <PostCard post={post} onPostUpdated={handlePostUpdated} onPostDeleted={handlePostDeleted} />
                     </div>
                     
                     {adToShow && (

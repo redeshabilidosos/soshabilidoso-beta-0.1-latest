@@ -150,12 +150,17 @@ const withPWA = require('next-pwa')({
 });
 
 const nextConfig = {
+  // CAPACITOR: Modo Híbrido - App carga desde servidor
+  // output: 'export', // DESHABILITADO - Usar servidor remoto
+  
   // Optimizaciones de rendimiento
   reactStrictMode: false, // Desactivar para evitar doble render en desarrollo
   swcMinify: true,
   
   // Optimizar imágenes
   images: {
+    // CAPACITOR: Mantener unoptimized para compatibilidad móvil
+    unoptimized: true,
     domains: ['images.pexels.com', 'localhost', '127.0.0.1', 'ui-avatars.com'],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -222,7 +227,7 @@ const nextConfig = {
     pagesBufferLength: 20, // Más páginas en buffer para navegación rápida
   },
   
-  // Headers para mejor caching
+  // Headers de seguridad (compatible con modo híbrido)
   async headers() {
     return [
       {

@@ -4,7 +4,7 @@
  */
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback, useMemo, startTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@/types/user';
 import { authService, LoginCredentials, RegisterData } from '@/lib/services/auth.service';
@@ -91,8 +91,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (isInitializedRef.current && user) {
         if (!verificationDoneRef.current) {
           verificationDoneRef.current = true;
-          // Verificar en background sin bloquear
-          refreshUser().catch(console.warn);
+          // OPTIMIZACIÓN: Usar startTransition para no bloquear UI
+          startTransition(() => {
+            refreshUser().catch(console.warn);
+          });
         }
         return;
       }
@@ -114,21 +116,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setIsLoading(false);
           isInitializedRef.current = true;
           
-          // Obtener perfil actualizado del servidor en background
-          authService.getProfile()
-            .then(freshUser => {
-              const mappedUser = {
-                ...freshUser,
-                displayName: freshUser.display_name || freshUser.displayName,
-                avatar: freshUser.avatar || freshUser.avatar_url,
-                coverPhoto: freshUser.cover_photo_url || freshUser.cover_photo,
-              };
-              updateUser(mappedUser);
-              localStorage.setItem('user', JSON.stringify(mappedUser));
-            })
-            .catch(() => {
-              // Silenciosamente fallar, usar datos locales
-            });
+          // OPTIMIZACIÓN: Obtener perfil actualizado en background con startTransition
+          startTransition(() => {
+            authService.getProfile()
+              .then(freshUser => {
+                const mappedUser = {
+                  ...freshUser,
+                  displayName: freshUser.display_name || freshUser.displayName,
+                  avatar: freshUser.avatar || freshUser.avatar_url,
+                  coverPhoto: freshUser.cover_photo_url || freshUser.cover_photo,
+                };
+                updateUser(mappedUser);
+                localStorage.setItem('user', JSON.stringify(mappedUser));
+              })
+              .catch(() => {
+                // Silenciosamente fallar, usar datos locales
+              });
+          });
         } else {
           setIsLoading(false);
           isInitializedRef.current = true;

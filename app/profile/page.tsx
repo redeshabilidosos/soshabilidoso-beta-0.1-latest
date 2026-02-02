@@ -48,6 +48,8 @@ export default function ProfilePage() {
   const [isPhotoViewerOpen, setIsPhotoViewerOpen] = useState(false); // Estado para el visor de fotos
   const [profilePhotos, setProfilePhotos] = useState<any[]>([]); // Fotos de perfil del álbum
   const [coverPhotos, setCoverPhotos] = useState<any[]>([]); // Fotos de portada del álbum
+  const [touchStart, setTouchStart] = useState<number>(0);
+  const [touchEnd, setTouchEnd] = useState<number>(0);
   const [loadingAlbum, setLoadingAlbum] = useState(false);
   const [userStats, setUserStats] = useState({
     totalLikes: 0,        // Reacciones que ha dado el usuario
@@ -278,10 +280,6 @@ export default function ProfilePage() {
       return coverPhotos.length > 0 ? coverPhotos : (user.coverPhoto ? [{ file_url: user.coverPhoto, created_at: new Date() }] : []);
     }
   };
-
-  // Soporte para gestos táctiles (swipe)
-  const [touchStart, setTouchStart] = useState<number>(0);
-  const [touchEnd, setTouchEnd] = useState<number>(0);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);

@@ -167,7 +167,7 @@ export function ReelsViewer({
       {/* Reels Container */}
       <div
         ref={containerRef}
-        className="h-full overflow-y-auto snap-y snap-mandatory scrollbar-hide"
+        className="h-full w-full overflow-y-auto snap-y snap-mandatory scrollbar-hide"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -175,7 +175,7 @@ export function ReelsViewer({
         {reels.map((reel, index) => (
           <div
             key={reel.id}
-            className="w-full h-full snap-start snap-always flex-shrink-0"
+            className="w-full h-screen snap-start snap-always flex-shrink-0 flex items-center justify-center"
           >
             <ReelCard
               reel={reel}

@@ -135,6 +135,8 @@ export default function CommunityPage() {
   const [replyingTo, setReplyingTo] = useState<{ commentId: string; username: string } | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [activeInfoTab, setActiveInfoTab] = useState<'about' | 'stats'>('about');
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [showPostDetailModal, setShowPostDetailModal] = useState(false);
 
   useEffect(() => {
     // Solo redirigir si ya terminó de cargar la autenticación y no hay usuario
@@ -309,20 +311,28 @@ export default function CommunityPage() {
         });
 
         if (response.ok) {
-          setPosts(posts.map(post =>
-            post.id === postId
-              ? {
+          const updatePost = (post: Post) => {
+            if (post.id === postId) {
+              return {
                 ...post,
                 is_liked: !post.is_liked,
                 like_count: post.is_liked ? post.like_count - 1 : post.like_count + 1
-              }
-              : post
-          ));
+              };
+            }
+            return post;
+          };
+          
+          setPosts(posts.map(updatePost));
+          
+          // Actualizar también el post seleccionado si está abierto
+          if (selectedPost && selectedPost.id === postId) {
+            setSelectedPost(updatePost(selectedPost));
+          }
         }
       } else {
         // Para otras reacciones (laugh, dislike) - actualización optimista
         // TODO: Implementar endpoint en backend para otras reacciones
-        setPosts(posts.map(post => {
+        const updatePost = (post: Post) => {
           if (post.id === postId) {
             const countField = `${reactionType}_count` as keyof Post;
             const currentCount = (post as any)[countField] || 0;
@@ -332,7 +342,14 @@ export default function CommunityPage() {
             };
           }
           return post;
-        }));
+        };
+        
+        setPosts(posts.map(updatePost));
+        
+        // Actualizar también el post seleccionado si está abierto
+        if (selectedPost && selectedPost.id === postId) {
+          setSelectedPost(updatePost(selectedPost));
+        }
         
         toast.success(reactionType === 'laugh' ? '😂 ¡Jajaja!' : '👎 No me gusta');
       }
@@ -788,9 +805,9 @@ export default function CommunityPage() {
 
             {/* Contenido reorganizado - Sistema completo de 2 columnas */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 relative z-10 max-w-[1500px] mx-auto px-2 lg:px-4">
-              
-              {/* COLUMNA IZQUIERDA - Sidebar con toda la información (4 columnas) */}
-              <div className="lg:col-span-4 space-y-2 lg:pr-4">
+                     
+              {/* COLUMNA IZQUIERDA - Información del grupo (4 columnas) */}
+              <div className="lg:col-span-4 lg:order-2 space-y-2.5 lg:pl-4">
                 {/* Botón de unirse/miembro */}
                 <Card className="glass-card border-white/10">
                   <CardContent className="pt-3 pb-3">
@@ -814,6 +831,34 @@ export default function CommunityPage() {
                     )}
                   </CardContent>
                 </Card>
+
+                                {/* Creador */}
+                <Card className="glass-card border-white/10">
+                  <CardContent className="pt-2.5 pb-2.5">
+                    <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500" />
+                      Creador
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-10 h-10 ring-2 ring-yellow-500/30">
+                        <AvatarImage 
+                          src={community.owner?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(community.owner?.username || 'A')}&background=FFD700&color=000`}
+                          alt={community.owner?.username}
+                        />
+                        <AvatarFallback className="bg-yellow-500/20 text-yellow-500">
+                          {community.owner?.username?.charAt(0).toUpperCase() || 'A'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">
+                          {community.owner?.username}
+                        </p>
+                        <p className="text-xs text-yellow-500">Fundador</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
 
                 {/* Estadísticas rápidas */}
                 <Card className="glass-card border-white/10">
@@ -887,33 +932,6 @@ export default function CommunityPage() {
                   </CardContent>
                 </Card>
 
-                {/* Creador */}
-                <Card className="glass-card border-white/10">
-                  <CardContent className="pt-2.5 pb-2.5">
-                    <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-2">
-                      <Crown className="w-4 h-4 text-yellow-500" />
-                      Creador
-                    </h3>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10 ring-2 ring-yellow-500/30">
-                        <AvatarImage 
-                          src={community.owner?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(community.owner?.username || 'A')}&background=FFD700&color=000`}
-                          alt={community.owner?.username}
-                        />
-                        <AvatarFallback className="bg-yellow-500/20 text-yellow-500">
-                          {community.owner?.username?.charAt(0).toUpperCase() || 'A'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">
-                          {community.owner?.username}
-                        </p>
-                        <p className="text-xs text-yellow-500">Fundador</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
                 {/* Actividad reciente - Desktop */}
                 <div className="hidden lg:block">
                   <Card className="glass-card border-white/10">
@@ -926,19 +944,19 @@ export default function CommunityPage() {
                         {posts.slice(0, 3).map((post) => (
                           <div 
                             key={post.id}
-                            className="flex items-start gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                            className="flex items-start gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer group"
                             onClick={() => {
-                              setActiveTab('all');
-                              setActiveInfoTab('about');
+                              setSelectedPost(post);
+                              setShowPostDetailModal(true);
                             }}
                           >
                             <img
                               src={post.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author?.username || 'U')}&background=39FF14&color=000`}
                               alt={post.author?.username}
-                              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                              className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-transparent group-hover:ring-neon-green/30 transition-all"
                             />
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-white truncate">
+                              <p className="text-xs font-semibold text-white truncate group-hover:text-neon-green transition-colors">
                                 {post.author?.username}
                               </p>
                               <p className="text-xs text-gray-400 truncate">
@@ -962,7 +980,7 @@ export default function CommunityPage() {
               </div>
 
               {/* COLUMNA DERECHA - Feed de publicaciones (8 columnas) */}
-              <div className="lg:col-span-8 space-y-2.5 lg:pl-4 lg:pr-6">
+              <div className="lg:col-span-8 lg:order-1 space-y-2.5 lg:pr-6">
                 {/* Crear publicación (solo para miembros) */}
                 {community.is_member && (
                   <Card className="glass-card border-white/10 hover:border-neon-green/30 transition-colors">
@@ -2238,6 +2256,309 @@ export default function CommunityPage() {
               </CyberButton>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de detalle de publicación */}
+      <Dialog open={showPostDetailModal} onOpenChange={setShowPostDetailModal}>
+        <DialogContent className="bg-black/95 border-white/20 text-white max-w-3xl max-h-[90vh] overflow-y-auto">
+          {selectedPost && (
+            <div className="space-y-4">
+              {/* Header del post */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-3">
+                  <img
+                    src={selectedPost.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedPost.author?.username || 'U')}&background=39FF14&color=000`}
+                    alt={selectedPost.author?.username || 'Usuario'}
+                    className="w-12 h-12 rounded-full object-cover ring-2 ring-neon-green/30 cursor-pointer hover:ring-neon-green transition-all"
+                    onClick={() => {
+                      if (selectedPost.author) {
+                        setSelectedProfileUser({
+                          id: selectedPost.author.id,
+                          username: selectedPost.author.username,
+                          displayName: selectedPost.author.username,
+                          avatar: selectedPost.author.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedPost.author.username)}&background=39FF14&color=000`,
+                          email: '',
+                          bio: '',
+                          coverPhoto: undefined,
+                          position: '',
+                          team: '',
+                          followers: 0,
+                          following: 0,
+                          posts: 0,
+                          interests: [],
+                          createdAt: new Date().toISOString(),
+                        });
+                        setShowUserProfile(true);
+                        setShowPostDetailModal(false);
+                      }
+                    }}
+                  />
+                  <div>
+                    <p 
+                      className="font-semibold text-sm cursor-pointer hover:text-neon-green transition-colors"
+                      onClick={() => {
+                        if (selectedPost.author) {
+                          setSelectedProfileUser({
+                            id: selectedPost.author.id,
+                            username: selectedPost.author.username,
+                            displayName: selectedPost.author.username,
+                            avatar: selectedPost.author.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedPost.author.username)}&background=39FF14&color=000`,
+                            email: '',
+                            bio: '',
+                            coverPhoto: undefined,
+                            position: '',
+                            team: '',
+                            followers: 0,
+                            following: 0,
+                            posts: 0,
+                            interests: [],
+                            createdAt: new Date().toISOString(),
+                          });
+                          setShowUserProfile(true);
+                          setShowPostDetailModal(false);
+                        }
+                      }}
+                    >
+                      {selectedPost.author?.username || 'Usuario'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(selectedPost.created_at).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                {user?.id === selectedPost.author?.id && (
+                  <button
+                    onClick={() => {
+                      handleDeletePost(selectedPost.id);
+                      setShowPostDetailModal(false);
+                    }}
+                    className="p-2 hover:bg-red-500/10 rounded transition-colors"
+                  >
+                    <Trash2 className="w-5 h-5 text-red-400" />
+                  </button>
+                )}
+              </div>
+
+              {/* Contenido del post */}
+              {selectedPost.content && (
+                <p className="text-gray-200 text-sm leading-relaxed">{selectedPost.content}</p>
+              )}
+
+              {/* Media del post */}
+              {selectedPost.post_type === 'image' && selectedPost.image_url && (
+                <div className="rounded-lg overflow-hidden">
+                  <img
+                    src={selectedPost.image_url}
+                    alt="Post"
+                    className="w-full h-auto object-contain max-h-[500px]"
+                  />
+                </div>
+              )}
+
+              {selectedPost.post_type === 'video' && (selectedPost.video_file_url || selectedPost.video_url) && (
+                <div className="rounded-lg overflow-hidden bg-black">
+                  <video
+                    src={selectedPost.video_file_url || selectedPost.video_url}
+                    controls
+                    className="w-full h-auto max-h-[500px] object-contain"
+                  />
+                </div>
+              )}
+
+              {selectedPost.post_type === 'podcast' && (selectedPost.podcast_file_url || selectedPost.podcast_url) && (
+                <audio
+                  src={selectedPost.podcast_file_url || selectedPost.podcast_url}
+                  controls
+                  className="w-full h-12"
+                />
+              )}
+
+              {selectedPost.post_type === 'live' && (
+                <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 text-center">
+                  <div className="flex items-center justify-center space-x-2">
+                    <Radio className="w-5 h-5 text-red-500 animate-pulse" />
+                    <span className="text-sm text-red-400 font-semibold">EN VIVO</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Reacciones */}
+              <div className="flex items-center space-x-3 text-sm text-gray-400 pt-4 border-t border-white/10">
+                <button
+                  onClick={() => handleReaction(selectedPost.id, 'like')}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                    selectedPost.is_liked
+                      ? 'text-red-500 bg-red-500/10'
+                      : 'text-gray-400 hover:text-red-500 hover:bg-red-500/10'
+                  }`}
+                  title="Me gusta"
+                >
+                  <Heart className={`w-4 h-4 ${selectedPost.is_liked ? 'fill-current' : ''}`} />
+                  <span>{selectedPost.like_count || 0}</span>
+                </button>
+                
+                <button
+                  onClick={() => handleReaction(selectedPost.id, 'laugh')}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors text-gray-400 hover:text-yellow-500 hover:bg-yellow-500/10"
+                  title="Jajaja"
+                >
+                  <span className="text-base">😂</span>
+                  <span>{(selectedPost as any).laugh_count || 0}</span>
+                </button>
+                
+                <button
+                  onClick={() => handleReaction(selectedPost.id, 'dislike')}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors text-gray-400 hover:text-blue-500 hover:bg-blue-500/10"
+                  title="No me gusta"
+                >
+                  <ThumbsDown className="w-4 h-4" />
+                  <span>{(selectedPost as any).dislike_count || 0}</span>
+                </button>
+                
+                <button
+                  onClick={() => toggleComments(selectedPost.id)}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                    expandedComments === selectedPost.id
+                      ? 'text-neon-green bg-neon-green/10'
+                      : 'text-gray-400 hover:text-neon-green hover:bg-neon-green/10'
+                  }`}
+                  title="Comentarios"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>{selectedPost.comment_count}</span>
+                </button>
+              </div>
+
+              {/* Sección de comentarios */}
+              {expandedComments === selectedPost.id && (
+                <div className="space-y-4 pt-4 border-t border-white/10">
+                  {replyingTo && (
+                    <div className="flex items-center justify-between bg-neon-green/10 border border-neon-green/30 rounded-lg px-3 py-2">
+                      <span className="text-xs text-neon-green">
+                        Respondiendo a @{replyingTo.username}
+                      </span>
+                      <button
+                        onClick={() => setReplyingTo(null)}
+                        className="text-gray-400 hover:text-white"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex space-x-3">
+                    <img
+                      src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=39FF14&color=000`}
+                      alt="Tu avatar"
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1 flex space-x-2">
+                      <input
+                        type="text"
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder={replyingTo ? `Responder a @${replyingTo.username}...` : "Escribe un comentario..."}
+                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-neon-green/50"
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddComment(selectedPost.id)}
+                      />
+                      <button
+                        onClick={() => handleAddComment(selectedPost.id)}
+                        className="px-4 py-2 bg-neon-green/20 text-neon-green rounded-lg text-sm hover:bg-neon-green/30 transition-colors"
+                      >
+                        Enviar
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {comments[selectedPost.id]?.map((comment: any) => (
+                      <div key={comment.id} className="flex space-x-3 bg-white/5 rounded-lg p-3">
+                        <img
+                          src={comment.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author?.username || 'U')}&background=39FF14&color=000`}
+                          alt={comment.author?.username}
+                          className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="font-semibold text-sm">{comment.author?.username}</p>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => setReplyingTo({ commentId: comment.id, username: comment.author?.username })}
+                                className="text-xs text-gray-400 hover:text-neon-green transition-colors"
+                              >
+                                Responder
+                              </button>
+                              {user?.id === comment.author?.id && (
+                                <>
+                                  <button
+                                    onClick={() => setEditingComment({ id: comment.id, content: comment.content })}
+                                    className="text-xs text-gray-400 hover:text-blue-400 transition-colors"
+                                  >
+                                    Editar
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteComment(selectedPost.id, comment.id)}
+                                    className="text-xs text-gray-400 hover:text-red-400 transition-colors"
+                                  >
+                                    Eliminar
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          {editingComment?.id === comment.id ? (
+                            <div className="flex space-x-2">
+                              <input
+                                type="text"
+                                value={editingComment.content}
+                                onChange={(e) => setEditingComment({ ...editingComment, content: e.target.value })}
+                                className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs text-white"
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleEditComment(selectedPost.id, comment.id, editingComment.content);
+                                  }
+                                }}
+                              />
+                              <button
+                                onClick={() => handleEditComment(selectedPost.id, comment.id, editingComment.content)}
+                                className="text-xs text-neon-green hover:text-neon-green/80"
+                              >
+                                Guardar
+                              </button>
+                              <button
+                                onClick={() => setEditingComment(null)}
+                                className="text-xs text-gray-400 hover:text-white"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-300">{comment.content}</p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(comment.created_at).toLocaleDateString('es-ES')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {(!comments[selectedPost.id] || comments[selectedPost.id].length === 0) && (
+                      <p className="text-sm text-gray-500 text-center py-4">
+                        No hay comentarios aún. ¡Sé el primero en comentar!
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

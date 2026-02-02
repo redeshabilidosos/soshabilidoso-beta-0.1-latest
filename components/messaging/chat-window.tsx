@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils';
 import { UserProfileDialog } from '@/components/ui/user-profile-dialog';
 import EmojiPicker from 'emoji-picker-react';
 import { StoryPreviewMessage } from './story-preview-message';
+import { TypingIndicator } from './typing-indicator';
+import { useChatWebSocket } from '@/hooks/use-chat-websocket';
 import dynamic from 'next/dynamic';
 
 // Importar el visor de historias dinámicamente
@@ -77,9 +79,33 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [messageToShare, setMessageToShare] = useState<Message | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
+  const userId = currentUser?.id;
+
+  // Integrar WebSocket
+  const { isConnected, sendTypingStart, sendTypingStop, sendMessage: sendWsMessage } = useChatWebSocket({
+    chatId,
+    userId,
+    onNewMessage: (message) => {
+      setMessages(prev => [...prev, message]);
+      scrollToBottom();
+    },
+    onTypingStart: (userId, username) => {
+      setTypingUsers(prev => new Map(prev).set(userId, username));
+    },
+    onTypingStop: (userId) => {
+      setTypingUsers(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(userId);
+        return newMap;
+      });
+    },
+  });
 
   useEffect(() => {
     loadChat();
@@ -139,10 +165,14 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || sending) return;
+    
     setSending(true);
+    sendTypingStop(); // Detener indicador de escritura
+    
     try {
       const message = await messagingService.sendMessage(chatId, newMessage.trim());
       setMessages(prev => [...prev, message]);
+      sendWsMessage(message); // Enviar por WebSocket
       setNewMessage('');
       // Mantener el foco en el input después de enviar
       setTimeout(() => {
@@ -336,8 +366,6 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
   }
 
   const otherUser = getOtherParticipant();
-  const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
-  const userId = currentUser?.id;
   const bubbleStyle = getBubbleStyle();
 
   return (
@@ -478,7 +506,10 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
                   <Badge className="bg-blue-500/20 text-blue-400 border-0 text-xs px-1.5">✓</Badge>
                 )}
               </div>
-              <p className="text-xs text-gray-400">{otherUser ? `@${otherUser.username}` : 'En línea'}</p>
+              <p className="text-xs text-gray-400">
+                {otherUser ? `@${otherUser.username}` : 'En línea'}
+                {isConnected && <span className="ml-2 text-neon-green">● Conectado</span>}
+              </p>
             </button>
           </div>
           
@@ -780,6 +811,12 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
                 </div>
               );
             })}
+            
+            {/* Indicador de "está escribiendo" */}
+            {Array.from(typingUsers.values()).map((username) => (
+              <TypingIndicator key={username} username={username} />
+            ))}
+            
             <div ref={messagesEndRef} />
           </div>
         )}
@@ -804,7 +841,14 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
             <input
               ref={inputRef}
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                if (e.target.value.trim()) {
+                  sendTypingStart();
+                } else {
+                  sendTypingStop();
+                }
+              }}
               onKeyPress={handleKeyPress}
               placeholder="Escribe un mensaje..."
               className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-neon-green/50 focus:bg-white/15 transition-all text-[15px]"

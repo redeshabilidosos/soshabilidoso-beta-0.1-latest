@@ -1,5 +1,4 @@
 'use client';
-'use client';
 
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
@@ -18,15 +17,13 @@ export function useParticleBackground() {
   const animationFrameRef = useRef<number>();
   const particlesRef = useRef<Particle[]>([]);
   const pathname = usePathname();
+  const lastFrameTimeRef = useRef<number>(0);
 
   useEffect(() => {
     // No aplicar en páginas de comunidades
     if (pathname?.startsWith('/communities')) {
-      console.log('🚫 Partículas deshabilitadas en comunidades');
       return;
     }
-
-    console.log('✨ Iniciando fondo de partículas en:', pathname);
 
     // Crear canvas
     const canvas = document.createElement('canvas');
@@ -41,12 +38,13 @@ export function useParticleBackground() {
     
     document.body.appendChild(canvas);
     canvasRef.current = canvas;
-    
-    console.log('✅ Canvas creado y agregado al DOM');
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { 
+      alpha: true,
+      desynchronized: true // Mejor rendimiento
+    });
+    
     if (!ctx) {
-      console.error('❌ No se pudo obtener el contexto 2D del canvas');
       return;
     }
 
@@ -58,8 +56,11 @@ export function useParticleBackground() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Crear partículas
-    const particleCount = 150;
+    // OPTIMIZACIÓN: Reducir partículas según tamaño de pantalla
+    const isMobile = window.innerWidth < 768;
+    const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+    const particleCount = isMobile ? 30 : isTablet ? 50 : 80; // Era 150
+    
     const particles: Particle[] = [];
 
     for (let i = 0; i < particleCount; i++) {
@@ -73,12 +74,25 @@ export function useParticleBackground() {
       });
     }
     particlesRef.current = particles;
-    
-    console.log(`✅ ${particleCount} partículas creadas`);
 
-    // Función de animación
-    const animate = () => {
+    // OPTIMIZACIÓN: Throttle a 30 FPS para mejor rendimiento
+    const FPS_LIMIT = 30;
+    const FRAME_MIN_TIME = 1000 / FPS_LIMIT;
+    
+    // OPTIMIZACIÓN: Distancia máxima para conexiones (reducida)
+    const MAX_CONNECTION_DISTANCE = isMobile ? 80 : 100; // Era 120
+    const MAX_CONNECTION_DISTANCE_SQ = MAX_CONNECTION_DISTANCE * MAX_CONNECTION_DISTANCE;
+
+    // Función de animación optimizada
+    const animate = (timestamp: number) => {
       if (!ctx || !canvas) return;
+
+      // OPTIMIZACIÓN: Throttle FPS
+      if (timestamp - lastFrameTimeRef.current < FRAME_MIN_TIME) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrameTimeRef.current = timestamp;
 
       // Limpiar canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -122,18 +136,19 @@ export function useParticleBackground() {
         ctx.fill();
       });
 
-      // Dibujar conexiones entre partículas cercanas
+      // OPTIMIZACIÓN: Dibujar conexiones con distancia al cuadrado (evita sqrt)
       particles.forEach((p1, i) => {
         particles.slice(i + 1).forEach((p2) => {
           const dx = p1.x - p2.x;
           const dy = p1.y - p2.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
+          const distanceSq = dx * dx + dy * dy; // Sin sqrt - más rápido
 
-          if (distance < 120) {
+          if (distanceSq < MAX_CONNECTION_DISTANCE_SQ) {
+            const distance = Math.sqrt(distanceSq); // Solo calcular si es necesario
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
-            const opacity = (1 - distance / 120) * 0.15;
+            const opacity = (1 - distance / MAX_CONNECTION_DISTANCE) * 0.15;
             ctx.strokeStyle = `rgba(57, 255, 20, ${opacity})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
@@ -144,15 +159,15 @@ export function useParticleBackground() {
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    animate();
+    animate(0);
 
     // Cleanup
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      if (canvasRef.current) {
-        document.body.removeChild(canvasRef.current);
+      if (canvasRef.current && canvasRef.current.parentNode) {
+        canvasRef.current.parentNode.removeChild(canvasRef.current);
       }
       window.removeEventListener('resize', resizeCanvas);
     };

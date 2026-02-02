@@ -87,8 +87,6 @@ export default function GalleryPage() {
     );
   }
 
-  if (!user) return null;
-
   // Filtrar items según la pestaña activa
   const getFilteredItems = useCallback(() => {
     if (selectedAlbum) {
@@ -103,6 +101,8 @@ export default function GalleryPage() {
       default: return galleryItems;
     }
   }, [activeTab, galleryItems, selectedAlbum]);
+
+  if (!user) return null;
 
   const filteredItems = getFilteredItems();
 

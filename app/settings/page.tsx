@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';
 import { Sidebar } from '@/components/navigation/sidebar';
@@ -12,17 +12,16 @@ import {
   Bell, 
   Shield, 
   Palette, 
-  Globe, 
   HelpCircle,
   LogOut,
   Camera,
   Lock,
   Eye,
   EyeOff,
-  Mail, // Importar Mail para el OTP
-  Check, // Importar Check para el OTP
-  Building2, // Para empresa
-  Plus, // Para crear empresa
+  Mail,
+  Check,
+  Building2,
+  Plus,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils'; // Import cn for conditional classNames
@@ -35,7 +34,11 @@ import {
 } from '@/components/ui/accordion'; // Importar componentes de Accordion
 import { Input } from '@/components/ui/input'; // Importar Input para los campos de contraseña
 import { Textarea } from '@/components/ui/textarea'; // Importar Textarea
-import { toast } from 'sonner'; // Importar toast para notificaciones
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
 import { CreateEnterpriseDialog } from '@/components/enterprise/create-enterprise-dialog';
 import { enterprisesService, Enterprise } from '@/lib/services/enterprises.service';
 
@@ -72,39 +75,43 @@ function BackgroundColorSelector() {
   const { selectedColor, backgroundColors, changeBackgroundColor } = useBackgroundColor();
 
   return (
-    <div className="p-4 bg-white/5 rounded-xl">
-      <h3 className="text-white font-medium mb-4">Color de fondo personalizado</h3>
-      <p className="text-gray-400 text-sm mb-4">
-        Selecciona un color de fondo que se aplicará por toda la aplicación
-      </p>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {backgroundColors.map((color) => (
-          <div
-            key={color.id}
-            className={cn(
-              "p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 group",
-              selectedColor === color.id
-                ? "border-white/50 bg-white/10 scale-105"
-                : "border-transparent hover:border-white/30 hover:bg-white/5"
-            )}
-            onClick={() => changeBackgroundColor(color.id)}
-          >
-            <div className="text-center">
-              <div 
-                className="w-12 h-12 rounded-full mx-auto mb-3 border-2 border-white/20 group-hover:border-white/40 transition-all duration-300"
-                style={{ backgroundColor: color.preview }}
-              />
-              <p className="text-white text-sm font-medium mb-1">{color.name}</p>
-              {selectedColor === color.id && (
-                <p className="text-xs" style={{ color: color.preview }}>
-                  Activo
-                </p>
+    <Card className="glass-card border-white/10">
+      <CardHeader>
+        <CardTitle className="text-white">Color de fondo personalizado</CardTitle>
+        <CardDescription>
+          Selecciona un color de fondo que se aplicará por toda la aplicación
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {backgroundColors.map((color) => (
+            <div
+              key={color.id}
+              className={cn(
+                "p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 group",
+                selectedColor === color.id
+                  ? "border-white/50 bg-white/10 scale-105"
+                  : "border-transparent hover:border-white/30 hover:bg-white/5"
               )}
+              onClick={() => changeBackgroundColor(color.id)}
+            >
+              <div className="text-center">
+                <div 
+                  className="w-12 h-12 rounded-full mx-auto mb-3 border-2 border-white/20 group-hover:border-white/40 transition-all duration-300"
+                  style={{ backgroundColor: color.preview }}
+                />
+                <p className="text-white text-sm font-medium mb-1">{color.name}</p>
+                {selectedColor === color.id && (
+                  <p className="text-xs" style={{ color: color.preview }}>
+                    Activo
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -200,21 +207,21 @@ export default function SettingsPage() {
 
   if (!user) return null;
 
-  const handleProfileSave = async () => {
+  const handleProfileSave = useCallback(async () => {
     await updateProfile({
       displayName: profileFormData.displayName,
       bio: profileFormData.bio,
       position: profileFormData.position,
       team: profileFormData.team,
     });
-  };
+  }, [profileFormData, updateProfile]);
 
-  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleProfileChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setProfileFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
-  };
+  }, []);
 
   // Funciones para el flujo de cambio de contraseña
   const handleRequestOtp = async () => {
@@ -686,126 +693,134 @@ export default function SettingsPage() {
 
                 {activeTab === 'notifications' && (
                   <div className="space-y-6">
-                    <h2 className="text-xl font-semibold text-white">Preferencias de Notificaciones</h2>
+                    <div>
+                      <h2 className="text-xl font-semibold text-white mb-2">Preferencias de Notificaciones</h2>
+                      <p className="text-gray-400 text-sm">Gestiona cómo y cuándo recibes notificaciones</p>
+                    </div>
                     
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                        <div>
-                          <h3 className="text-white font-medium">Me gusta en publicaciones</h3>
-                          <p className="text-gray-400 text-sm">Recibe notificaciones cuando alguien le dé me gusta a tus publicaciones</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notifications.likes}
-                            onChange={(e) => setNotifications(prev => ({ ...prev, likes: e.target.checked }))}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon-green"></div>
-                        </label>
-                      </div>
+                    <div className="space-y-3">
+                      <Card className="glass-card border-white/10">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <Label className="text-white font-medium">Me gusta en publicaciones</Label>
+                              <p className="text-gray-400 text-sm">Recibe notificaciones cuando alguien le dé me gusta a tus publicaciones</p>
+                            </div>
+                            <Switch
+                              checked={notifications.likes}
+                              onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, likes: checked }))}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
 
-                      <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                        <div>
-                          <h3 className="text-white font-medium">Comentarios</h3>
-                          <p className="text-gray-400 text-sm">Notificaciones de nuevos comentarios en tus publicaciones</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notifications.comments}
-                            onChange={(e) => setNotifications(prev => ({ ...prev, comments: e.target.checked }))}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon-green"></div>
-                        </label>
-                      </div>
+                      <Card className="glass-card border-white/10">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <Label className="text-white font-medium">Comentarios</Label>
+                              <p className="text-gray-400 text-sm">Notificaciones de nuevos comentarios en tus publicaciones</p>
+                            </div>
+                            <Switch
+                              checked={notifications.comments}
+                              onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, comments: checked }))}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
 
-                      <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                        <div>
-                          <h3 className="text-white font-medium">Nuevos seguidores</h3>
-                          <p className="text-gray-400 text-sm">Cuando alguien comience a seguirte</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notifications.follows}
-                            onChange={(e) => setNotifications(prev => ({ ...prev, follows: e.target.checked }))}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon-green"></div>
-                        </label>
-                      </div>
+                      <Card className="glass-card border-white/10">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <Label className="text-white font-medium">Nuevos seguidores</Label>
+                              <p className="text-gray-400 text-sm">Cuando alguien comience a seguirte</p>
+                            </div>
+                            <Switch
+                              checked={notifications.follows}
+                              onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, follows: checked }))}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
 
-                      <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                        <div>
-                          <h3 className="text-white font-medium">Solicitudes de conexión</h3>
-                          <p className="text-gray-400 text-sm">Notificaciones de nuevas solicitudes de amistad</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notifications.friendRequests}
-                            onChange={(e) => setNotifications(prev => ({ ...prev, friendRequests: e.target.checked }))}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon-green"></div>
-                        </label>
-                      </div>
+                      <Card className="glass-card border-white/10">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <Label className="text-white font-medium">Solicitudes de conexión</Label>
+                              <p className="text-gray-400 text-sm">Notificaciones de nuevas solicitudes de amistad</p>
+                            </div>
+                            <Switch
+                              checked={notifications.friendRequests}
+                              onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, friendRequests: checked }))}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
                 )}
 
                 {activeTab === 'privacy' && (
                   <div className="space-y-6">
-                    <h2 className="text-xl font-semibold text-white">Configuración de Privacidad</h2>
+                    <div>
+                      <h2 className="text-xl font-semibold text-white mb-2">Configuración de Privacidad</h2>
+                      <p className="text-gray-400 text-sm">Controla quién puede ver tu información</p>
+                    </div>
                     
-                    <div className="space-y-4">
-                      <div className="p-4 bg-white/5 rounded-xl">
-                        <h3 className="text-white font-medium mb-2">Visibilidad del perfil</h3>
-                        <p className="text-gray-400 text-sm mb-4">Controla quién puede ver tu perfil completo</p>
-                        <select
-                          value={privacy.profileVisibility}
-                          onChange={(e) => setPrivacy(prev => ({ ...prev, profileVisibility: e.target.value }))}
-                          className="w-full px-4 py-3 bg-gray-900 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-neon-green/50 [&>option]:bg-gray-900 [&>option]:text-white"
-                        >
-                          <option value="public" className="bg-gray-900 text-white">Público</option>
-                          <option value="friends" className="bg-gray-900 text-white">Solo amigos</option>
-                          <option value="private" className="bg-gray-900 text-white">Privado</option>
-                        </select>
-                      </div>
+                    <div className="space-y-3">
+                      <Card className="glass-card border-white/10">
+                        <CardContent className="p-4 space-y-4">
+                          <div className="space-y-2">
+                            <Label className="text-white font-medium">Visibilidad del perfil</Label>
+                            <p className="text-gray-400 text-sm">Controla quién puede ver tu perfil completo</p>
+                            <Select
+                              value={privacy.profileVisibility}
+                              onValueChange={(value) => setPrivacy(prev => ({ ...prev, profileVisibility: value }))}
+                            >
+                              <SelectTrigger className="bg-gray-900 border-white/20 text-white">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="public">Público</SelectItem>
+                                <SelectItem value="friends">Solo amigos</SelectItem>
+                                <SelectItem value="private">Privado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </CardContent>
+                      </Card>
 
-                      <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                        <div>
-                          <h3 className="text-white font-medium">Mostrar email</h3>
-                          <p className="text-gray-400 text-sm">Permitir que otros vean tu dirección de email</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={privacy.showEmail}
-                            onChange={(e) => setPrivacy(prev => ({ ...prev, showEmail: e.target.checked }))}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon-green"></div>
-                        </label>
-                      </div>
+                      <Card className="glass-card border-white/10">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <Label className="text-white font-medium">Mostrar email</Label>
+                              <p className="text-gray-400 text-sm">Permitir que otros vean tu dirección de email</p>
+                            </div>
+                            <Switch
+                              checked={privacy.showEmail}
+                              onCheckedChange={(checked) => setPrivacy(prev => ({ ...prev, showEmail: checked }))}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
 
-                      <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                        <div>
-                          <h3 className="text-white font-medium">Mostrar estadísticas</h3>
-                          <p className="text-gray-400 text-sm">Mostrar número de seguidores, siguiendo y publicaciones</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={privacy.showStats}
-                            onChange={(e) => setPrivacy(prev => ({ ...prev, showStats: e.target.checked }))}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon-green"></div>
-                        </label>
-                      </div>
+                      <Card className="glass-card border-white/10">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <Label className="text-white font-medium">Mostrar estadísticas</Label>
+                              <p className="text-gray-400 text-sm">Mostrar número de seguidores, siguiendo y publicaciones</p>
+                            </div>
+                            <Switch
+                              checked={privacy.showStats}
+                              onCheckedChange={(checked) => setPrivacy(prev => ({ ...prev, showStats: checked }))}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
                 )}

@@ -17,7 +17,7 @@ SECRET_KEY = 'django-insecure-tu-secret-key-aqui-cambiar-en-produccion'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.78.173']
 
 # Backend URL for building absolute URLs (puede ser sobrescrito por variable de entorno)
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000')
@@ -188,11 +188,24 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo
 
 # Channel Layers - Para WebSockets
+# IMPORTANTE: Usando InMemoryChannelLayer para desarrollo (funciona sin Redis)
+# Para producción o mejor rendimiento, instala Redis y descomenta la configuración de abajo
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer'
     }
 }
+
+# Configuración con Redis (descomenta si instalas Redis):
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],
+#         },
+#     },
+# }
 
 # Database Router - Solo para la app reality
 DATABASE_ROUTERS = []  # Deshabilitado temporalmente para usar MySQL como default
@@ -352,3 +365,53 @@ SPECTACULAR_SETTINGS = {
     'ENUM_NAME_OVERRIDES': {},
     'ENUM_GENERATE_CHOICE_DESCRIPTION': False,  # Deshabilitar generación de descripciones de choices
 }
+
+
+# ========================================
+# LOGGING CONFIGURATION
+# ========================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {module} - {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '[{levelname}] {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'apps': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+
+# Log database connection on startup
+import logging
+logger = logging.getLogger(__name__)
+logger.info(f"🔌 Database configured: {DATABASES['default']['ENGINE']}")
+logger.info(f"📊 Database host: {DATABASES['default']['HOST']}:{DATABASES['default']['PORT']}")
+logger.info(f"💾 Database name: {DATABASES['default']['NAME']}")
+logger.info(f"🌐 Backend URL: {BACKEND_URL}")
+logger.info(f"✅ Allowed hosts: {ALLOWED_HOSTS}")

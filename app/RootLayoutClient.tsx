@@ -53,23 +53,12 @@ export const RootLayoutClient = memo(function RootLayoutClient({ children }: Roo
       sessionStorage.setItem('splashShown', 'true');
     }
     
-    // Precargar configuraciones en idle time para no bloquear hidratación
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => {
-        Promise.all([
-          preloadSiteSettings(),
-          menuConfigService.preload()
-        ]).catch(console.error);
-      }, { timeout: 2000 });
-    } else {
-      // Fallback para navegadores sin requestIdleCallback
-      setTimeout(() => {
-        Promise.all([
-          preloadSiteSettings(),
-          menuConfigService.preload()
-        ]).catch(console.error);
-      }, 100);
-    }
+    // OPTIMIZACIÓN: Precargar configuraciones INMEDIATAMENTE (no esperar idle)
+    // Esto mejora la carga del menú del sidebar
+    Promise.all([
+      preloadSiteSettings(),
+      menuConfigService.preload()
+    ]).catch(console.error);
     
     // Mostrar botones flotantes después de que la página esté lista
     const timer = setTimeout(() => {

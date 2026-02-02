@@ -19,6 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { ReelComments } from './reel-comments';
 import { UserProfileDialog } from '@/components/ui/user-profile-dialog';
+import { ReelOptionsMenu } from './reel-options-menu';
 
 interface Reel {
   id: string;
@@ -450,43 +451,45 @@ export function ReelCard({
   };
 
   return (
-    <div className="relative w-full h-full bg-black overflow-hidden">
-      {/* Video */}
-      <video
-        ref={videoRef}
-        className="w-full h-full object-cover cursor-pointer"
-        loop
-        muted={isMuted}
-        playsInline
-        preload="auto"
-        poster={reel.thumbnail}
-        onClick={handleVideoClick}
-        onMouseDown={handlePressStart}
-        onMouseUp={handlePressEnd}
-        onMouseLeave={(e) => {
-          handlePressEnd(e);
-          setShowControls(false);
-        }}
-        onTouchStart={handlePressStart}
-        onTouchEnd={handlePressEnd}
-        onMouseEnter={() => setShowControls(true)}
-        crossOrigin="anonymous"
-        controls={false}
-        onError={(e) => {
-          console.error('❌ Error cargando video:', e);
-          console.log('Video URL:', reel.videoUrl);
-          console.log('Error details:', e.currentTarget.error);
-        }}
-        onLoadedData={() => {
-          console.log('✅ Video cargado correctamente');
-        }}
-        onCanPlay={() => {
-          console.log('✅ Video listo para reproducir');
-        }}
-      >
-        <source src={reel.videoUrl} type="video/mp4" />
-        Tu navegador no soporta el elemento de video.
-      </video>
+    <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
+      {/* Video Container */}
+      <div className="relative w-full h-full flex items-center justify-center">
+        <video
+          ref={videoRef}
+          className="max-w-full max-h-full w-auto h-auto object-contain cursor-pointer"
+          loop
+          muted={isMuted}
+          playsInline
+          preload="auto"
+          poster={reel.thumbnail}
+          onClick={handleVideoClick}
+          onMouseDown={handlePressStart}
+          onMouseUp={handlePressEnd}
+          onMouseLeave={(e) => {
+            handlePressEnd(e);
+            setShowControls(false);
+          }}
+          onTouchStart={handlePressStart}
+          onTouchEnd={handlePressEnd}
+          onMouseEnter={() => setShowControls(true)}
+          crossOrigin="anonymous"
+          controls={false}
+          onError={(e) => {
+            console.error('❌ Error cargando video:', e);
+            console.log('Video URL:', reel.videoUrl);
+            console.log('Error details:', e.currentTarget.error);
+          }}
+          onLoadedData={() => {
+            console.log('✅ Video cargado correctamente');
+          }}
+          onCanPlay={() => {
+            console.log('✅ Video listo para reproducir');
+          }}
+        >
+          <source src={reel.videoUrl} type="video/mp4" />
+          Tu navegador no soporta el elemento de video.
+        </video>
+      </div>
 
       {/* Animación de Like (doble tap) */}
       {showLikeAnimation && (
@@ -529,6 +532,19 @@ export function ReelCard({
 
       {/* Top Controls */}
       <div className="absolute top-4 right-4 flex items-center space-x-2 z-10">
+        {/* Pause Button */}
+        <button
+          onClick={togglePlayPause}
+          className="bg-black/50 backdrop-blur-sm rounded-full p-2 hover:bg-black/70 transition-colors"
+        >
+          {isPlaying ? (
+            <Pause className="w-5 h-5 text-white" />
+          ) : (
+            <Play className="w-5 h-5 text-white" />
+          )}
+        </button>
+        
+        {/* Mute Button */}
         <button
           onClick={toggleMute}
           className="bg-black/50 backdrop-blur-sm rounded-full p-2 hover:bg-black/70 transition-colors"
@@ -539,9 +555,9 @@ export function ReelCard({
             <Volume2 className="w-5 h-5 text-white" />
           )}
         </button>
-        <button className="bg-black/50 backdrop-blur-sm rounded-full p-2 hover:bg-black/70 transition-colors">
-          <MoreHorizontal className="w-5 h-5 text-white" />
-        </button>
+        
+        {/* More Options Button with Dropdown */}
+        <ReelOptionsMenu reelId={reel.id} />
       </div>
 
       {/* User Info & Actions Overlay */}

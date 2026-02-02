@@ -48,14 +48,14 @@ export function MobileNav() {
   const { user, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
 
-  if (!user) return null;
-
-  const isSecondaryActive = secondaryNavigation.some(item => pathname === item.href);
-
   // Close dropdown when route changes
   useEffect(() => {
     setShowDropdown(false);
   }, [pathname]);
+
+  if (!user) return null;
+
+  const isSecondaryActive = secondaryNavigation.some(item => pathname === item.href);
 
   return (
     <>

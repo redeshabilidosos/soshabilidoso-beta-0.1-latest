@@ -5,7 +5,7 @@ import os
 import django
 
 # Configurar Django PRIMERO
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sos_habilidoso.settings.development')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sos_habilidoso.settings')
 django.setup()
 
 # Ahora importar todo lo demás

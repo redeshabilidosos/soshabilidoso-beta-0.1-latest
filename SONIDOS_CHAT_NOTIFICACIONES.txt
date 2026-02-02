@@ -1,0 +1,66 @@
+═══════════════════════════════════════════════════════════
+  SONIDOS DEL CHAT Y NOTIFICACIONES
+═══════════════════════════════════════════════════════════
+
+📁 UBICACION:
+   public/sounds/
+
+🎵 ARCHIVOS NECESARIOS:
+
+   1. sonidomensaje.mp3
+      → Cuando el usuario RECIBE un mensaje
+      → Tipo: Distintivo (ding, notification)
+      → Ejemplo: Sonido de WhatsApp
+
+   2. sonidoNotificacion.mp3
+      → Cuando el usuario RECIBE una notificación
+      → Tipo: Sutil (pop, bell)
+      → Ejemplo: Sonido de like de Instagram
+
+📂 ESTRUCTURA:
+
+   public/sounds/
+   ├── sonidomensaje.mp3           ← Agregar aqui
+   ├── sonidoNotificacion.mp3      ← Agregar aqui
+   ├── INSTRUCCIONES_SONIDOS.md
+   └── README.md
+
+✅ PASOS RAPIDOS:
+
+   1. Descarga sonidos MP3 de:
+      - https://freesound.org/
+      - https://www.zapsplat.com/
+      - https://mixkit.co/free-sound-effects/
+
+   2. Renombralos exactamente:
+      - sonidomensaje.mp3
+      - sonidoNotificacion.mp3
+
+   3. Copialos a: public/sounds/
+
+   4. Listo!
+
+🧪 PROBAR:
+
+   Mensaje:
+   - Ve a: http://localhost:4000/messages
+   - Recibe un mensaje
+   - Escucharas: sonidomensaje.mp3
+
+   Notificacion:
+   - Ve a: http://localhost:4000/notifications
+   - Recibe una notificacion
+   - Escucharas: sonidoNotificacion.mp3
+
+⚠️ IMPORTANTE:
+
+   - Nombres exactos (respeta mayusculas/minusculas)
+   - Formato MP3
+   - Tamaño < 100 KB
+   - Duracion 0.3 - 0.5 segundos
+
+═══════════════════════════════════════════════════════════
+
+Ver: public/sounds/INSTRUCCIONES_SONIDOS.md para mas detalles
+
+═══════════════════════════════════════════════════════════

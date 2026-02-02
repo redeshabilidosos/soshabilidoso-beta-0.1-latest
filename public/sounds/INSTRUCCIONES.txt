@@ -1,0 +1,66 @@
+═══════════════════════════════════════════════════════════
+  SONIDOS DEL CHAT - INSTRUCCIONES RAPIDAS
+═══════════════════════════════════════════════════════════
+
+📁 UBICACION:
+   public/sounds/
+
+🎵 ARCHIVOS NECESARIOS:
+
+   1. message-sent.mp3
+      → Sonido cuando TU envias un mensaje
+      → Ejemplo: "whoosh", "pop", "swoosh"
+
+   2. message-received.mp3
+      → Sonido cuando RECIBES un mensaje
+      → Ejemplo: "ding", "notification", "bell"
+
+📂 ESTRUCTURA FINAL:
+
+   public/sounds/
+   ├── message-sent.mp3        ← Agregar aqui
+   ├── message-received.mp3    ← Agregar aqui
+   ├── AGREGAR_SONIDOS_AQUI.md
+   ├── INSTRUCCIONES.txt
+   └── README.md
+
+✅ CARACTERISTICAS:
+
+   - Formato: MP3
+   - Duracion: 0.3 - 0.5 segundos
+   - Tamaño: < 100 KB cada uno
+   - Volumen: Moderado
+
+🌐 DONDE CONSEGUIR SONIDOS GRATIS:
+
+   1. https://freesound.org/
+   2. https://www.zapsplat.com/
+   3. https://mixkit.co/free-sound-effects/
+   4. https://notificationsounds.com/
+
+🎯 COMO AGREGAR:
+
+   1. Descarga tus archivos MP3
+   2. Renombralos exactamente como se indica arriba
+   3. Copia los archivos
+   4. Pega en esta carpeta: public/sounds/
+
+🧪 COMO PROBAR:
+
+   1. Inicia la app: npm run dev
+   2. Ve a: http://localhost:4000/messages
+   3. Envia un mensaje → Escucharas message-sent.mp3
+   4. Recibe un mensaje → Escucharas message-received.mp3
+
+⚠️ IMPORTANTE:
+
+   - Los nombres deben ser EXACTOS (todo en minusculas)
+   - Usar guion (-) NO guion bajo (_)
+   - Formato MP3, no WAV u otro
+   - Si no suenan, verifica la consola del navegador (F12)
+
+═══════════════════════════════════════════════════════════
+
+Ver AGREGAR_SONIDOS_AQUI.md para instrucciones detalladas
+
+═══════════════════════════════════════════════════════════
