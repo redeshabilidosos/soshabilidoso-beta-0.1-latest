@@ -10,7 +10,6 @@ import { usersService } from '@/lib/services/users.service';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { usePosts } from '@/lib/contexts/posts-context';
 import { PostDetailDialog } from '@/components/ui/post-detail-dialog';
 import { Post as PostType } from '@/types/user';
 
@@ -385,7 +384,7 @@ export function UserPostsGrid({ username, isOwnProfile = false, refreshTrigger }
         {/* Botones de vista - Alineados a la derecha */}
         <div className="flex items-center justify-end gap-2">
           <Button
-            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            variant={viewMode === 'grid' ? 'secondary' : 'outline'}
             size="sm"
             onClick={() => setViewMode('grid')}
             className="flex items-center gap-1.5"
@@ -394,7 +393,7 @@ export function UserPostsGrid({ username, isOwnProfile = false, refreshTrigger }
             <span className="hidden sm:inline text-xs">Cuadrícula</span>
           </Button>
           <Button
-            variant={viewMode === 'list' ? 'default' : 'outline'}
+            variant={viewMode === 'list' ? 'secondary' : 'outline'}
             size="sm"
             onClick={() => setViewMode('list')}
             className="flex items-center gap-1.5"
@@ -751,7 +750,7 @@ export function UserPostsGrid({ username, isOwnProfile = false, refreshTrigger }
           post={selectedPost}
           onPostUpdated={(updatedPost) => {
             // Actualizar el post en la lista
-            setPosts(posts.map(p => p.id === updatedPost.id ? updatedPost : p));
+            setPosts(posts.map(p => p.id === updatedPost.id ? updatedPost as any : p));
           }}
         />
       )}

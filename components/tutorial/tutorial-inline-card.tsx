@@ -7,6 +7,7 @@ import { X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import confetti from 'canvas-confetti';
 
 /**
  * Componente de tutorial que se inserta en el flujo del documento
@@ -28,11 +29,42 @@ export function TutorialInlineCard() {
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === totalSteps - 1;
 
-  // Mostrar inline card en:
-  // - Paso 0: Bienvenida (centrado)
-  // - Pasos 1-10: Navegación del sidebar izquierdo (desktop) o MobileNav (móvil/tablet)
-  // Pasos 11+: Usa TutorialOverlay
-  const shouldShowInline = isActive && step && currentStep >= 0 && currentStep <= 10;
+  // Mostrar confeti cuando se llegue al paso final
+  useEffect(() => {
+    if (isActive && isLastStep && step?.id === 'completion') {
+      console.log('🎊 Mostrando confeti de finalización');
+      
+      const duration = 3000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ['#00FF88', '#51C6E0', '#8B5CF6', '#FF6B9D']
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ['#00FF88', '#51C6E0', '#8B5CF6', '#FF6B9D']
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+
+      frame();
+    }
+  }, [isActive, isLastStep, step, currentStep]);
+
+  // Mostrar inline card en TODOS los pasos del tutorial
+  // El card permanece visible desde el inicio hasta el final
+  const shouldShowInline = isActive && step;
 
   // Detectar si estamos en móvil o tablet
   const [isMobile, setIsMobile] = useState(false);
@@ -212,8 +244,98 @@ export function TutorialInlineCard() {
         </motion.div>
       )}
 
-      {/* Flecha especial hacia arriba para Stories */}
-      {currentStep === 2 && (
+      {/* Flecha especial hacia arriba para Stories - DESHABILITADA */}
+      {false && currentStep === 2 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          transition={{ duration: 0.5 }}
+          className="absolute -top-24 left-1/2 -translate-x-1/2 z-10"
+          style={{ width: '120px', height: '100px' }}
+        >
+          <svg width="120" height="100" viewBox="0 0 120 100" className="text-white" style={{ filter: 'drop-shadow(0 0 10px rgba(0, 255, 136, 0.7))' }}> 
+            {/* Línea curva hacia arriba */}
+            <motion.path
+              d="M 60 95 Q 55 60, 60 25"
+              stroke="currentColor"
+              strokeWidth="4"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1, ease: "easeInOut" }}
+            />
+            {/* Punta de flecha hacia arriba */}
+            <motion.polygon
+              points="55,30 60,18 65,30"
+              fill="currentColor"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.8, duration: 0.3 }}
+            />
+            {/* Círculo pulsante en el origen */}
+            <motion.circle
+              cx="60"
+              cy="95"
+              r="5"
+              fill="rgba(0, 255, 136, 0.8)"
+              initial={{ scale: 0 }}
+              animate={{ scale: [0, 1.2, 1] }}
+              transition={{ duration: 0.6, times: [0, 0.6, 1] }}
+            />
+          </svg>
+        </motion.div>
+      )}
+
+      {/* Flecha especial hacia arriba para el botón "Nueva Publicación" en paso 12 */}
+      {currentStep === 12 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          transition={{ duration: 0.5 }}
+          className="absolute -top-24 right-4 z-10"
+          style={{ width: '120px', height: '100px' }}
+        >
+          <svg width="120" height="100" viewBox="0 0 120 100" className="text-white" style={{ filter: 'drop-shadow(0 0 10px rgba(0, 255, 136, 0.7))' }}> 
+            {/* Línea curva hacia arriba */}
+            <motion.path
+              d="M 60 95 Q 55 60, 60 25"
+              stroke="currentColor"
+              strokeWidth="4"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1, ease: "easeInOut" }}
+            />
+            {/* Punta de flecha hacia arriba */}
+            <motion.polygon
+              points="55,30 60,18 65,30"
+              fill="currentColor"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.8, duration: 0.3 }}
+            />
+            {/* Círculo pulsante en el origen */}
+            <motion.circle
+              cx="60"
+              cy="95"
+              r="5"
+              fill="rgba(0, 255, 136, 0.8)"
+              initial={{ scale: 0 }}
+              animate={{ scale: [0, 1.2, 1] }}
+              transition={{ duration: 0.6, times: [0, 0.6, 1] }}
+            />
+          </svg>
+        </motion.div>
+      )}
+
+      {/* Flecha especial hacia arriba para las historias en paso 14 */}
+      {currentStep === 14 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -342,6 +464,16 @@ export function TutorialInlineCard() {
                 {isLastStep ? (
                   <>
                     ¡Comenzar! 🚀
+                  </>
+                ) : currentStep === 12 ? (
+                  <>
+                    Entendido, voy a publicar
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </>
+                ) : currentStep === 14 ? (
+                  <>
+                    Entendido, voy a crear historia
+                    <ChevronRight className="w-4 h-4 ml-1" />
                   </>
                 ) : (
                   <>

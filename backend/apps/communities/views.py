@@ -137,6 +137,8 @@ class CommunityViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def suggested(self, request):
         """Obtener comunidades sugeridas para el usuario"""
+        from django.db.models import Count
+        
         user = request.user
         
         # Obtener comunidades a las que el usuario ya pertenece
@@ -146,11 +148,14 @@ class CommunityViewSet(viewsets.ModelViewSet):
         ).values_list('community_id', flat=True)
         
         # Sugerir comunidades populares que el usuario no ha unido
+        # Anotar con el conteo de miembros para poder ordenar
         suggested = Community.objects.filter(
             is_active=True
         ).exclude(
             id__in=user_communities
-        ).order_by('-subscribers_count', '-created_at')[:10]
+        ).annotate(
+            members_count=Count('members', filter=Q(members__is_active=True))
+        ).order_by('-members_count', '-created_at')[:10]
         
         serializer = self.get_serializer(suggested, many=True)
         return Response(serializer.data)

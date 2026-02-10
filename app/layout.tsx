@@ -1,5 +1,5 @@
 import './globals.css';
-import type { Metadata, Viewport } from 'next';
+import type { Metadata } from 'next';
 import { RootLayoutClient } from './RootLayoutClient';
 import { Poppins } from 'next/font/google'; // Importar Poppins
 
@@ -45,14 +45,13 @@ export const metadata: Metadata = {
     title: 'SOS Habilidoso | Red Social de Fútbol',
     description: 'La red social futurista para amantes del fútbol',
   },
-};
-
-export const viewport: Viewport = {
   themeColor: '#000000ff',
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default function RootLayout({

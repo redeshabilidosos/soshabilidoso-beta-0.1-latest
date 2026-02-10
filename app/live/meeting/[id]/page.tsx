@@ -431,7 +431,7 @@ export default function MeetingRoomPage() {
           </Button>
 
           <Button
-            variant={isHandRaised ? 'default' : 'secondary'}
+            variant={isHandRaised ? 'secondary' : 'outline'}
             size="icon"
             onClick={() => setIsHandRaised(!isHandRaised)}
             className="h-12 w-12 rounded-full hidden md:flex"

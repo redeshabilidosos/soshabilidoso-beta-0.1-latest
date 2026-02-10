@@ -193,7 +193,7 @@ export function VirtualMeetings({ communityId, isOwner, isMember, isPremium, onC
         {(['all', 'live', 'scheduled', 'ended'] as const).map((filterOption) => (
           <CyberButton
             key={filterOption}
-            variant={filter === filterOption ? 'default' : 'outline'}
+            variant={filter === filterOption ? 'primary' : 'outline'}
             size="sm"
             onClick={() => setFilter(filterOption)}
           >

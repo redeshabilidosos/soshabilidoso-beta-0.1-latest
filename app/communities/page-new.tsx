@@ -195,7 +195,7 @@ export default function CommunitiesPage() {
                     <span className="text-xs text-gray-400">Activa</span>
                     <CyberButton
                       size="sm"
-                      variant={community.isJoined ? 'outline' : 'default'}
+                      variant={community.isJoined ? 'outline' : 'primary'}
                       className={community.isJoined ? 'border-neon-green text-neon-green' : ''}
                       onClick={() => handleJoinCommunity(community.id)}
                     >

@@ -14,10 +14,8 @@ import {
   Group, 
   Users, 
   Plus, 
-  Search, 
-  Star,
+  Search,
   MessageSquare,
-  Eye,
   Shield
 } from 'lucide-react';
 
@@ -200,7 +198,7 @@ export default function CommunitiesPage() {
                       {categories.map((category) => (
                         <CyberButton
                           key={category.value}
-                          variant={selectedCategory === category.value ? 'default' : 'outline'}
+                          variant={selectedCategory === category.value ? 'primary' : 'outline'}
                           size="sm"
                           onClick={() => setSelectedCategory(category.value)}
                           className={selectedCategory === category.value ? 'bg-neon-green text-black' : ''}
@@ -265,7 +263,7 @@ export default function CommunitiesPage() {
                         <span className="text-xs text-gray-400">{community.lastActivity}</span>
                         <CyberButton
                           size="sm"
-                          variant={community.isJoined ? 'outline' : 'default'}
+                          variant={community.isJoined ? 'outline' : 'primary'}
                           onClick={() => handleJoinCommunity(community.id)}
                           className={community.isJoined ? 'border-neon-green text-neon-green' : ''}
                         >

@@ -62,16 +62,16 @@ export function ChatInterfaceIntegrated({ isOpen, onClose, chat, onUpdateChat }:
     markMessageAsRead,
     reactToMessage,
   } = useWebSocket(chat?.id || null, {
-    onMessage: (message) => {
+    onMessage: (message: any) => {
       // Transform API message to frontend Message type
       const transformedMessage: Message = {
         id: message.id,
-        senderId: message.sender?.id || message.sender,
+        senderId: typeof message.sender === 'object' ? message.sender.id : message.sender || message.senderId,
         content: message.content,
         timestamp: message.created_at || message.timestamp,
         type: message.message_type || message.type || 'text',
-        imageUrl: message.image_url,
-        videoUrl: message.video_url,
+        imageUrl: message.image_url || message.image,
+        videoUrl: message.video_url || message.video,
         emoji: message.emoji
       };
       setMessages(prev => [...prev, transformedMessage]);

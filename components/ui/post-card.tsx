@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, memo } from 'react';
-import { Heart, MessageCircle, Share, Trophy, MoreHorizontal, Play, Mic, Radio, Pencil, Trash2, Zap } from 'lucide-react';
+import { Heart, MessageCircle, Share, Trophy, MoreHorizontal, Play, Mic, Radio, Pencil, Trash2, Zap, EyeOff, UserX, Flag } from 'lucide-react';
 import { Post, Comment } from '@/types/user';
 import { CyberButton } from './cyber-button';
 import { SharePostDialog } from './share-post-dialog';
@@ -15,16 +15,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import {
   Dialog,
   DialogContent,
@@ -104,7 +94,9 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
   const [isEditing, setIsEditing] = useState(false);
   
   // Verificar si el usuario actual es el dueño del post
-  const isOwner = currentUser?.id === post.user.id;
+  const isOwner = currentUser?.id && post.user.id && 
+    (String(currentUser.id) === String(post.user.id) || 
+     currentUser.username === post.user.username);
 
   useEffect(() => {
     setPostComments(post.comments || []);
@@ -276,20 +268,40 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
 
   // Función para eliminar el post
   const handleDeletePost = async () => {
+    if (!currentUser) {
+      toast.error('Debes iniciar sesión para eliminar publicaciones');
+      setIsDeleteDialogOpen(false);
+      return;
+    }
+
+    if (!isOwner) {
+      toast.error('Solo el autor puede eliminar esta publicación');
+      setIsDeleteDialogOpen(false);
+      return;
+    }
+
     try {
       setIsDeleting(true);
+      
       const { postsService } = await import('@/lib/services/posts.service');
       await postsService.deletePost(post.id);
       
-      toast.success('Publicación eliminada');
+      // Cerrar el diálogo ANTES de mostrar el toast
       setIsDeleteDialogOpen(false);
       
       // Notificar al padre que el post fue eliminado
       if (onPostDeleted) {
         onPostDeleted(post.id);
       }
+      
+      // Mostrar toast después de cerrar el diálogo
+      setTimeout(() => {
+        toast.success('Publicación eliminada');
+      }, 100);
+      
     } catch (error) {
       console.error('Error al eliminar:', error);
+      setIsDeleteDialogOpen(false);
       toast.error('Error al eliminar la publicación');
     } finally {
       setIsDeleting(false);
@@ -727,41 +739,94 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
             </div>
           </div>
           
-          {isOwner && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button 
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0" 
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreHorizontal className="text-gray-400" size={20} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-gray-900 border-white/10">
+          {/* Menú de opciones - Siempre visible */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button 
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0" 
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Opciones de publicación"
+              >
+                <MoreHorizontal className="text-gray-400" size={20} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-gray-900 border-white/10 min-w-[220px]">
+              {/* Opciones del dueño */}
+              {isOwner && (
+                <>
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditContent(post.content);
+                      setIsEditDialogOpen(true);
+                    }}
+                    className="text-white hover:bg-white/10 cursor-pointer"
+                  >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Editar publicación
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setIsDeleteDialogOpen(true);
+                    }}
+                    className="text-red-400 hover:bg-red-500/10 cursor-pointer"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Eliminar publicación
+                  </DropdownMenuItem>
+                  <div className="h-px bg-white/10 my-1" />
+                </>
+              )}
+              
+              {/* Opciones para todos los usuarios */}
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toast.info('No me gusta este contenido', {
+                    description: 'Verás menos publicaciones como esta'
+                  });
+                  // TODO: Implementar lógica para ocultar contenido similar
+                }}
+                className="text-white hover:bg-white/10 cursor-pointer"
+              >
+                <EyeOff className="mr-2 h-4 w-4" />
+                No me gusta este contenido
+              </DropdownMenuItem>
+              
+              {!isOwner && (
                 <DropdownMenuItem 
                   onClick={(e) => {
                     e.stopPropagation();
-                    setEditContent(post.content);
-                    setIsEditDialogOpen(true);
+                    toast.info(`Dejar de ver contenido de ${post.user.displayName}`, {
+                      description: 'No verás más publicaciones de este usuario'
+                    });
+                    // TODO: Implementar lógica para bloquear usuario
                   }}
-                  className="text-white hover:bg-white/10 cursor-pointer"
+                  className="text-orange-400 hover:bg-orange-500/10 cursor-pointer"
                 >
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Editar publicación
+                  <UserX className="mr-2 h-4 w-4" />
+                  Dejar de ver contenido de {post.user.displayName}
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsDeleteDialogOpen(true);
-                  }}
-                  className="text-red-400 hover:bg-red-500/10 cursor-pointer"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Eliminar publicación
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+              )}
+              
+              <div className="h-px bg-white/10 my-1" />
+              
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toast.warning('Reportar contenido', {
+                    description: 'Tu reporte será revisado por nuestro equipo'
+                  });
+                  // TODO: Implementar modal de reporte
+                }}
+                className="text-red-400 hover:bg-red-500/10 cursor-pointer"
+              >
+                <Flag className="mr-2 h-4 w-4" />
+                Reportar / Denunciar contenido
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Content */}
@@ -837,7 +902,7 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
         </div>
 
         {/* Reactions */}
-        <div className="flex items-center justify-between pt-2 border-t border-white/10">
+        <div className="post-reactions flex items-center justify-between pt-2 border-t border-white/10">
           <div className="flex items-center gap-1">
             <EmojiReactionButton
               emoji="❤️"
@@ -885,7 +950,7 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
 
         {/* Comments Section (collapsed in PostCard, full in PostDetailDialog) */}
         {showComments && (
-          <div className="space-y-4 pt-4 border-t border-white/10 overflow-hidden">
+          <div className="post-comments space-y-4 pt-4 border-t border-white/10 overflow-hidden">
             {/* Add Comment */}
             <div className="flex space-x-3">
               <img
@@ -1165,31 +1230,63 @@ export function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) 
       </Dialog>
 
       {/* Dialog de confirmación para eliminar */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="bg-gray-900 border-white/10 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar publicación?</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-400">
+      <Dialog 
+        open={isDeleteDialogOpen} 
+        onOpenChange={(open) => {
+          if (!isDeleting) {
+            setIsDeleteDialogOpen(open);
+          }
+        }}
+        modal={true}
+      >
+        <DialogContent 
+          className="bg-gray-900 border-white/10 text-white max-w-md"
+          onEscapeKeyDown={(e) => {
+            if (!isDeleting) {
+              setIsDeleteDialogOpen(false);
+            } else {
+              e.preventDefault();
+            }
+          }}
+          onPointerDownOutside={(e) => {
+            if (!isDeleting) {
+              setIsDeleteDialogOpen(false);
+            } else {
+              e.preventDefault();
+            }
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-red-400">¿Eliminar publicación?</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-300">
               Esta acción no se puede deshacer. La publicación será eliminada permanentemente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel 
-              className="bg-transparent border-white/10 text-white hover:bg-white/10"
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                if (!isDeleting) {
+                  setIsDeleteDialogOpen(false);
+                }
+              }}
               disabled={isDeleting}
+              className="bg-transparent border border-white/10 text-white hover:bg-white/10"
             >
               Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
               onClick={handleDeletePost}
               disabled={isDeleting}
               className="bg-red-500 text-white hover:bg-red-600"
             >
               {isDeleting ? 'Eliminando...' : 'Eliminar'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

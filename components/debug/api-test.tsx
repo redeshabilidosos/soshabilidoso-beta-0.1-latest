@@ -26,7 +26,7 @@ export function APITest() {
           login: 'molo@molo.com', // Puede ser email o username
           password: 'molo123456'
         });
-        addResult('✅ Login exitoso: ' + loginResult.user.display_name);
+        addResult('✅ Login exitoso: ' + loginResult.user.displayName);
       } catch (error: any) {
         addResult('❌ Error en login: ' + (error.message || 'Error desconocido'));
         console.error('Login error:', error);
@@ -44,7 +44,7 @@ export function APITest() {
           position: 'Jugador',
           team: 'Equipo Test'
         });
-        addResult('✅ Registro exitoso: ' + registerResult.user.display_name);
+        addResult('✅ Registro exitoso: ' + registerResult.user.displayName);
       } catch (error: any) {
         addResult('❌ Error en registro: ' + (error.message || 'Error desconocido'));
         console.error('Register error:', error);

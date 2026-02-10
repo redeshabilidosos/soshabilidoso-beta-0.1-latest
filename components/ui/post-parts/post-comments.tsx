@@ -135,7 +135,15 @@ export const PostComments = memo(function PostComments({
 
     try {
       const { postsService } = await import('@/lib/services/posts.service');
-      await postsService.reactToComment(commentId, type);
+      // El backend solo soporta like/unlike para comentarios
+      if (type === 'like') {
+        if (isRemovingReaction) {
+          await postsService.unlikeComment(commentId);
+        } else {
+          await postsService.likeComment(commentId);
+        }
+      }
+      // Las reacciones laugh y dislike solo se manejan en el frontend por ahora
     } catch (error) {
       console.error('Error al reaccionar al comentario:', error);
       // Revertir en caso de error

@@ -28,7 +28,8 @@ import {
   Store,
   Rocket,
   UserSearch,
-  CalendarDays
+  CalendarDays,
+  Sparkles
 } from 'lucide-react';
 import { CreateClassifiedDialog } from '@/components/classifieds/create-classified-dialog';
 import { ClassifiedDetailDialog } from '@/components/classifieds/classified-detail-dialog';
@@ -44,6 +45,29 @@ import { CulturalAgendaSection } from '@/components/classifieds/cultural-agenda-
 import { TutorialClassifiedsProvider } from '@/components/tutorial/tutorial-classifieds-provider';
 import { TutorialClassifiedsOverlay } from '@/components/tutorial/tutorial-classifieds-overlay';
 import { TutorialClassifiedsHighlight } from '@/components/tutorial/tutorial-classifieds-highlight';
+import { useTutorialClassifieds } from '@/components/tutorial/tutorial-classifieds-provider';
+
+// Componente de debug para reiniciar el tutorial
+function TutorialDebugButton() {
+  const { startTutorial, isActive } = useTutorialClassifieds();
+  
+  const handleReset = () => {
+    console.log('🔄 Reiniciando tutorial manualmente...');
+    localStorage.removeItem('classifieds_tutorial_completed');
+    startTutorial();
+  };
+
+  return (
+    <button
+      onClick={handleReset}
+      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg shadow-lg text-sm font-semibold transition-all hover:scale-105 border border-white/20 flex-shrink-0"
+      title="Iniciar tutorial guiado"
+    >
+      <Sparkles className="w-4 h-4" />
+      <span className="hidden sm:inline">Tutorial</span>
+    </button>
+  );
+}
 
 // Mock data para clasificados
 const mockClassifieds = [
@@ -348,6 +372,8 @@ export default function ClassifiedsPage() {
                   Compra, vende e intercambia con la comunidad SOS-HABILIDOSO
                 </p>
               </div>
+              {/* Botón del tutorial - Posición 1 */}
+              <TutorialDebugButton />
             </div>
             <PublicationStatsBanner />
           </div>

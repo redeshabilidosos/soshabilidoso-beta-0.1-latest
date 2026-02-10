@@ -474,7 +474,7 @@ export function CulturalAgendaSection({ onCreateEvent }: CulturalAgendaSectionPr
               return (
                 <CyberButton
                   key={category.value}
-                  variant={selectedCategory === category.value ? 'default' : 'outline'}
+                  variant={selectedCategory === category.value ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedCategory(category.value)}
                   className={`flex items-center space-x-2 ${

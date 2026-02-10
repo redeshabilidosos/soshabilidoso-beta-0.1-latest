@@ -15,7 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { MobileNav } from "@/components/navigation/mobile-nav";
 import { useAuth } from "@/components/providers/providers";
-import { useForceBlackBackground } from "@/hooks/use-force-black-background";
+import { useParticleBackground } from "@/hooks/use-particle-background";
+import { TutorialCapacitacionesProvider, useTutorialCapacitaciones } from "@/components/tutorial/tutorial-capacitaciones-provider";
+import { TutorialCapacitacionesOverlay } from "@/components/tutorial/tutorial-capacitaciones-overlay";
 
 // API URL
 const API_URL = 'http://127.0.0.1:8000/api';
@@ -62,14 +64,24 @@ interface Seccion {
 }
 
 export default function CapacitacionesPage() {
+  return (
+    <TutorialCapacitacionesProvider>
+      <CapacitacionesContent />
+      <TutorialCapacitacionesOverlay />
+    </TutorialCapacitacionesProvider>
+  );
+}
+
+function CapacitacionesContent() {
   const router = useRouter();
   const { user } = useAuth();
+  const { startTutorial } = useTutorialCapacitaciones();
   const [secciones, setSecciones] = useState<Seccion[]>([]);
   const [loading, setLoading] = useState(true);
   const [estadisticas, setEstadisticas] = useState<any>(null);
 
-  // Aplicar fondo negro con estrellas
-  useForceBlackBackground();
+  // Aplicar fondo negro con partículas animadas
+  useParticleBackground();
 
   useEffect(() => {
     let isMounted = true;
@@ -259,15 +271,30 @@ export default function CapacitacionesPage() {
 
         <div className="max-w-6xl mx-auto p-4 space-y-6">
             
-            {/* Botón de regreso */}
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/communities')}
-              className="mb-4 hover:bg-white/10"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Regresar a Comunidades
-            </Button>
+            {/* Botón de regreso y Tutorial */}
+            <div className="flex items-center justify-between gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => router.push('/communities')}
+                className="hover:bg-white/10"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Regresar a Comunidades
+              </Button>
+              
+              {/* Botón Tutorial - Posición 1 */}
+              <Button
+                onClick={() => {
+                  localStorage.removeItem('capacitaciones_tutorial_completed');
+                  startTutorial();
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg shadow-lg text-sm font-semibold transition-all hover:scale-105 border border-white/20"
+                title="Iniciar tutorial guiado"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Tutorial</span>
+              </Button>
+            </div>
             
             {/* Barra de progreso general */}
             <motion.div
@@ -276,7 +303,7 @@ export default function CapacitacionesPage() {
               transition={{ delay: 0.1 }}
               className="mb-8"
             >
-              <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-white/10">
+              <Card className="progress-card bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-white/10">
                 <CardContent className="p-4 md:p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                     <div className="flex items-center gap-3">
@@ -305,6 +332,7 @@ export default function CapacitacionesPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
+              className="secciones-grid"
             >
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-[#00ff88]" />
@@ -326,7 +354,7 @@ export default function CapacitacionesPage() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => router.push(`/capacitaciones/secciones/${seccion.slug}`)}
-                      className="cursor-pointer"
+                      className="seccion-card cursor-pointer"
                     >
                       <Card className="bg-black/60 border-white/10 hover:border-white/30 transition-all h-full overflow-hidden group">
                         {/* Header con color */}
@@ -414,7 +442,7 @@ export default function CapacitacionesPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="mt-8"
+              className="logros-section mt-8"
             >
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Award className="w-5 h-5 text-yellow-400" />

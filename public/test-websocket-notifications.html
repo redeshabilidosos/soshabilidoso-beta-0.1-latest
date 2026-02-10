@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test WebSocket Notificaciones</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .info-box p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .log-container {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 20px 0;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .log-success {
+            color: #4ec9b0;
+        }
+        .log-error {
+            color: #f48771;
+        }
+        .log-info {
+            color: #569cd6;
+        }
+        .log-warning {
+            color: #dcdcaa;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .button-group {
+            margin: 20px 0;
+        }
+        .token-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Test WebSocket Notificaciones</h1>
+        <p>Prueba de conexión WebSocket en tiempo real</p>
+
+        <div class="info-box">
+            <h3>Estado de Conexión</h3>
+            <p><strong>Estado:</strong> <span id="connectionStatus" class="status-badge disconnected">Desconectado</span></p>
+            <p><strong>URL WebSocket:</strong> <code id="wsUrl">-</code></p>
+            <p><strong>Backend:</strong> <code>http://127.0.0.1:8000</code></p>
+            <p><strong>Protocolo:</strong> <span id="protocol">-</span></p>
+        </div>
+
+        <div class="info-box">
+            <h3>Token JWT</h3>
+            <p><strong>Usuario de prueba:</strong> admin@test.com</p>
+            <div class="token-display" id="tokenDisplay">Obteniendo token...</div>
+        </div>
+
+        <div class="button-group">
+            <button onclick="connectWebSocket()">🔌 Conectar WebSocket</button>
+            <button onclick="disconnectWebSocket()">🔌 Desconectar</button>
+            <button onclick="sendTestNotification()" id="sendBtn" disabled>📤 Enviar Notificación de Prueba</button>
+            <button onclick="clearLogs()">🗑️ Limpiar Logs</button>
+        </div>
+
+        <div class="info-box">
+            <h3>📋 Logs de Conexión</h3>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry log-info">Esperando conexión...</div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>✅ Checklist de Verificación</h3>
+            <p id="check1">⏳ Backend corriendo en puerto 8000</p>
+            <p id="check2">⏳ Daphne (ASGI) iniciado</p>
+            <p id="check3">⏳ WebSocket endpoint disponible</p>
+            <p id="check4">⏳ Token JWT válido</p>
+            <p id="check5">⏳ Conexión WebSocket establecida</p>
+        </div>
+
+        <div class="info-box">
+            <h3>🔧 Troubleshooting</h3>
+            <p><strong>Error 404:</strong> Backend no está corriendo con Daphne. Usa: <code>npm run soshabilidoso</code></p>
+            <p><strong>Error 1006:</strong> Conexión cerrada inesperadamente. Verifica que Daphne esté corriendo.</p>
+            <p><strong>Error 401:</strong> Token JWT inválido o expirado. Refresca la página.</p>
+            <p><strong>Error 403:</strong> Token no autorizado. Verifica credenciales.</p>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let token = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 3;
+
+        // Función para agregar logs
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString('es-ES');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            
+            let icon = '📝';
+            if (type === 'success') icon = '✅';
+            if (type === 'error') icon = '❌';
+            if (type === 'warning') icon = '⚠️';
+            if (type === 'info') icon = '🔄';
+            
+            logEntry.textContent = `[${timestamp}] ${icon} ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Función para actualizar estado
+        function updateStatus(status, text) {
+            const statusBadge = document.getElementById('connectionStatus');
+            statusBadge.className = `status-badge ${status}`;
+            statusBadge.textContent = text;
+            
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = status !== 'connected';
+        }
+
+        // Función para actualizar checklist
+        function updateCheck(checkId, status, text) {
+            const check = document.getElementById(checkId);
+            const icon = status === 'success' ? '✅' : status === 'error' ? '❌' : '⏳';
+            check.textContent = `${icon} ${text}`;
+        }
+
+        // Obtener token JWT
+        async function getToken() {
+            try {
+                addLog('Obteniendo token JWT...', 'info');
+                updateCheck('check4', 'loading', 'Obteniendo token JWT...');
+                
+                const response = await fetch('http://127.0.0.1:8000/api/auth/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@test.com',
+                        password: 'admin123'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                token = data.access;
+                
+                document.getElementById('tokenDisplay').textContent = token;
+                addLog('Token JWT obtenido correctamente', 'success');
+                updateCheck('check4', 'success', 'Token JWT válido');
+                
+                return token;
+            } catch (error) {
+                addLog(`Error al obtener token: ${error.message}`, 'error');
+                updateCheck('check4', 'error', `Error al obtener token: ${error.message}`);
+                return null;
+            }
+        }
+
+        // Verificar backend
+        async function checkBackend() {
+            try {
+                addLog('Verificando backend en puerto 8000...', 'info');
+                updateCheck('check1', 'loading', 'Verificando backend...');
+                
+                const response = await fetch('http://127.0.0.1:8000/api/', {
+                    method: 'GET',
+                });
+
+                if (response.ok) {
+                    addLog('Backend respondiendo correctamente', 'success');
+                    updateCheck('check1', 'success', 'Backend corriendo en puerto 8000');
+                    updateCheck('check2', 'success', 'Daphne (ASGI) iniciado');
+                    return true;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                addLog(`Backend no disponible: ${error.message}`, 'error');
+                updateCheck('check1', 'error', 'Backend no disponible');
+                updateCheck('check2', 'error', 'Daphne no iniciado');
+                return false;
+            }
+        }
+
+        // Conectar WebSocket
+        async function connectWebSocket() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                addLog('Ya hay una conexión WebSocket activa', 'warning');
+                return;
+            }
+
+            // Verificar backend primero
+            const backendOk = await checkBackend();
+            if (!backendOk) {
+                addLog('No se puede conectar: Backend no disponible', 'error');
+                return;
+            }
+
+            // Obtener token
+            if (!token) {
+                token = await getToken();
+                if (!token) {
+                    addLog('No se puede conectar: Token no disponible', 'error');
+                    return;
+                }
+            }
+
+            try {
+                updateStatus('connecting', 'Conectando...');
+                updateCheck('check3', 'loading', 'Conectando a WebSocket...');
+                
+                const wsUrl = `ws://127.0.0.1:8000/ws/notifications/?token=${token}`;
+                document.getElementById('wsUrl').textContent = wsUrl;
+                
+                addLog(`Conectando a: ${wsUrl}`, 'info');
+                
+                ws = new WebSocket(wsUrl);
+
+                ws.onopen = () => {
+                    addLog('✅ WebSocket conectado exitosamente', 'success');
+                    updateStatus('connected', 'Conectado');
+                    updateCheck('check3', 'success', 'WebSocket endpoint disponible');
+                    updateCheck('check5', 'success', 'Conexión WebSocket establecida');
+                    document.getElementById('protocol').textContent = ws.protocol || 'WebSocket';
+                    reconnectAttempts = 0;
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        addLog(`📨 Mensaje recibido: ${JSON.stringify(data)}`, 'success');
+                        
+                        // Si es una notificación, mostrarla
+                        if (data.type === 'notification') {
+                            addLog(`🔔 Notificación: ${data.message}`, 'info');
+                        }
+                    } catch (error) {
+                        addLog(`Mensaje recibido (raw): ${event.data}`, 'info');
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    addLog(`❌ Error en WebSocket: ${error.message || 'Error desconocido'}`, 'error');
+                    updateCheck('check3', 'error', 'Error en WebSocket endpoint');
+                    updateCheck('check5', 'error', 'Error en conexión WebSocket');
+                };
+
+                ws.onclose = (event) => {
+                    addLog(`🔌 WebSocket cerrado. Código: ${event.code}, Razón: ${event.reason || 'Sin razón'}`, 'warning');
+                    updateStatus('disconnected', 'Desconectado');
+                    updateCheck('check5', 'error', 'Conexión WebSocket cerrada');
+                    
+                    // Intentar reconectar
+                    if (reconnectAttempts < maxReconnectAttempts && event.code !== 1000) {
+                        reconnectAttempts++;
+                        addLog(`🔄 Intentando reconectar (${reconnectAttempts}/${maxReconnectAttempts})...`, 'info');
+                        setTimeout(connectWebSocket, 2000);
+                    }
+                };
+
+            } catch (error) {
+                addLog(`❌ Error al crear WebSocket: ${error.message}`, 'error');
+                updateStatus('disconnected', 'Error');
+                updateCheck('check3', 'error', `Error: ${error.message}`);
+            }
+        }
+
+        // Desconectar WebSocket
+        function disconnectWebSocket() {
+            if (ws) {
+                addLog('Cerrando conexión WebSocket...', 'info');
+                ws.close(1000, 'Cierre manual');
+                ws = null;
+                updateStatus('disconnected', 'Desconectado');
+            } else {
+                addLog('No hay conexión activa para cerrar', 'warning');
+            }
+        }
+
+        // Enviar notificación de prueba
+        function sendTestNotification() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addLog('No hay conexión WebSocket activa', 'error');
+                return;
+            }
+
+            try {
+                const testMessage = {
+                    type: 'test_notification',
+                    message: 'Esta es una notificación de prueba',
+                    timestamp: new Date().toISOString()
+                };
+                
+                ws.send(JSON.stringify(testMessage));
+                addLog(`📤 Mensaje enviado: ${JSON.stringify(testMessage)}`, 'success');
+            } catch (error) {
+                addLog(`❌ Error al enviar mensaje: ${error.message}`, 'error');
+            }
+        }
+
+        // Limpiar logs
+        function clearLogs() {
+            document.getElementById('logContainer').innerHTML = '<div class="log-entry log-info">Logs limpiados</div>';
+        }
+
+        // Inicializar al cargar
+        window.addEventListener('load', () => {
+            addLog('Página cargada. Haz clic en "Conectar WebSocket" para iniciar', 'info');
+            
+            // Auto-conectar después de 1 segundo
+            setTimeout(() => {
+                addLog('Iniciando conexión automática...', 'info');
+                connectWebSocket();
+            }, 1000);
+        });
+
+        // Limpiar al cerrar
+        window.addEventListener('beforeunload', () => {
+            if (ws) {
+                ws.close(1000, 'Página cerrada');
+            }
+        });
+    </script>
+</body>
+</html>

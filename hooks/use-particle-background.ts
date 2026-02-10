@@ -20,10 +20,10 @@ export function useParticleBackground() {
   const lastFrameTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    // No aplicar en páginas de comunidades
-    if (pathname?.startsWith('/communities')) {
-      return;
-    }
+    // Aplicar en todas las páginas (removido el filtro de comunidades)
+    // if (pathname?.startsWith('/communities')) {
+    //   return;
+    // }
 
     // Crear canvas
     const canvas = document.createElement('canvas');

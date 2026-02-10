@@ -97,14 +97,17 @@ ASGI_APPLICATION = 'sos_habilidoso.asgi.application'
 # Database - Usar MySQL como base de datos principal
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        # Usar backend personalizado que bypasea verificación de versión
+        # y deshabilita RETURNING para compatibilidad con MariaDB 10.4
+        'ENGINE': 'sos_habilidoso.db_backend',
         'NAME': 'habilidosos_db',
         'USER': 'root',
         'PASSWORD': '',
-        'HOST': 'localhost',
+        'HOST': '127.0.0.1',  # Usar IP directa en lugar de localhost
         'PORT': '3307',
         'OPTIONS': {
             'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
     },
     'sqlite_backup': {

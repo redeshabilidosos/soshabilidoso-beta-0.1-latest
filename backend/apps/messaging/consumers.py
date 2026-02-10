@@ -20,37 +20,77 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Conectar al WebSocket"""
         self.chat_room_id = self.scope['url_route']['kwargs']['chat_room_id']
         self.chat_group_name = f'chat_{self.chat_room_id}'
-        self.user = self.scope['user']
         
-        # Verificar autenticación
-        if not self.user.is_authenticated:
-            await self.close()
-            return
-        
-        # Verificar que el usuario sea participante del chat
-        is_participant = await self.check_participant()
-        if not is_participant:
-            await self.close()
-            return
-        
-        # Unirse al grupo del chat
-        await self.channel_layer.group_add(
-            self.chat_group_name,
-            self.channel_name
-        )
-        
+        # 🚀 CAMBIO: Aceptar conexión PRIMERO
         await self.accept()
         
-        # Notificar que el usuario se conectó
-        await self.channel_layer.group_send(
-            self.chat_group_name,
-            {
-                'type': 'user_status',
-                'user_id': str(self.user.id),
-                'username': self.user.username,
-                'status': 'online'
-            }
-        )
+        # Luego autenticar
+        try:
+            # Obtener token de query string
+            query_string = self.scope['query_string'].decode()
+            token = None
+            
+            if 'token=' in query_string:
+                token = query_string.split('token=')[1].split('&')[0]
+            
+            if not token:
+                await self.send(text_data=json.dumps({
+                    'type': 'error',
+                    'message': 'Token no proporcionado'
+                }))
+                await self.close()
+                return
+            
+            # Autenticar token
+            self.user = await self.authenticate_token(token)
+            
+            if not self.user:
+                await self.send(text_data=json.dumps({
+                    'type': 'error',
+                    'message': 'Token inválido'
+                }))
+                await self.close()
+                return
+            
+            # Verificar que el usuario sea participante del chat
+            is_participant = await self.check_participant()
+            if not is_participant:
+                await self.send(text_data=json.dumps({
+                    'type': 'error',
+                    'message': 'No eres participante de este chat'
+                }))
+                await self.close()
+                return
+            
+            # Unirse al grupo del chat
+            await self.channel_layer.group_add(
+                self.chat_group_name,
+                self.channel_name
+            )
+            
+            # Notificar conexión exitosa
+            await self.send(text_data=json.dumps({
+                'type': 'connection_success',
+                'message': 'Conectado exitosamente al chat'
+            }))
+            
+            # Notificar que el usuario se conectó
+            await self.channel_layer.group_send(
+                self.chat_group_name,
+                {
+                    'type': 'user_status',
+                    'user_id': str(self.user.id),
+                    'username': self.user.username,
+                    'status': 'online'
+                }
+            )
+            
+        except Exception as e:
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': f'Error de autenticación: {str(e)}'
+            }))
+            await self.close()
     
     async def disconnect(self, close_code):
         """Desconectar del WebSocket"""
@@ -293,6 +333,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
     
     # Métodos de base de datos (async)
+    
+    @database_sync_to_async
+    def authenticate_token(self, token):
+        """Autenticar token JWT"""
+        try:
+            from rest_framework_simplejwt.tokens import AccessToken
+            from django.contrib.auth import get_user_model
+            
+            User = get_user_model()
+            access_token = AccessToken(token)
+            user_id = access_token['user_id']
+            user = User.objects.get(id=user_id)
+            return user
+        except Exception as e:
+            print(f"Error autenticando token: {e}")
+            return None
     
     @database_sync_to_async
     def check_participant(self):

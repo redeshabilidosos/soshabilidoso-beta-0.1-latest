@@ -35,13 +35,14 @@ import {
   ImageIcon,
   ThumbsDown,
   Laugh,
-  Shield
+  Shield,
+  Plus
 } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { UserProfileDialog } from '@/components/ui/user-profile-dialog';
 import { toast } from 'sonner';
-import { useForceBlackBackground } from '@/hooks/use-force-black-background';
+import { useParticleBackground } from '@/hooks/use-particle-background';
 import {
   Tooltip,
   TooltipContent,
@@ -95,8 +96,8 @@ export default function CommunityPage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   
-  // Forzar fondo negro en páginas de comunidades
-  useForceBlackBackground();
+  // Forzar fondo negro en páginas de comunidades con partículas animadas
+  useParticleBackground();
   
   const communityId = Array.isArray(params.id) ? params.id[0] : (params.id as string);
 
@@ -302,60 +303,118 @@ export default function CommunityPage() {
   const handleReaction = async (postId: string, reactionType: 'like' | 'laugh' | 'dislike') => {
     try {
       const token = localStorage.getItem('access_token');
-      
-      // Para like usamos el endpoint existente
-      if (reactionType === 'like') {
-        const response = await fetch(`http://127.0.0.1:8000/api/communities/posts/${postId}/like/`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
 
-        if (response.ok) {
-          const updatePost = (post: Post) => {
-            if (post.id === postId) {
-              return {
-                ...post,
-                is_liked: !post.is_liked,
-                like_count: post.is_liked ? post.like_count - 1 : post.like_count + 1
-              };
-            }
-            return post;
-          };
-          
-          setPosts(posts.map(updatePost));
-          
-          // Actualizar también el post seleccionado si está abierto
-          if (selectedPost && selectedPost.id === postId) {
-            setSelectedPost(updatePost(selectedPost));
+      // Determinar el estado actual de la reacción
+      const currentReaction = (post as any).user_reaction; // 'like', 'laugh', 'dislike', o null
+      const isTogglingOff = currentReaction === reactionType;
+
+      // Actualización optimista del UI
+      const updatePost = (p: Post) => {
+        if (p.id !== postId) return p;
+
+        const updated = { ...p } as any;
+        
+        // Resetear todas las reacciones del usuario
+        if (currentReaction === 'like') updated.like_count = Math.max(0, (updated.like_count || 0) - 1);
+        if (currentReaction === 'laugh') updated.laugh_count = Math.max(0, (updated.laugh_count || 0) - 1);
+        if (currentReaction === 'dislike') updated.dislike_count = Math.max(0, (updated.dislike_count || 0) - 1);
+        updated.is_liked = false;
+
+        // Si no está quitando la reacción, agregar la nueva
+        if (!isTogglingOff) {
+          if (reactionType === 'like') {
+            updated.like_count = (updated.like_count || 0) + 1;
+            updated.is_liked = true;
+          } else if (reactionType === 'laugh') {
+            updated.laugh_count = (updated.laugh_count || 0) + 1;
+          } else if (reactionType === 'dislike') {
+            updated.dislike_count = (updated.dislike_count || 0) + 1;
           }
+          updated.user_reaction = reactionType;
+        } else {
+          updated.user_reaction = null;
+        }
+
+        return updated;
+      };
+
+      setPosts(posts.map(updatePost));
+      if (selectedPost && selectedPost.id === postId) {
+        setSelectedPost(updatePost(selectedPost));
+      }
+
+      // Llamada al backend
+      const response = await fetch(`http://127.0.0.1:8000/api/communities/posts/${postId}/react/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          reaction_type: isTogglingOff ? null : reactionType 
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Actualizar con datos reales del servidor
+        setPosts(prevPosts => prevPosts.map(p => {
+          if (p.id === postId) {
+            return {
+              ...p,
+              like_count: data.like_count || 0,
+              laugh_count: data.laugh_count || 0,
+              dislike_count: data.dislike_count || 0,
+              is_liked: data.user_reaction === 'like',
+              user_reaction: data.user_reaction
+            } as any;
+          }
+          return p;
+        }));
+
+        // Animación de feedback
+        const emoji = reactionType === 'like' ? '❤️' : reactionType === 'laugh' ? '😂' : '👎';
+        if (!isTogglingOff) {
+          toast.success(emoji, { duration: 1000 });
         }
       } else {
-        // Para otras reacciones (laugh, dislike) - actualización optimista
-        // TODO: Implementar endpoint en backend para otras reacciones
-        const updatePost = (post: Post) => {
-          if (post.id === postId) {
-            const countField = `${reactionType}_count` as keyof Post;
-            const currentCount = (post as any)[countField] || 0;
-            return {
-              ...post,
-              [countField]: currentCount + 1
-            };
-          }
-          return post;
-        };
-        
-        setPosts(posts.map(updatePost));
-        
-        // Actualizar también el post seleccionado si está abierto
+        // Revertir cambios si falla
+        setPosts(posts);
         if (selectedPost && selectedPost.id === postId) {
-          setSelectedPost(updatePost(selectedPost));
+          setSelectedPost(post);
         }
-        
-        toast.success(reactionType === 'laugh' ? '😂 ¡Jajaja!' : '👎 No me gusta');
+        toast.error('Error al reaccionar');
       }
     } catch (error) {
       console.error('Error en reacción:', error);
       toast.error('Error al reaccionar');
+    }
+  };
+
+  const handleLikeComment = async (postId: string, commentId: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`http://127.0.0.1:8000/api/communities/comments/${commentId}/like/`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setComments(prev => ({
+          ...prev,
+          [postId]: prev[postId]?.map(c => 
+            c.id === commentId 
+              ? { ...c, is_liked: data.is_liked, like_count: data.like_count }
+              : c
+          ) || []
+        }));
+      }
+    } catch (error) {
+      console.error('Error liking comment:', error);
+      toast.error('Error al reaccionar al comentario');
     }
   };
 
@@ -508,30 +567,6 @@ export default function CommunityPage() {
     } catch (error) {
       console.error('Error deleting comment:', error);
       toast.error('Error al eliminar comentario');
-    }
-  };
-
-  const handleLikeComment = async (postId: string, commentId: string) => {
-    try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://127.0.0.1:8000/api/communities/comments/${commentId}/like/`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setComments(prev => ({
-          ...prev,
-          [postId]: prev[postId]?.map(c => 
-            c.id === commentId 
-              ? { ...c, is_liked: !c.is_liked, like_count: c.is_liked ? (c.like_count || 1) - 1 : (c.like_count || 0) + 1 } 
-              : c
-          ) || []
-        }));
-      }
-    } catch (error) {
-      console.error('Error liking comment:', error);
     }
   };
 
@@ -728,7 +763,7 @@ export default function CommunityPage() {
 
               <div className="relative px-4 md:px-6 lg:px-8 xl:px-12 -mt-10 md:-mt-14 z-10 flex items-end space-x-3 md:space-x-4 mb-3">
                 <div 
-                  className="w-20 md:w-28 lg:w-32 h-20 md:h-28 lg:h-32 rounded-lg bg-gradient-to-br from-neon-green/30 to-neon-green/10 border-2 border-neon-green/50 overflow-hidden flex-shrink-0 shadow-lg backdrop-blur-sm cursor-pointer hover:border-neon-green transition-colors"
+                  className="w-20 md:w-28 lg:w-32 h-20 md:h-28 lg:h-32 rounded-lg bg-[#51C6E0] border-2 border-[#51C6E0]/50 overflow-hidden flex-shrink-0 shadow-lg backdrop-blur-sm cursor-pointer hover:border-[#51C6E0] transition-colors flex items-center justify-center"
                   onClick={() => {
                     if (community.profile_image) {
                       setSelectedImage({ url: community.profile_image, type: 'profile' });
@@ -736,12 +771,16 @@ export default function CommunityPage() {
                     }
                   }}
                 >
-                  {community.profile_image && (
+                  {community.profile_image ? (
                     <img
                       src={community.profile_image}
                       alt={community.name}
                       className="w-full h-full object-cover hover:opacity-90 transition-opacity"
                     />
+                  ) : (
+                    <span className="text-white font-bold text-3xl md:text-4xl lg:text-5xl">
+                      {community.name.charAt(0).toUpperCase()}
+                    </span>
                   )}
                 </div>
 
@@ -808,6 +847,33 @@ export default function CommunityPage() {
                      
               {/* COLUMNA IZQUIERDA - Información del grupo (4 columnas) */}
               <div className="lg:col-span-4 lg:order-2 space-y-2.5 lg:pl-4">
+                {/* Indicador de Stream Activo */}
+                {/* TODO: Conectar con backend para detectar streams activos */}
+                {false && ( // Cambiar a true cuando haya un stream activo
+                  <Card className="glass-card border-red-500/50 bg-gradient-to-br from-red-500/20 to-orange-500/10 animate-pulse">
+                    <CardContent className="pt-3 pb-3">
+                      <button
+                        onClick={() => {
+                          // TODO: Abrir modal de stream o redirigir a la transmisión
+                          toast.info('Abriendo transmisión en vivo...');
+                        }}
+                        className="w-full"
+                      >
+                        <div className="flex items-center justify-center gap-2 text-red-400">
+                          <div className="relative">
+                            <Radio className="w-5 h-5 animate-pulse" />
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                          </div>
+                          <div className="text-left">
+                            <p className="font-bold text-sm text-white">🔴 EN VIVO AHORA</p>
+                            <p className="text-xs text-red-300">Haz clic para ver</p>
+                          </div>
+                        </div>
+                      </button>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Botón de unirse/miembro */}
                 <Card className="glass-card border-white/10">
                   <CardContent className="pt-3 pb-3">
@@ -981,33 +1047,103 @@ export default function CommunityPage() {
 
               {/* COLUMNA DERECHA - Feed de publicaciones (8 columnas) */}
               <div className="lg:col-span-8 lg:order-1 space-y-2.5 lg:pr-6">
-                {/* Crear publicación (solo para miembros) */}
-                {community.is_member && (
-                  <Card className="glass-card border-white/10 hover:border-neon-green/30 transition-colors">
-                    <CardContent className="pt-3 pb-3">
-                      <div 
-                        className="flex items-center gap-3 cursor-pointer"
-                        onClick={() => setShowPostModal(true)}
-                      >
-                        <Avatar className="w-10 h-10">
-                          <AvatarImage 
-                            src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=39FF14&color=000`}
-                            alt={user?.username}
-                          />
-                          <AvatarFallback className="bg-neon-green/20 text-neon-green">
-                            {user?.username?.charAt(0).toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 bg-white/5 rounded-full px-4 py-2.5 text-sm text-gray-400 hover:bg-white/10 transition-colors">
-                          ¿Qué quieres compartir?
+                {/* Crear publicación - SIEMPRE VISIBLE */}
+                <Card className="glass-card border-neon-green/30 hover:border-neon-green/50 transition-all shadow-lg shadow-neon-green/10">
+                  <CardContent className="pt-4 pb-4">
+                    {community.is_member ? (
+                      <div className="space-y-3">
+                        {/* Header con avatar y input principal */}
+                        <div 
+                          className="flex items-center gap-3 cursor-pointer group"
+                          onClick={() => setShowPostModal(true)}
+                        >
+                          <Avatar className="w-11 h-11 ring-2 ring-neon-green/30 group-hover:ring-neon-green/60 transition-all">
+                            <AvatarImage 
+                              src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=39FF14&color=000`}
+                              alt={user?.username}
+                            />
+                            <AvatarFallback className="bg-neon-green/20 text-neon-green font-bold">
+                              {user?.username?.charAt(0).toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 bg-white/5 rounded-xl px-4 py-3 text-sm text-gray-400 hover:bg-white/10 hover:text-gray-300 transition-all border border-white/10 group-hover:border-neon-green/30">
+                            ¿Qué quieres compartir con la comunidad?
+                          </div>
                         </div>
-                        <CyberButton size="sm">
-                          <MessageSquare className="w-4 h-4" />
+
+                        {/* Botones de acción rápida */}
+                        <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <button
+                              onClick={() => {
+                                setNewPostType('text');
+                                setShowPostModal(true);
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-blue-500/20 hover:text-blue-400 text-gray-400 transition-all text-xs font-medium group"
+                              title="Publicar estado"
+                            >
+                              <FileText className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                              <span className="hidden sm:inline">Estado</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                setNewPostType('image');
+                                setShowPostModal(true);
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-green-500/20 hover:text-green-400 text-gray-400 transition-all text-xs font-medium group"
+                              title="Subir foto"
+                            >
+                              <ImageIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                              <span className="hidden sm:inline">Foto</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                setNewPostType('video');
+                                setShowPostModal(true);
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-purple-500/20 hover:text-purple-400 text-gray-400 transition-all text-xs font-medium group"
+                              title="Subir video"
+                            >
+                              <Video className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                              <span className="hidden sm:inline">Video</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                setNewPostType('live');
+                                setShowPostModal(true);
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-red-500/20 hover:text-red-400 text-gray-400 transition-all text-xs font-medium group"
+                              title="Iniciar transmisión"
+                            >
+                              <Radio className="w-4 h-4 group-hover:scale-110 transition-transform animate-pulse" />
+                              <span className="hidden sm:inline">En Vivo</span>
+                            </button>
+                          </div>
+
+                          <CyberButton 
+                            size="sm"
+                            onClick={() => setShowPostModal(true)}
+                            className="shrink-0"
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            <span className="hidden sm:inline">Publicar</span>
+                          </CyberButton>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-6">
+                        <p className="text-gray-400 mb-4">Únete a esta comunidad para crear publicaciones</p>
+                        <CyberButton onClick={handleJoinCommunity}>
+                          <Users className="w-4 h-4 mr-2" />
+                          Unirse a la comunidad
                         </CyberButton>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                    )}
+                  </CardContent>
+                </Card>
 
                 {/* Tabs de filtro */}
                 <Card className="glass-card border-white/10">
@@ -1178,46 +1314,54 @@ export default function CommunityPage() {
                             <div className="flex items-center space-x-2 text-xs text-gray-400 pt-2 md:pt-3 border-t border-white/10">
                               <button
                                 onClick={() => handleReaction(post.id, 'like')}
-                                className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
-                                  post.is_liked
-                                    ? 'text-red-500 bg-red-500/10'
+                                className={`flex items-center space-x-1 px-2 py-1 rounded transition-all transform hover:scale-110 active:scale-95 ${
+                                  (post as any).user_reaction === 'like'
+                                    ? 'text-red-500 bg-red-500/20 shadow-lg shadow-red-500/20'
                                     : 'text-gray-400 hover:text-red-500 hover:bg-red-500/10'
                                 }`}
                                 title="Me gusta"
                               >
-                                <Heart className={`w-3 h-3 ${post.is_liked ? 'fill-current' : ''}`} />
-                                <span>{post.like_count || 0}</span>
+                                <Heart className={`w-3 h-3 transition-all ${(post as any).user_reaction === 'like' ? 'fill-current animate-pulse' : ''}`} />
+                                <span className="font-semibold">{post.like_count || 0}</span>
                               </button>
                               
                               <button
                                 onClick={() => handleReaction(post.id, 'laugh')}
-                                className="flex items-center space-x-1 px-2 py-1 rounded transition-colors text-gray-400 hover:text-yellow-500 hover:bg-yellow-500/10"
+                                className={`flex items-center space-x-1 px-2 py-1 rounded transition-all transform hover:scale-110 active:scale-95 ${
+                                  (post as any).user_reaction === 'laugh'
+                                    ? 'text-yellow-500 bg-yellow-500/20 shadow-lg shadow-yellow-500/20'
+                                    : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-500/10'
+                                }`}
                                 title="Jajaja"
                               >
-                                <span className="text-sm">😂</span>
-                                <span>{(post as any).laugh_count || 0}</span>
+                                <span className={`text-sm transition-all ${(post as any).user_reaction === 'laugh' ? 'animate-bounce' : ''}`}>😂</span>
+                                <span className="font-semibold">{(post as any).laugh_count || 0}</span>
                               </button>
                               
                               <button
                                 onClick={() => handleReaction(post.id, 'dislike')}
-                                className="flex items-center space-x-1 px-2 py-1 rounded transition-colors text-gray-400 hover:text-blue-500 hover:bg-blue-500/10"
+                                className={`flex items-center space-x-1 px-2 py-1 rounded transition-all transform hover:scale-110 active:scale-95 ${
+                                  (post as any).user_reaction === 'dislike'
+                                    ? 'text-blue-500 bg-blue-500/20 shadow-lg shadow-blue-500/20'
+                                    : 'text-gray-400 hover:text-blue-500 hover:bg-blue-500/10'
+                                }`}
                                 title="No me gusta"
                               >
-                                <ThumbsDown className="w-3 h-3" />
-                                <span>{(post as any).dislike_count || 0}</span>
+                                <ThumbsDown className={`w-3 h-3 transition-all ${(post as any).user_reaction === 'dislike' ? 'animate-pulse' : ''}`} />
+                                <span className="font-semibold">{(post as any).dislike_count || 0}</span>
                               </button>
                               
                               <button
                                 onClick={() => toggleComments(post.id)}
-                                className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
+                                className={`flex items-center space-x-1 px-2 py-1 rounded transition-all transform hover:scale-110 ${
                                   expandedComments === post.id
-                                    ? 'text-neon-green bg-neon-green/10'
+                                    ? 'text-neon-green bg-neon-green/20 shadow-lg shadow-neon-green/20'
                                     : 'text-gray-400 hover:text-neon-green hover:bg-neon-green/10'
                                 }`}
                                 title="Comentarios"
                               >
                                 <MessageSquare className="w-3 h-3" />
-                                <span>{post.comment_count}</span>
+                                <span className="font-semibold">{post.comment_count}</span>
                               </button>
                             </div>
 
@@ -1267,25 +1411,146 @@ export default function CommunityPage() {
                                     <p className="text-gray-500 text-xs text-center py-2">No hay comentarios aún</p>
                                   )}
                                   {comments[post.id]?.map((comment: any) => (
-                                    <div key={comment.id} className="bg-white/5 rounded-lg p-2">
-                                      <div className="flex space-x-2">
-                                        <img
-                                          src={comment.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author?.username || 'U')}&background=39FF14&color=000`}
-                                          alt={comment.author?.username}
-                                          className="w-6 h-6 rounded-full object-cover flex-shrink-0"
-                                        />
-                                        <div className="flex-1">
-                                          <div className="flex items-center justify-between">
-                                            <span className="text-xs font-semibold text-white">
-                                              {comment.author?.username}
-                                            </span>
-                                            <span className="text-xs text-gray-500">
-                                              {new Date(comment.created_at).toLocaleDateString('es-ES')}
-                                            </span>
-                                          </div>
-                                          <p className="text-xs text-gray-300 mt-0.5">{comment.content}</p>
+                                    <div key={comment.id} className="bg-white/5 rounded-lg p-2 hover:bg-white/10 transition-colors">
+                                      {editingComment?.id === comment.id ? (
+                                        <div className="flex space-x-2">
+                                          <input
+                                            type="text"
+                                            value={editingComment?.content || ''}
+                                            onChange={(e) => editingComment && setEditingComment({ id: editingComment.id, content: e.target.value })}
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white"
+                                            onKeyPress={(e) => {
+                                              if (e.key === 'Enter' && editingComment) {
+                                                handleEditComment(post.id, comment.id, editingComment.content);
+                                              }
+                                            }}
+                                          />
+                                          <button
+                                            onClick={() => editingComment && handleEditComment(post.id, comment.id, editingComment.content)}
+                                            className="px-3 py-1.5 bg-neon-green/20 text-neon-green rounded-lg text-xs hover:bg-neon-green/30"
+                                          >
+                                            Guardar
+                                          </button>
+                                          <button
+                                            onClick={() => setEditingComment(null)}
+                                            className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs hover:bg-red-500/30"
+                                          >
+                                            Cancelar
+                                          </button>
                                         </div>
-                                      </div>
+                                      ) : (
+                                        <div className="flex space-x-2">
+                                          <img
+                                            src={comment.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author?.username || 'U')}&background=39FF14&color=000`}
+                                            alt={comment.author?.username}
+                                            className="w-7 h-7 rounded-full object-cover flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-neon-green/50 transition-all"
+                                            onClick={() => {
+                                              if (comment.author) {
+                                                setSelectedProfileUser({
+                                                  id: comment.author.id,
+                                                  username: comment.author.username,
+                                                  displayName: comment.author.username,
+                                                  avatar: comment.author.avatar,
+                                                  email: '',
+                                                  bio: '',
+                                                  coverPhoto: undefined,
+                                                  position: '',
+                                                  team: '',
+                                                  followers: 0,
+                                                  following: 0,
+                                                  posts: 0,
+                                                  interests: [],
+                                                  createdAt: new Date().toISOString(),
+                                                });
+                                                setShowUserProfile(true);
+                                              }
+                                            }}
+                                          />
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between">
+                                              <div className="flex items-center space-x-2">
+                                                <span 
+                                                  className="text-xs font-semibold text-white cursor-pointer hover:text-neon-green"
+                                                  onClick={() => {
+                                                    if (comment.author) {
+                                                      setSelectedProfileUser({
+                                                        id: comment.author.id,
+                                                        username: comment.author.username,
+                                                        displayName: comment.author.username,
+                                                        avatar: comment.author.avatar,
+                                                        email: '',
+                                                        bio: '',
+                                                        coverPhoto: undefined,
+                                                        position: '',
+                                                        team: '',
+                                                        followers: 0,
+                                                        following: 0,
+                                                        posts: 0,
+                                                        interests: [],
+                                                        createdAt: new Date().toISOString(),
+                                                      });
+                                                      setShowUserProfile(true);
+                                                    }
+                                                  }}
+                                                >
+                                                  {comment.author?.username}
+                                                </span>
+                                                <span className="text-xs text-gray-500">
+                                                  {new Date(comment.created_at).toLocaleDateString('es-ES')}
+                                                </span>
+                                              </div>
+                                              
+                                              {/* Opciones del comentario (solo para el autor) */}
+                                              {user?.id === comment.author?.id && (
+                                                <div className="flex items-center space-x-1">
+                                                  <button
+                                                    onClick={() => setEditingComment({ id: comment.id, content: comment.content })}
+                                                    className="p-1 text-gray-400 hover:text-neon-green transition-colors"
+                                                    title="Editar"
+                                                  >
+                                                    <span className="text-xs">✏️</span>
+                                                  </button>
+                                                  <button
+                                                    onClick={() => handleDeleteComment(post.id, comment.id)}
+                                                    className="p-1 text-gray-400 hover:text-red-400 transition-colors"
+                                                    title="Eliminar"
+                                                  >
+                                                    <Trash2 className="w-3 h-3" />
+                                                  </button>
+                                                </div>
+                                              )}
+                                            </div>
+                                            
+                                            {/* Contenido del comentario */}
+                                            <p className="text-xs text-gray-300 mt-0.5">{comment.content}</p>
+                                            
+                                            {/* Acciones del comentario */}
+                                            <div className="flex items-center space-x-3 mt-2">
+                                              {/* Like */}
+                                              <button
+                                                onClick={() => handleLikeComment(post.id, comment.id)}
+                                                className={`flex items-center space-x-1 text-xs transition-all transform hover:scale-110 active:scale-95 ${
+                                                  comment.is_liked 
+                                                    ? 'text-red-500' 
+                                                    : 'text-gray-400 hover:text-red-500'
+                                                }`}
+                                              >
+                                                <Heart className={`w-3 h-3 ${comment.is_liked ? 'fill-current animate-pulse' : ''}`} />
+                                                <span className="font-semibold">{comment.like_count || 0}</span>
+                                              </button>
+                                              
+                                              {/* Responder */}
+                                              <button
+                                                onClick={() => setReplyingTo({ commentId: comment.id, username: comment.author?.username })}
+                                                className="flex items-center space-x-1 text-xs text-gray-400 hover:text-neon-green transition-colors"
+                                              >
+                                                <MessageSquare className="w-3 h-3" />
+                                                <span>Responder</span>
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
@@ -2518,17 +2783,17 @@ export default function CommunityPage() {
                             <div className="flex space-x-2">
                               <input
                                 type="text"
-                                value={editingComment.content}
-                                onChange={(e) => setEditingComment({ ...editingComment, content: e.target.value })}
+                                value={editingComment?.content || ''}
+                                onChange={(e) => editingComment && setEditingComment({ ...editingComment, content: e.target.value })}
                                 className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs text-white"
                                 onKeyPress={(e) => {
-                                  if (e.key === 'Enter') {
+                                  if (e.key === 'Enter' && editingComment) {
                                     handleEditComment(selectedPost.id, comment.id, editingComment.content);
                                   }
                                 }}
                               />
                               <button
-                                onClick={() => handleEditComment(selectedPost.id, comment.id, editingComment.content)}
+                                onClick={() => editingComment && handleEditComment(selectedPost.id, comment.id, editingComment.content)}
                                 className="text-xs text-neon-green hover:text-neon-green/80"
                               >
                                 Guardar

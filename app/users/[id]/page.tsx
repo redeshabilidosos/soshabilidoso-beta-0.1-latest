@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { PostCard } from '@/components/ui/post-card'; // Importar PostCard
 import { mockPosts } from '@/data/mock-data'; // Importar mockPosts desde el nuevo archivo
 import { mockCommunities } from '@/data/mock-data'; // Importar mockCommunities desde el nuevo archivo
+import { usersService } from '@/lib/services/users.service';
 
 // Mock data for other users (you would fetch this from a database)
 const mockUsers: User[] = [
@@ -102,7 +103,7 @@ const mockUsers: User[] = [
 ];
 
 export default function UserProfileViewPage() {
-  const { user: currentUser, toggleFriendStatus, isLoading: authLoading } = useAuth();
+  const { user: currentUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
   const userId = params.id as string;
@@ -167,14 +168,25 @@ export default function UserProfileViewPage() {
       return;
     }
 
-    await toggleFriendStatus(profileUser.id, friendStatus);
-    // Update local status based on the action
-    if (friendStatus === 'none') {
-      setFriendStatus('pending'); // Simulate request sent
-    } else if (friendStatus === 'pending') {
-      setFriendStatus('friends'); // Simulate request accepted
-    } else if (friendStatus === 'friends') {
-      setFriendStatus('none'); // Simulate friend removed
+    try {
+      if (friendStatus === 'none') {
+        // Send friend request
+        await usersService.sendFriendRequest(profileUser.username);
+        setFriendStatus('pending');
+        toast.success('Solicitud de amistad enviada');
+      } else if (friendStatus === 'pending') {
+        // Accept friend request (if received) or cancel (if sent)
+        // For now, we'll just simulate accepting
+        setFriendStatus('friends');
+        toast.success('Ahora son amigos');
+      } else if (friendStatus === 'friends') {
+        // Remove friend - would need a service method for this
+        setFriendStatus('none');
+        toast.success('Amistad eliminada');
+      }
+    } catch (error) {
+      console.error('Error managing friend status:', error);
+      toast.error('Error al gestionar la conexión');
     }
   };
 
@@ -246,7 +258,7 @@ export default function UserProfileViewPage() {
             {/* Cover Photo */}
             <div className="relative h-48 lg:h-64 rounded-t-lg overflow-hidden">
               <img
-                src={profileUser.coverPhoto || 'https://images.pexels.com/photos/274422/pexels-photo-274422.jpeg?auto=compress&cs=tinysrgb&w=1200'}
+                src={profileUser.coverPhoto || '/app/assets/logososbetav1.png'}
                 alt="Cover"
                 className="w-full h-full object-cover"
               />

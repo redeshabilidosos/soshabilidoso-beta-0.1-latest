@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';
 import { MeetingRoom } from '@/components/communities/meeting-room';
+import { useNotificationSound } from '@/hooks/use-notification-sound';
 
 // Mock meeting data
 const mockMeetingData: Record<string, any> = {
@@ -31,6 +32,9 @@ export default function MeetingPage() {
   const isHost = searchParams.get('host') === 'true';
   const [meeting, setMeeting] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Hook para sonidos
+  const { playLeaveMeetingSound } = useNotificationSound();
 
   useEffect(() => {
     // Solo redirigir si ya terminó de cargar la autenticación y no hay usuario
@@ -74,12 +78,18 @@ export default function MeetingPage() {
   }, [user, authLoading, router, params.id, isHost]);
 
   const handleLeaveMeeting = () => {
-    // Redirigir de vuelta a la comunidad
-    if (meeting?.communityId) {
-      router.push(`/communities/${meeting.communityId}`);
-    } else {
-      router.push('/communities');
-    }
+    // Reproducir sonido de salida
+    playLeaveMeetingSound();
+    
+    // Pequeño delay para que se escuche el sonido
+    setTimeout(() => {
+      // Redirigir de vuelta a la comunidad
+      if (meeting?.communityId) {
+        router.push(`/communities/${meeting.communityId}`);
+      } else {
+        router.push('/communities');
+      }
+    }, 300);
   };
 
   if (authLoading || !user || isLoading) {

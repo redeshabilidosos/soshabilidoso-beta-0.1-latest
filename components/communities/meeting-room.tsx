@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CyberButton } from '@/components/ui/cyber-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { useNotificationSound } from '@/hooks/use-notification-sound';
 import { 
   Video, 
   VideoOff, 
@@ -90,6 +91,18 @@ const mockParticipants: Participant[] = [
 export function MeetingRoom({ meetingId, meetingTitle, onLeaveMeeting }: MeetingRoomProps) {
   const [participants, setParticipants] = useState<Participant[]>(mockParticipants);
   const [isMuted, setIsMuted] = useState(false);
+  
+  // Hook para sonidos
+  const { playLeaveMeetingSound } = useNotificationSound();
+  
+  // Función para salir con sonido
+  const handleLeaveWithSound = () => {
+    playLeaveMeetingSound();
+    // Pequeño delay para que se escuche el sonido antes de salir
+    setTimeout(() => {
+      onLeaveMeeting();
+    }, 300);
+  };
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isHandRaised, setIsHandRaised] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
@@ -394,7 +407,7 @@ export function MeetingRoom({ meetingId, meetingTitle, onLeaveMeeting }: Meeting
 
           {/* Leave Meeting */}
           <CyberButton
-            onClick={onLeaveMeeting}
+            onClick={handleLeaveWithSound}
             className="p-3 rounded-full bg-red-600 hover:bg-red-700"
           >
             <PhoneOff className="w-5 h-5" />

@@ -45,7 +45,7 @@ function initializeGlobalCache() {
     const token = localStorage.getItem('access_token');
     
     if (stored && token) {
-      const parsedUser = JSON.parse(stored);
+      const parsedUser = JSON.parse(stored) as any;
       // Asegurar que el usuario tenga los campos necesarios
       globalUserCache = {
         ...parsedUser,
@@ -53,7 +53,7 @@ function initializeGlobalCache() {
         avatar: parsedUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(parsedUser.display_name || parsedUser.displayName || parsedUser.username || 'U')}&background=39FF14&color=000`,
       };
       setCachedUser(globalUserCache);
-      console.log('✅ Usuario cargado desde localStorage:', globalUserCache.username);
+      console.log('✅ Usuario cargado desde localStorage:', globalUserCache?.username);
     }
     isGlobalInitialized = true;
   } catch (e) {
@@ -105,11 +105,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         if (storedUser && hasToken) {
           // Asegurar que el usuario tenga los campos necesarios
+          const storedUserAny = storedUser as any;
           const normalizedUser = {
             ...storedUser,
-            displayName: storedUser.display_name || storedUser.displayName || storedUser.username,
-            display_name: storedUser.display_name || storedUser.displayName || storedUser.username,
-            avatar: storedUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(storedUser.display_name || storedUser.displayName || storedUser.username || 'U')}&background=39FF14&color=000`,
+            displayName: storedUserAny.display_name || storedUser.displayName || storedUser.username,
+            avatar: storedUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(storedUserAny.display_name || storedUser.displayName || storedUser.username || 'U')}&background=39FF14&color=000`,
           };
           
           updateUser(normalizedUser);
@@ -120,11 +120,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
           startTransition(() => {
             authService.getProfile()
               .then(freshUser => {
+                const freshUserAny = freshUser as any;
                 const mappedUser = {
                   ...freshUser,
-                  displayName: freshUser.display_name || freshUser.displayName,
-                  avatar: freshUser.avatar || freshUser.avatar_url,
-                  coverPhoto: freshUser.cover_photo_url || freshUser.cover_photo,
+                  displayName: freshUserAny.display_name || freshUser.displayName,
+                  avatar: freshUser.avatar || freshUserAny.avatar_url,
+                  coverPhoto: freshUserAny.cover_photo_url || freshUserAny.cover_photo,
                 };
                 updateUser(mappedUser);
                 localStorage.setItem('user', JSON.stringify(mappedUser));
@@ -177,7 +178,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       updateUser(response.user);
       verificationDoneRef.current = false; // Reset para permitir verificación
       
-      toast.success(`¡Bienvenido, ${response.user.display_name}!`);
+      toast.success(`¡Bienvenido, ${response.user.displayName}!`);
       return true;
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || 
@@ -198,7 +199,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await authService.register(data);
       updateUser(response.user);
       
-      toast.success(`¡Cuenta creada exitosamente! Bienvenido, ${response.user.display_name}!`);
+      toast.success(`¡Cuenta creada exitosamente! Bienvenido, ${response.user.displayName}!`);
       return true;
     } catch (error: any) {
       console.error('Register error:', error);
@@ -271,11 +272,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const updatedUser = await authService.updateProfile(backendData);
       
       // Mapear campos del backend al frontend
+      const updatedUserAny = updatedUser as any;
       const mappedUser = {
         ...updatedUser,
-        displayName: updatedUser.display_name || updatedUser.displayName,
-        coverPhoto: updatedUser.cover_photo_url || updatedUser.cover_photo || updatedUser.coverPhoto,
-        contactNumber: updatedUser.contact_number || updatedUser.contactNumber,
+        displayName: updatedUserAny.display_name || updatedUser.displayName,
+        coverPhoto: updatedUserAny.cover_photo_url || updatedUserAny.cover_photo || updatedUser.coverPhoto,
+        contactNumber: updatedUserAny.contact_number || updatedUser.contactNumber,
       };
       
       console.log('✅ Perfil actualizado:', mappedUser);
@@ -331,11 +333,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const refreshedUser = await authService.getProfile();
         
         // Mapear campos del backend al frontend
+        const refreshedUserAny = refreshedUser as any;
         const mappedUser = {
           ...refreshedUser,
-          displayName: refreshedUser.display_name || refreshedUser.displayName,
-          avatar: refreshedUser.avatar || refreshedUser.avatar_url,
-          coverPhoto: refreshedUser.cover_photo_url || refreshedUser.cover_photo || refreshedUser.coverPhoto,
+          displayName: refreshedUserAny.display_name || refreshedUser.displayName,
+          avatar: refreshedUser.avatar || refreshedUserAny.avatar_url,
+          coverPhoto: refreshedUserAny.cover_photo_url || refreshedUserAny.cover_photo || refreshedUser.coverPhoto,
         };
         
         console.log('🔄 Usuario refrescado:', {
@@ -373,11 +376,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Actualizar el usuario con los datos completos del servidor
       if (response.user) {
         // Mapear campos del backend al frontend
+        const responseUserAny = response.user as any;
         const mappedUser = {
           ...response.user,
-          displayName: response.user.display_name || response.user.displayName,
-          avatar: response.user.avatar || response.user.avatar_url || response.avatar_url,
-          coverPhoto: response.user.cover_photo_url || response.user.cover_photo,
+          displayName: responseUserAny.display_name || response.user.displayName,
+          avatar: response.user.avatar || responseUserAny.avatar_url || (response as any).avatar_url,
+          coverPhoto: responseUserAny.cover_photo_url || responseUserAny.cover_photo,
         };
         console.log('✅ [AUTH PROVIDER] Usuario mapeado:', {
           username: mappedUser.username,
@@ -445,11 +449,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Actualizar el usuario con los datos completos del servidor
       if (response.user) {
         // Mapear campos del backend al frontend
+        const responseUserAny = response.user as any;
+        const responseAny = response as any;
         const mappedUser = {
           ...response.user,
-          coverPhoto: response.user.cover_photo_url || response.user.cover_photo || response.cover_photo_url,
-          cover_photo: response.user.cover_photo_url || response.user.cover_photo || response.cover_photo_url,
-          cover_photo_url: response.user.cover_photo_url || response.cover_photo_url,
+          coverPhoto: responseUserAny.cover_photo_url || responseUserAny.cover_photo || responseAny.cover_photo_url,
         };
         console.log('✅ [AUTH PROVIDER] Usuario mapeado:', {
           username: mappedUser.username,

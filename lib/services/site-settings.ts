@@ -8,6 +8,20 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 export interface SiteSettings {
   show_register_habilidosos_button: boolean;
   reality_form_enabled: boolean;
+  // Control de visibilidad del Sidebar
+  sidebar_show_feed: boolean;
+  sidebar_show_profile: boolean;
+  sidebar_show_search: boolean;
+  sidebar_show_notifications: boolean;
+  sidebar_show_clips: boolean;
+  sidebar_show_reels: boolean;
+  sidebar_show_live: boolean;
+  sidebar_show_communities: boolean;
+  sidebar_show_classifieds: boolean;
+  sidebar_show_donations: boolean;
+  sidebar_show_news: boolean;
+  sidebar_show_messages: boolean;
+  sidebar_show_settings: boolean;
   updated_at: string;
 }
 
@@ -99,6 +113,19 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     return {
       show_register_habilidosos_button: true,
       reality_form_enabled: true,
+      sidebar_show_feed: true,
+      sidebar_show_profile: true,
+      sidebar_show_search: true,
+      sidebar_show_notifications: true,
+      sidebar_show_clips: true,
+      sidebar_show_reels: true,
+      sidebar_show_live: true,
+      sidebar_show_communities: true,
+      sidebar_show_classifieds: true,
+      sidebar_show_donations: true,
+      sidebar_show_news: true,
+      sidebar_show_messages: true,
+      sidebar_show_settings: true,
       updated_at: new Date().toISOString()
     };
   }

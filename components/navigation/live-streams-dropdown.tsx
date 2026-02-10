@@ -316,7 +316,7 @@ export function LiveStreamsDropdown() {
               {(['all', 'meeting', 'reel', 'community_event', 'match'] as const).map((filterType) => (
                 <CyberButton
                   key={filterType}
-                  variant={filter === filterType ? 'default' : 'outline'}
+                  variant={filter === filterType ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => setFilter(filterType)}
                   className="text-sm"

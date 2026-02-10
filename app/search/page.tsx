@@ -129,7 +129,7 @@ const mockUsers: User[] = [
 ];
 
 export default function SearchPage() {
-  const { user: currentUser, toggleFriendStatus, isLoading: authLoading } = useAuth();
+  const { user: currentUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredUsers, setFilteredUsers] = useState<User[]>(mockUsers);
@@ -183,10 +183,8 @@ export default function SearchPage() {
       return;
     }
 
-    const isCurrentlyFriend = currentUser.friendIds?.includes(userId);
-    await toggleFriendStatus(userId, isCurrentlyFriend ? 'friends' : 'none');
-    // El contexto de autenticación (`useAuth`) se encargará de actualizar el `currentUser`
-    // y, por lo tanto, la interfaz de usuario se re-renderizará con el estado de amistad actualizado.
+    // TODO: Implementar lógica de seguir/dejar de seguir cuando el backend esté listo
+    toast.info('Función de seguir en desarrollo');
   };
 
   // Filter out 'all' for display in buttons, but keep it in the logic

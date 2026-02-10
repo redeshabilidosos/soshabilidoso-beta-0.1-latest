@@ -214,7 +214,7 @@ export function EventDetailDialog({ isOpen, onClose, event, onLike }: EventDetai
                 </h3>
                 <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
                   <iframe
-                    src={getVideoEmbedUrl(event.video)}
+                    src={getVideoEmbedUrl(event.video) || undefined}
                     className="w-full h-full"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

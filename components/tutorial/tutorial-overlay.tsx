@@ -32,7 +32,8 @@ export function TutorialOverlay() {
   const isCenterPlacement = step?.placement === 'center';
   
   // Mostrar el overlay desde el paso 11 en adelante (ya no hay paso de sugerencias)
-  const shouldShowOverlay = isActive && step && currentStep > 10;
+  // DESHABILITADO: Ahora usamos solo el inline card
+  const shouldShowOverlay = false; // isActive && step && currentStep > 10;
 
   // Navegación con teclado
   useEffect(() => {

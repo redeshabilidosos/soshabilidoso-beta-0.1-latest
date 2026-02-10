@@ -229,7 +229,7 @@ export function EnterprisesSection({ onCreateProject }: EnterprisesSectionProps)
               {stages.map((stage) => (
                 <CyberButton
                   key={stage}
-                  variant={selectedStage === stage ? 'default' : 'outline'}
+                  variant={selectedStage === stage ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedStage(stage)}
                   className={selectedStage === stage ? 'bg-neon-green text-black' : ''}

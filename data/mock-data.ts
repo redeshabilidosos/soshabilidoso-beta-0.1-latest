@@ -16,7 +16,7 @@ export const mockPosts: Post[] = [
       followers: 892,
       following: 234,
       posts: 56,
-      createdAt: '2024-01-15T10:30:00Z',
+      createdAt: '2026-01-15T10:30:00Z',
     },
     content: '¡Increíble entrenamiento hoy! Trabajamos nuevas jugadas para el próximo partido. El equipo está más unido que nunca 💪⚽',
     images: [
@@ -47,10 +47,10 @@ export const mockPosts: Post[] = [
         },
         content: '¡Excelente actitud! El trabajo en equipo siempre da frutos.',
         likes: 12,
-        createdAt: '2024-01-15T11:00:00Z',
+        createdAt: '2026-01-15T11:00:00Z',
       }
     ],
-    createdAt: '2024-01-15T10:30:00Z',
+    createdAt: '2026-01-15T10:30:00Z',
   },
   {
     id: '2',
@@ -66,7 +66,7 @@ export const mockPosts: Post[] = [
       followers: 654,
       following: 187,
       posts: 78,
-      createdAt: '2024-01-10T14:20:00Z',
+      createdAt: '2026-01-10T14:20:00Z',
     },
     content: 'Análisis táctico del último partido. Es increíble cómo una buena comunicación puede cambiar completamente el resultado de un juego.',
     type: 'text',

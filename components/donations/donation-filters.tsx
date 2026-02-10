@@ -18,7 +18,7 @@ export function DonationFilters({
       {sports.map((sport) => (
         <CyberButton
           key={sport}
-          variant={selectedSport === sport ? 'default' : 'outline'}
+          variant={selectedSport === sport ? 'primary' : 'outline'}
           size="sm"
           onClick={() => onSportChange(sport)}
           className={

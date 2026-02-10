@@ -65,7 +65,7 @@ export default function MessagesPage() {
   if (isMobile) {
     return (
       <AuthenticatedLayout>
-        <div className="h-[calc(100dvh-6rem)] flex flex-col">
+        <div id="messages-page" className="h-[calc(100dvh-6rem)] flex flex-col">
           {selectedChatId ? (
             <ChatWindow chatId={selectedChatId} onBack={handleBack} />
           ) : showNewChat ? (
@@ -96,7 +96,7 @@ export default function MessagesPage() {
   // Vista desktop
   return (
     <AuthenticatedLayout>
-      <div className="h-screen flex">
+      <div id="messages-page" className="h-screen flex">
         {/* Lista de chats - Sidebar izquierdo */}
         <div className="w-80 xl:w-96 border-r border-white/10 flex-shrink-0">
           {showNewChat ? (

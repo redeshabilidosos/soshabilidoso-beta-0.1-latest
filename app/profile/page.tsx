@@ -311,7 +311,7 @@ export default function ProfilePage() {
     <div className="min-h-screen">
       <Sidebar />
       
-      <main className="pb-24 lg:ml-64 lg:pb-0 pt-12 md:pt-6 lg:pt-6 relative z-10 min-h-screen">
+      <main id="profile-section" className="pb-24 lg:ml-64 lg:pb-0 pt-12 md:pt-6 lg:pt-6 relative z-10 min-h-screen">
         <div className="max-w-4xl mx-auto p-4 space-y-2">
           {/* Botón Regresar - Solo visible en móvil y tablet */}
           <div className="lg:hidden -mb-1">
@@ -331,7 +331,7 @@ export default function ProfilePage() {
             {/* Cover Photo */}
             <div className="relative h-48 lg:h-64 overflow-hidden rounded-t-3xl group">
               <img
-                src={user.coverPhoto || 'https://images.pexels.com/photos/274422/pexels-photo-274422.jpeg?auto=compress&cs=tinysrgb&w=1200'}
+                src={user.coverPhoto || '/app/assets/logososbetav1.png'}
                 alt="Cover"
                 className="w-full h-full object-cover cursor-pointer transition-transform group-hover:scale-105"
                 onClick={() => {
@@ -1107,7 +1107,7 @@ export default function ProfilePage() {
             ) : (
               <div className="flex items-center justify-center min-h-[300px] max-h-[70vh] pt-8">
                 <img
-                  src={user.coverPhoto || 'https://images.pexels.com/photos/274422/pexels-photo-274422.jpeg?auto=compress&cs=tinysrgb&w=1200'}
+                  src={user.coverPhoto || '/app/assets/logososbetav1.png'}
                   alt="Foto de portada"
                   className="w-full h-full object-contain max-h-[70vh]"
                 />

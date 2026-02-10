@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sonido de Notificación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: left;
+        }
+        .file-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .volume-control {
+            margin: 20px 0;
+        }
+        input[type="range"] {
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Test de Sonido de Notificación</h1>
+        <p class="subtitle">Verifica que el archivo de audio funcione correctamente</p>
+        
+        <div class="volume-control">
+            <label for="volume">Volumen: <span id="volumeValue">50</span>%</label><br>
+            <input type="range" id="volume" min="0" max="100" value="50">
+        </div>
+
+        <button onclick="testNotificationSound()">🔔 Reproducir Sonido de Notificación</button>
+        <button onclick="testMessageSound()">💬 Reproducir Sonido de Mensaje</button>
+        <button onclick="testSendMessageSound()">📤 Reproducir Sonido de Envío (TAPM)</button>
+        <button onclick="testLeaveMeetingSound()">🚪 Reproducir Sonido de Salir de Reunión</button>
+        
+        <div id="status"></div>
+        
+        <div class="file-info">
+            <p><strong>Archivo 1:</strong> /sounds/sonidonotificacion.mp3</p>
+            <p><strong>Archivo 2:</strong> /sounds/sonidomensage.mp3</p>
+            <p><strong>Archivo 3:</strong> /sounds/tapm.mp3 (Envío de mensaje)</p>
+            <p><strong>Archivo 4:</strong> /sounds/finishreuniongrupall.mp3 (Salir de reunión)</p>
+            <p><strong>Ubicación:</strong> public/sounds/</p>
+        </div>
+    </div>
+
+    <script>
+        let notificationAudio = null;
+        let messageAudio = null;
+        let sendMessageAudio = null;
+        let leaveMeetingAudio = null;
+
+        // Inicializar audios
+        function initAudio() {
+            try {
+                notificationAudio = new Audio('/sounds/sonidonotificacion.mp3');
+                messageAudio = new Audio('/sounds/sonidomensage.mp3');
+                sendMessageAudio = new Audio('/sounds/tapm.mp3');
+                leaveMeetingAudio = new Audio('/sounds/finishreuniongrupall.mp3');
+                
+                notificationAudio.volume = 0.5;
+                messageAudio.volume = 0.5;
+                sendMessageAudio.volume = 0.5;
+                leaveMeetingAudio.volume = 0.5;
+                
+                // Precargar
+                notificationAudio.load();
+                messageAudio.load();
+                sendMessageAudio.load();
+                leaveMeetingAudio.load();
+                
+                showStatus('Audios cargados correctamente', 'success');
+            } catch (error) {
+                showStatus('Error al cargar los audios: ' + error.message, 'error');
+            }
+        }
+
+        // Control de volumen
+        document.getElementById('volume').addEventListener('input', function(e) {
+            const volume = e.target.value / 100;
+            document.getElementById('volumeValue').textContent = e.target.value;
+            
+            if (notificationAudio) notificationAudio.volume = volume;
+            if (messageAudio) messageAudio.volume = volume;
+            if (sendMessageAudio) sendMessageAudio.volume = volume;
+            if (leaveMeetingAudio) leaveMeetingAudio.volume = volume;
+        });
+
+        function testNotificationSound() {
+            if (!notificationAudio) {
+                initAudio();
+            }
+            
+            try {
+                notificationAudio.currentTime = 0;
+                notificationAudio.play()
+                    .then(() => {
+                        showStatus('✅ Sonido de notificación reproducido correctamente', 'success');
+                    })
+                    .catch(error => {
+                        showStatus('❌ Error al reproducir: ' + error.message, 'error');
+                        console.error('Error:', error);
+                    });
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        function testMessageSound() {
+            if (!messageAudio) {
+                initAudio();
+            }
+            
+            try {
+                messageAudio.currentTime = 0;
+                messageAudio.play()
+                    .then(() => {
+                        showStatus('✅ Sonido de mensaje reproducido correctamente', 'success');
+                    })
+                    .catch(error => {
+                        showStatus('❌ Error al reproducir: ' + error.message, 'error');
+                        console.error('Error:', error);
+                    });
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        function testSendMessageSound() {
+            if (!sendMessageAudio) {
+                initAudio();
+            }
+            
+            try {
+                sendMessageAudio.currentTime = 0;
+                sendMessageAudio.play()
+                    .then(() => {
+                        showStatus('✅ Sonido de envío (TAPM) reproducido correctamente', 'success');
+                    })
+                    .catch(error => {
+                        showStatus('❌ Error al reproducir: ' + error.message, 'error');
+                        console.error('Error:', error);
+                    });
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        function testLeaveMeetingSound() {
+            if (!leaveMeetingAudio) {
+                initAudio();
+            }
+            
+            try {
+                leaveMeetingAudio.currentTime = 0;
+                leaveMeetingAudio.play()
+                    .then(() => {
+                        showStatus('✅ Sonido de salir de reunión reproducido correctamente', 'success');
+                    })
+                    .catch(error => {
+                        showStatus('❌ Error al reproducir: ' + error.message, 'error');
+                        console.error('Error:', error);
+                    });
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+        }
+
+        // Inicializar al cargar la página
+        window.addEventListener('load', () => {
+            showStatus('Haz clic en un botón para probar los sonidos', 'info');
+        });
+
+        // Verificar que los archivos existan
+        fetch('/sounds/sonidonotificacion.mp3', { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Archivo de notificación encontrado');
+                } else {
+                    showStatus('⚠️ Archivo de notificación no encontrado (404)', 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('⚠️ Error al verificar archivo: ' + error.message, 'error');
+            });
+
+        fetch('/sounds/sonidomensage.mp3', { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Archivo de mensaje encontrado');
+                } else {
+                    console.warn('⚠️ Archivo de mensaje no encontrado (404)');
+                }
+            });
+
+        fetch('/sounds/tapm.mp3', { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Archivo de envío (TAPM) encontrado');
+                } else {
+                    console.warn('⚠️ Archivo de envío (TAPM) no encontrado (404)');
+                }
+            });
+
+        fetch('/sounds/finishreuniongrupall.mp3', { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Archivo de salir de reunión encontrado');
+                } else {
+                    console.warn('⚠️ Archivo de salir de reunión no encontrado (404)');
+                }
+            });
+    </script>
+</body>
+</html>

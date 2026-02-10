@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback, lazy, Suspense, memo } from '
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';
 import { useCachedUser } from '@/lib/hooks/use-cached-auth';
-import { Plus, TrendingUp, Loader2, Users } from 'lucide-react';
+import { Plus, TrendingUp, Loader2, Users, Sparkles } from 'lucide-react';
 import { Post } from '@/types/user';
 import { Advertisement } from '@/lib/services/advertising.service';
 import { Toaster } from 'sonner';
@@ -21,6 +21,8 @@ import { Sidebar } from '@/components/navigation/sidebar';
 import { MobileNav } from '@/components/navigation/mobile-nav';
 import { PostCard } from '@/components/ui/post-card';
 import { RealtimeIndicator } from '@/components/ui/realtime-indicator';
+import { TutorialInlineCard } from '@/components/tutorial/tutorial-inline-card';
+import { useTutorial } from '@/components/tutorial/tutorial-provider';
 
 // Define UserStories type locally to avoid importing from lazy-loaded module
 interface UserStories {
@@ -55,11 +57,34 @@ const AdCard = lazy(() => import('@/components/advertising/ad-card').then(mod =>
 const StoriesSlider = lazy(() => import('@/components/ui/stories-slider'));
 const NewStoryDialog = lazy(() => import('@/components/ui/new-story-dialog').then(mod => ({ default: mod.NewStoryDialog })));
 
+// Componente para reiniciar el tutorial del feed
+function TutorialFeedButton() {
+  const { startTutorial, isActive } = useTutorial();
+  
+  const handleReset = () => {
+    console.log('🔄 Reiniciando tutorial del feed...');
+    localStorage.removeItem('feed_tutorial_completed');
+    startTutorial();
+  };
+
+  return (
+    <button
+      onClick={handleReset}
+      className="flex items-center gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg shadow-lg text-xs md:text-sm font-semibold transition-all hover:scale-105 border border-white/20 flex-shrink-0"
+      title="Iniciar tutorial guiado del feed"
+    >
+      <Sparkles className="w-4 h-4" />
+      <span className="hidden sm:inline">Tutorial</span>
+    </button>
+  );
+}
+
 export default function FeedPage() {
   const { user } = useAuth();
   const cachedUser = useCachedUser();
   const effectiveUser = user || cachedUser;
   const router = useRouter();
+  const { onPostCreated: onTutorialPostCreated, onStoryCreated: onTutorialStoryCreated } = useTutorial();
   const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false);
   const [isNewStoryDialogOpen, setIsNewStoryDialogOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -262,6 +287,11 @@ export default function FeedPage() {
               isVerified: post.user.is_verified,
               position: post.user.position,
               team: post.user.team,
+              email: post.user.email || '',
+              followers: post.user.followers_count || 0,
+              following: post.user.following_count || 0,
+              posts: post.user.posts_count || 0,
+              createdAt: post.user.created_at || post.created_at,
             },
             content: post.content,
             images: post.images || [],
@@ -535,7 +565,13 @@ export default function FeedPage() {
   const displayUser = effectiveUser;
 
   const handlePostCreated = (newPost: Post) => {
-    setPosts(prevPosts => [newPost, ...prevPosts]); // Añadir la nueva publicación al inicio
+    // NO agregar aquí - el WebSocket ya lo hace
+    // Solo cerrar el diálogo
+    console.log('✅ Publicación creada en feed page, notificando al tutorial...');
+    
+    // Notificar al tutorial que se creó una publicación
+    onTutorialPostCreated();
+    console.log('📢 Tutorial notificado sobre la publicación');
   };
 
   const handlePostUpdated = (updatedPost: Post) => {
@@ -598,7 +634,7 @@ export default function FeedPage() {
       <main className="pb-24 lg:ml-64 lg:pb-0 lg:pr-80">
         <div className="max-w-3xl mx-auto p-3 md:p-4 lg:p-6 space-y-4 md:space-y-6">
           {/* Header Card - Responsive */}
-          <Card className="border-0 bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-xl rounded-2xl">
+          <Card id="feed-header" className="border-0 bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-xl rounded-2xl">
             <CardHeader className="p-4 md:p-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex-1">
@@ -618,23 +654,31 @@ export default function FeedPage() {
                   </CardDescription>
                 </div>
                 
-                {/* Botón Nueva Publicación - Responsive */}
-                <Button 
-                  onClick={() => setIsNewPostDialogOpen(true)}
-                  className="w-full md:w-auto"
-                  size="default"
-                >
-                  <Plus size={18} className="mr-2" />
-                  <span className="hidden sm:inline">Nueva Publicación</span>
-                  <span className="sm:hidden">Publicar</span>
-                </Button>
+                {/* Botones de acción - Responsive */}
+                <div className="flex items-center gap-2">
+                  {/* Botón Tutorial - Posición 1 */}
+                  <TutorialFeedButton />
+                  
+                  {/* Botón Nueva Publicación */}
+                  <Button 
+                    id="new-post-button"
+                    onClick={() => setIsNewPostDialogOpen(true)}
+                    className="w-full md:w-auto"
+                    size="default"
+                  >
+                    <Plus size={18} className="mr-2" />
+                    <span className="hidden sm:inline">Nueva Publicación</span>
+                    <span className="sm:hidden">Publicar</span>
+                  </Button>
+                </div>
               </div>
 
               <Separator className="my-4" />
 
               {/* Stories Slider - Responsive */}
-              <Suspense fallback={
-                <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              <div id="stories-slider">
+                <Suspense fallback={
+                  <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 scrollbar-hide">
                   {[1, 2, 3, 4, 5].map(i => (
                     <Skeleton key={i} className="flex-shrink-0 w-16 h-24 md:w-20 md:h-28 rounded-xl" />
                   ))}
@@ -661,8 +705,12 @@ export default function FeedPage() {
                   }}
                 />
               </Suspense>
+              </div>
             </CardHeader>
           </Card>
+
+          {/* Tutorial Inline Card - Se muestra debajo de las historias */}
+          <TutorialInlineCard />
 
           {/* Posts Feed - Responsive */}
           <div className="space-y-4 md:space-y-6">
@@ -734,7 +782,7 @@ export default function FeedPage() {
         </div>
 
         {/* Sidebar Derecho - Solo Desktop */}
-        <aside className="hidden lg:block fixed right-0 top-0 w-80 h-screen overflow-y-auto p-6 border-l border-border/30 bg-transparent">
+        <aside id="suggestions-sidebar" className="hidden lg:block fixed right-0 top-0 w-80 h-screen overflow-y-auto p-6 pr-8 border-l border-border/30 bg-transparent" style={{ right: '30px' }}>
           <div className="space-y-6">
             {/* Sugerencias de Usuarios */}
             <Card className="rounded-2xl bg-gray-900/80 backdrop-blur-xl border-gray-800">
@@ -767,7 +815,7 @@ export default function FeedPage() {
                       >
                         <Avatar className="w-10 h-10 ring-2 ring-transparent group-hover:ring-primary/50 transition-all">
                           <AvatarImage src={user.avatar_url || user.avatar} alt={user.display_name} />
-                          <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600">
+                          <AvatarFallback style={{ backgroundColor: '#51C6E0' }} className="text-white">
                             {user.display_name?.charAt(0) || user.username?.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
@@ -836,7 +884,7 @@ export default function FeedPage() {
                       <div className="flex items-center gap-3 mb-2">
                         <Avatar className="w-10 h-10 rounded-lg">
                           <AvatarImage src={community.image_url || community.image} alt={community.name} />
-                          <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 rounded-lg">
+                          <AvatarFallback style={{ backgroundColor: '#51C6E0' }} className="text-white rounded-lg">
                             {community.name?.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
@@ -962,6 +1010,9 @@ export default function FeedPage() {
               }, ...prev];
             });
             setIsNewStoryDialogOpen(false);
+            
+            // Notificar al tutorial que se creó una historia
+            onTutorialStoryCreated();
           }}
         />
       </Suspense>

@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/components/providers/providers';
+import { useNotificationSound } from '@/hooks/use-notification-sound';
 
 export interface Notification {
   id: string;
@@ -31,6 +32,9 @@ export function useNotifications() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [ws, setWs] = useState<WebSocket | null>(null);
+  
+  // Hook para reproducir sonido de notificación
+  const { playNotificationSound } = useNotificationSound({ enabled: true, volume: 0.7 });
 
   // Cargar notificaciones iniciales
   const fetchNotifications = useCallback(async () => {
@@ -98,11 +102,14 @@ export function useNotifications() {
               setNotifications(prev => [data.notification, ...prev]);
               setUnreadCount(prev => prev + 1);
               
+              // 🔊 Reproducir sonido de notificación
+              playNotificationSound();
+              
               // Mostrar notificación del navegador si está permitido
               if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification(data.notification.title, {
+                new Notification(data.notification.message, {
                   body: data.notification.message,
-                  icon: data.notification.user.avatar_url,
+                  icon: data.notification.sender?.avatar_url || '/logo.png',
                   badge: '/logo.png',
                 });
               }
@@ -148,7 +155,7 @@ export function useNotifications() {
         websocket.close();
       }
     };
-  }, [user, fetchNotifications]);
+  }, [user, fetchNotifications, playNotificationSound]);
 
   // Marcar notificación como leída
   const markAsRead = useCallback(async (notificationId: string) => {

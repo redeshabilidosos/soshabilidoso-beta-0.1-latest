@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';
 import { TutorialOverlay } from './tutorial-overlay';
 import { TutorialHighlight } from './tutorial-highlight';
@@ -25,6 +26,8 @@ interface TutorialContextType {
   prevStep: () => void;
   completeTutorial: () => void;
   getCurrentStep: () => TutorialStep | null;
+  onPostCreated: () => void;
+  onStoryCreated: () => void;
 }
 
 const TutorialContext = createContext<TutorialContextType | undefined>(undefined);
@@ -48,7 +51,7 @@ const tutorialSteps: TutorialStep[] = [
     placement: 'center',
     page: '/feed',
   },
-  
+
   // PASO 2: Botón Inicio
   {
     id: 'sidebar-inicio',
@@ -58,7 +61,7 @@ const tutorialSteps: TutorialStep[] = [
     placement: 'right',
     page: '/feed',
   },
-  
+
   // PASO 3: Stories
   {
     id: 'stories-slider',
@@ -68,7 +71,7 @@ const tutorialSteps: TutorialStep[] = [
     placement: 'bottom',
     page: '/feed',
   },
-  
+
   // PASO 4: Botón Perfil
   {
     id: 'sidebar-perfil',
@@ -78,7 +81,7 @@ const tutorialSteps: TutorialStep[] = [
     placement: 'right',
     page: '/feed',
   },
-  
+
   // PASO 5: Botón Buscar
   {
     id: 'sidebar-buscar',
@@ -88,8 +91,8 @@ const tutorialSteps: TutorialStep[] = [
     placement: 'right',
     page: '/feed',
   },
-  
-  // PASO 6: Botón Notificaciones - MUY IMPORTANTE
+
+  // PASO 6: Botón Notificaciones
   {
     id: 'sidebar-notificaciones',
     target: '[href="/notifications"]',
@@ -98,8 +101,8 @@ const tutorialSteps: TutorialStep[] = [
     placement: 'right',
     page: '/feed',
   },
-  
-  // PASO 7: Botón Clips - MUY IMPORTANTE
+
+  // PASO 7: Botón Clips
   {
     id: 'sidebar-clips',
     target: '[href="/clips"]',
@@ -108,8 +111,8 @@ const tutorialSteps: TutorialStep[] = [
     placement: 'right',
     page: '/feed',
   },
-  
-  // PASO 8: Botón En Vivo - MUY IMPORTANTE
+
+  // PASO 8: Botón En Vivo
   {
     id: 'sidebar-envivo',
     target: '[href="/live"]',
@@ -118,7 +121,7 @@ const tutorialSteps: TutorialStep[] = [
     placement: 'right',
     page: '/feed',
   },
-  
+
   // PASO 9: Botón Comunidades
   {
     id: 'sidebar-comunidades',
@@ -128,8 +131,8 @@ const tutorialSteps: TutorialStep[] = [
     placement: 'right',
     page: '/feed',
   },
-  
-  // PASO 10: Botón Clasificados - MUY IMPORTANTE
+
+  // PASO 10: Botón Clasificados
   {
     id: 'sidebar-clasificados',
     target: '[href="/classifieds"]',
@@ -138,77 +141,67 @@ const tutorialSteps: TutorialStep[] = [
     placement: 'right',
     page: '/feed',
   },
-  
-  // PASO 11: Botón Flotante de Mensajes - MUY IMPORTANTE
+
+  // PASO 11: Feed Principal - Explicación detallada
   {
-    id: 'floating-messages-button',
-    target: '#floating-messages-button',
-    title: 'MENSAJES RÁPIDOS 💬',
-    content: 'Acceso rápido a tus conversaciones. Chatea en tiempo real con tus amigos, envía fotos, videos y reacciona a mensajes. ¡Mantente conectado siempre!',
-    placement: 'top',
-    page: '/feed',
-  },
-  
-  // PASO 14: Feed Principal
-  {
-    id: 'feed-header',
+    id: 'feed-explained',
     target: '#feed-header',
-    title: 'Este es tu FEED �',
-    content: 'Aquí verás todas las publicaciones de las personas que sigues y las comunidades a las que perteneces. Las publicaciones se actualizan en tiempo real.',
+    title: 'ESTE ES TU FEED PRINCIPAL 📰',
+    content: 'Aquí verás todas las publicaciones de las personas que sigues y las comunidades a las que perteneces.\n\nLas publicaciones se actualizan en tiempo real. ¡Es tu página de inicio!\n\n👉 Ahora vamos a crear tu primera publicación...',
     placement: 'bottom',
     page: '/feed',
   },
-  
-  // PASO 15: Crear Publicación
+
+  // PASO 12: Botón Nueva Publicación - MUY ESPECÍFICO
   {
     id: 'new-post-button',
     target: '#new-post-button',
-    title: 'CREA TU PRIMERA PUBLICACIÓN �',
-    content: 'Comparte lo que quieras: Texto, Fotos y videos, Podcasts, Transmisiones en vivo. ¡Exprésate sin límites!',
+    title: '🎯 PASO 1: CREA TU PRIMERA PUBLICACIÓN',
+    content: '👆 HAZ CLIC EN EL BOTÓN "NUEVA PUBLICACIÓN" de arriba.\n\nEscribe algo como:\n💭 "¡Hola comunidad! Soy nuevo aquí"\n📸 O sube una foto\n🎥 O comparte un video\n\n¡Cualquier cosa que quieras compartir!\n\n⏳ Después de publicar, continuaremos automáticamente...',
     placement: 'bottom',
     page: '/feed',
   },
-  
-  // PASO 16: Reacciones
+
+  // PASO 13: Esperando creación de publicación
   {
-    id: 'post-reactions',
-    target: '.post-reactions',
-    title: 'REACCIONA A LAS PUBLICACIONES 🎭',
-    content: 'No solo me gusta, tenemos 5 tipos de reacciones: Like, Celebration, Golazo, Laugh, Dislike. ¡Elige la que mejor exprese lo que sientes!',
-    placement: 'top',
-    page: '/feed',
-  },
-  
-  // PASO 17: Comentarios
-  {
-    id: 'post-comments',
-    target: '.post-comments',
-    title: 'COMENTA Y CONVERSA 💭',
-    content: 'Participa en las conversaciones: Deja tu opinión, Responde a otros comentarios, Menciona a tus amigos con @. ¡La comunidad te está esperando!',
-    placement: 'top',
-    page: '/feed',
-  },
-  
-  // PASO 18: Botón Crear (móvil)
-  {
-    id: 'create-button-mobile',
-    target: '#create-button-mobile',
-    title: 'CREA CONTENIDO RÁPIDO ⚡',
-    content: 'El botón + te permite crear: Publicación, Story, Reel/Clip, Transmisión en vivo. ¡Todo desde un solo lugar!',
-    placement: 'top',
-    page: '/feed',
-  },
-  
-  // PASO 19: Finalización
-  {
-    id: 'completion',
+    id: 'waiting-post',
     target: 'body',
-    title: '¡FELICIDADES! 🎊',
-    content: 'Ya conoces lo básico de SOS Habilidoso. Ahora es tu turno: Completa tu perfil, Sigue a usuarios interesantes, Únete a comunidades, Crea tu primera publicación. ¿Listo para comenzar tu aventura?',
+    title: '⏳ ESPERANDO TU PUBLICACIÓN...',
+    content: '📝 Escribe tu mensaje en el formulario que se abrió\n\n💡 CONSEJO: Puede ser algo simple como:\n• "¡Hola a todos!"\n• "Mi primera publicación"\n• O sube una imagen\n\n👉 Cuando termines, haz clic en "PUBLICAR"\n\n✨ El tutorial avanzará automáticamente cuando publiques',
     placement: 'center',
     page: '/feed',
   },
-];
+
+  // PASO 14: Stories - Mejores Momentos - MUY ESPECÍFICO
+  {
+    id: 'stories-create',
+    target: '#stories-slider',
+    title: '🎯 PASO 2: CREA TU PRIMERA HISTORIA',
+    content: '¡Excelente! Ya creaste tu primera publicación 🎉\n\nAhora vamos con las HISTORIAS:\n\n👆 HAZ CLIC EN EL CÍRCULO CON "+" (arriba en las historias)\n\n✨ Las historias duran 24 horas\n📸 Sube una foto o video\n🏆 Comparte momentos especiales\n\n⏳ Después de publicar tu historia, finalizaremos...',
+    placement: 'bottom',
+    page: '/feed',
+  },
+
+  // PASO 15: Esperando creación de historia
+  {
+    id: 'waiting-story',
+    target: 'body',
+    title: '⏳ ESPERANDO TU HISTORIA...',
+    content: '📸 Sube una foto o video en el formulario que se abrió\n\n💡 CONSEJO:\n• Puede ser cualquier imagen\n• O un video corto\n• ¡Lo que quieras compartir por 24 horas!\n\n👉 Cuando termines, haz clic en "PUBLICAR HISTORIA"\n\n✨ El tutorial finalizará automáticamente cuando publiques',
+    placement: 'center',
+    page: '/feed',
+  },
+
+  // PASO 16: Finalización con Confetti
+  {
+    id: 'completion',
+    target: 'body',
+    title: '🎊 ¡FELICIDADES, HABILIDOSO! 🎊',
+    content: '¡LO LOGRASTE! Has completado el tutorial completo:\n\n✅ Creaste tu primera publicación\n✅ Creaste tu primera historia\n✅ Conoces todas las funciones principales\n✅ Exploraste la navegación\n✅ Descubriste las comunidades\n\n🚀 ¡Ahora estás listo para conquistar SOS Habilidoso!\n\n💪 Ve y comparte tus habilidades con el mundo',
+    placement: 'center',
+    page: '/feed',
+  },
+]
 
 interface TutorialProviderProps {
   children: ReactNode;
@@ -216,6 +209,7 @@ interface TutorialProviderProps {
 
 export function TutorialProvider({ children }: TutorialProviderProps) {
   const { user } = useAuth();
+  const pathname = usePathname();
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isReady, setIsReady] = useState(false);
@@ -227,11 +221,22 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
       return;
     }
 
-    const currentPath = window.location.pathname;
-    const isAuthPage = currentPath === '/' || currentPath === '/login' || currentPath === '/register';
+    // Páginas donde NO se debe mostrar el tutorial
+    const excludedPages = [
+      '/',
+      '/login',
+      '/register',
+      '/profile', // Excluir página de perfil
+      '/settings',
+      '/communities',
+      '/classifieds'
+    ];
     
-    if (isAuthPage) {
+    const isExcludedPage = excludedPages.some(page => pathname === page || pathname?.startsWith(page + '/'));
+    
+    if (isExcludedPage) {
       setIsReady(false);
+      setIsActive(false); // Asegurar que se desactive
       return;
     }
 
@@ -245,7 +250,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [user]);
+  }, [user, pathname]);
 
   const startTutorial = () => {
     setIsActive(true);
@@ -265,7 +270,14 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
 
   const nextStep = () => {
     if (currentStep < tutorialSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      const nextStepIndex = currentStep + 1;
+      setCurrentStep(nextStepIndex);
+      
+      // Si avanzamos desde el paso 12 (new-post-button) al 13 (waiting-post), 
+      // NO abrir el diálogo automáticamente, dejar que el usuario lo haga
+      
+      // Si avanzamos desde el paso 14 (stories-create) al 15 (waiting-story),
+      // NO abrir el diálogo automáticamente, dejar que el usuario lo haga
     } else {
       completeTutorial();
     }
@@ -282,10 +294,70 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     if (user) {
       localStorage.setItem(`tutorial_seen_${user.id}`, 'true');
     }
+    
+    // Mostrar confeti
+    if (typeof window !== 'undefined') {
+      // Usar canvas-confetti si está disponible
+      import('canvas-confetti').then((confetti) => {
+        const duration = 3000;
+        const end = Date.now() + duration;
+
+        const frame = () => {
+          confetti.default({
+            particleCount: 3,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: ['#00FF88', '#51C6E0', '#8B5CF6', '#FF6B9D']
+          });
+          confetti.default({
+            particleCount: 3,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: ['#00FF88', '#51C6E0', '#8B5CF6', '#FF6B9D']
+          });
+
+          if (Date.now() < end) {
+            requestAnimationFrame(frame);
+          }
+        };
+
+        frame();
+      }).catch(() => {
+        console.log('Confetti no disponible');
+      });
+    }
   };
 
   const getCurrentStep = () => {
     return tutorialSteps[currentStep] || null;
+  };
+
+  const onPostCreated = () => {
+    console.log('🎯 onPostCreated llamado, currentStep:', currentStep, 'isActive:', isActive);
+    // Si estamos en el paso 12 (new-post-button) o 13 (waiting-post), avanzar automáticamente
+    if (isActive && (currentStep === 12 || currentStep === 13)) {
+      console.log('✅ Publicación creada, avanzando al siguiente paso desde paso', currentStep);
+      setTimeout(() => {
+        nextStep();
+      }, 1000);
+    } else {
+      console.log('⚠️ No se avanza: isActive=', isActive, 'currentStep=', currentStep);
+    }
+  };
+
+  const onStoryCreated = () => {
+    console.log('🎯 onStoryCreated llamado, currentStep:', currentStep, 'isActive:', isActive);
+    // Si estamos en el paso 14 (stories-create) o 15 (waiting-story), avanzar automáticamente
+    if (isActive && (currentStep === 14 || currentStep === 15)) {
+      console.log('✅ Historia creada, avanzando al paso final desde paso', currentStep);
+      setTimeout(() => {
+        nextStep();
+      }, 1000);
+    } else {
+      console.log('⚠️ No se avanza: isActive=', isActive, 'currentStep=', currentStep);
+    }
   };
 
   const value: TutorialContextType = {
@@ -298,6 +370,8 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     prevStep,
     completeTutorial,
     getCurrentStep,
+    onPostCreated,
+    onStoryCreated,
   };
 
   return (

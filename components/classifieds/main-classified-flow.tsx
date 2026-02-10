@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +11,7 @@ import { HireOptionsSelector } from './hire-options-selector';
 import { DynamicPublicationForm } from './dynamic-publication-form';
 import { PublicationType } from './publication-type-selector';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 
 interface MainClassifiedFlowProps {
   isOpen: boolean;
@@ -93,6 +94,49 @@ export function MainClassifiedFlow({
   const [selectedSellType, setSelectedSellType] = useState<SellType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [createdClassified, setCreatedClassified] = useState<any>(null);
+
+  // Efecto de confeti cuando se completa exitosamente
+  useEffect(() => {
+    if (currentStep === 'success') {
+      // Lanzar confeti desde ambos lados
+      const duration = 3000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+      const randomInRange = (min: number, max: number) => {
+        return Math.random() * (max - min) + min;
+      };
+
+      const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          return;
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+
+        // Confeti desde la izquierda
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+          colors: ['#00FF88', '#00D9FF', '#8B5CF6', '#FFD700']
+        });
+
+        // Confeti desde la derecha
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+          colors: ['#00FF88', '#00D9FF', '#8B5CF6', '#FFD700']
+        });
+      }, 250);
+
+      return () => clearInterval(interval);
+    }
+  }, [currentStep]);
 
   const handleInitialAction = (action: ActionType) => {
     setSelectedAction(action);

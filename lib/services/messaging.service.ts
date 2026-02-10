@@ -213,6 +213,27 @@ class MessagingService {
   }
 
   /**
+   * Obtener mensajes nuevos desde un timestamp
+   */
+  async getMessagesSince(chatId: string, since: string): Promise<MessagesResponse> {
+    const params = new URLSearchParams();
+    params.append('since', since);
+
+    const response = await fetch(
+      `${this.baseUrl}/messaging/chats/${chatId}/messages/?${params.toString()}`,
+      {
+        headers: await this.getAuthHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Error al obtener mensajes nuevos');
+    }
+
+    return response.json();
+  }
+
+  /**
    * Enviar mensaje
    */
   async sendMessage(chatId: string, content: string, messageType: string = 'text', replyTo?: string): Promise<Message> {

@@ -6,6 +6,7 @@ import { useAuth } from '@/components/providers/providers';
 import { Sidebar } from '@/components/navigation/sidebar';
 import { MobileNav } from '@/components/navigation/mobile-nav';
 import { CyberButton } from '@/components/ui/cyber-button';
+import { Button } from '@/components/ui/button';
 import { 
   Settings, 
   User, 
@@ -315,7 +316,7 @@ export default function SettingsPage() {
     <div className="min-h-screen">
       <Sidebar />
       
-      <main className="pb-24 xl:ml-64 xl:pb-0">
+      <main id="settings-page" className="pb-24 xl:ml-64 xl:pb-0">
         <div className="max-w-6xl mx-auto p-4 space-y-6">
           {/* Header */}
           <div className="glass-card p-6">
@@ -484,15 +485,15 @@ export default function SettingsPage() {
                                 name="currentPassword"
                                 value={currentPasswordInput}
                                 onChange={(e) => setCurrentPasswordInput(e.target.value)}
-                                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
+                                className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
                                 disabled={isPasswordChangeLoading}
                               />
                               <button
                                 type="button"
                                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white p-1"
                               >
-                                {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                               </button>
                             </div>
                           </div>
@@ -539,16 +540,16 @@ export default function SettingsPage() {
                                 name="newPassword"
                                 value={newPasswordInput}
                                 onChange={(e) => setNewPasswordInput(e.target.value)}
-                                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
+                                className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
                                 placeholder="••••••••"
                                 disabled={isPasswordChangeLoading}
                               />
                               <button
                                 type="button"
                                 onClick={() => setShowNewPasswordFields(!showNewPasswordFields)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white p-1"
                               >
-                                {showNewPasswordFields ? <EyeOff size={20} /> : <Eye size={20} />}
+                                {showNewPasswordFields ? <EyeOff size={18} /> : <Eye size={18} />}
                               </button>
                             </div>
                           </div>
@@ -562,16 +563,16 @@ export default function SettingsPage() {
                                 name="confirmNewPassword"
                                 value={confirmNewPasswordInput}
                                 onChange={(e) => setConfirmNewPasswordInput(e.target.value)}
-                                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
+                                className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
                                 placeholder="••••••••"
                                 disabled={isPasswordChangeLoading}
                               />
                               <button
                                 type="button"
                                 onClick={() => setShowNewPasswordFields(!showNewPasswordFields)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white p-1"
                               >
-                                {showNewPasswordFields ? <EyeOff size={20} /> : <Eye size={20} />}
+                                {showNewPasswordFields ? <EyeOff size={18} /> : <Eye size={18} />}
                               </button>
                             </div>
                           </div>
@@ -840,6 +841,24 @@ export default function SettingsPage() {
                     <Accordion type="single" collapsible className="w-full space-y-4">
                       <AccordionItem value="item-1" className="p-4 bg-white/5 rounded-xl border-none">
                         <AccordionTrigger className="text-white font-medium hover:no-underline">
+                          Tutorial Guiado
+                        </AccordionTrigger>
+                        <AccordionContent className="text-gray-400 text-sm pt-2 space-y-3">
+                          <p>¿Quieres volver a ver el tutorial de introducción? Haz clic en el botón de abajo para reiniciar el tour guiado por todas las funcionalidades de SOS-HABILIDOSO.</p>
+                          <Button
+                            onClick={() => {
+                              localStorage.removeItem(`tutorial_seen_${user?.id}`);
+                              window.location.href = '/feed';
+                            }}
+                            className="bg-gradient-to-r from-neon-green to-emerald-500 hover:from-neon-green/90 hover:to-emerald-500/90 text-black font-semibold"
+                          >
+                            🚀 Reiniciar Tutorial
+                          </Button>
+                        </AccordionContent>
+                      </AccordionItem>
+                      
+                      <AccordionItem value="item-2" className="p-4 bg-white/5 rounded-xl border-none">
+                        <AccordionTrigger className="text-white font-medium hover:no-underline">
                           Preguntas Frecuentes
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-400 text-sm pt-2">
@@ -848,7 +867,7 @@ export default function SettingsPage() {
                         </AccordionContent>
                       </AccordionItem>
                       
-                      <AccordionItem value="item-2" className="p-4 bg-white/5 rounded-xl border-none">
+                      <AccordionItem value="item-3" className="p-4 bg-white/5 rounded-xl border-none">
                         <AccordionTrigger className="text-white font-medium hover:no-underline">
                           Contactar Soporte
                         </AccordionTrigger>
@@ -858,7 +877,7 @@ export default function SettingsPage() {
                         </AccordionContent>
                       </AccordionItem>
                       
-                      <AccordionItem value="item-3" className="p-4 bg-white/5 rounded-xl border-none">
+                      <AccordionItem value="item-4" className="p-4 bg-white/5 rounded-xl border-none">
                         <AccordionTrigger className="text-white font-medium hover:no-underline">
                           Términos y Condiciones
                         </AccordionTrigger>
@@ -868,7 +887,7 @@ export default function SettingsPage() {
                         </AccordionContent>
                       </AccordionItem>
                       
-                      <AccordionItem value="item-4" className="p-4 bg-white/5 rounded-xl border-none">
+                      <AccordionItem value="item-5" className="p-4 bg-white/5 rounded-xl border-none">
                         <AccordionTrigger className="text-white font-medium hover:no-underline">
                           Política de Privacidad
                         </AccordionTrigger>
@@ -882,7 +901,7 @@ export default function SettingsPage() {
                     <div className="border-t border-white/10 pt-6">
                       <div className="text-center text-gray-400">
                         <p className="text-sm">SOS-HABILIDOSO v1.0.0</p>
-                        <p className="text-xs mt-1">© 2024 Todos los derechos reservados</p>
+                        <p className="text-xs mt-1">© 2026 Todos los derechos reservados</p>
                       </div>
                     </div>
                   </div>

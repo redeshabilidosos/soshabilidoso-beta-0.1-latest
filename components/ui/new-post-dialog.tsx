@@ -192,17 +192,19 @@ export function NewPostDialog({ isOpen, onClose, onPostCreated, communityId }: N
           username: createdPost.user.username,
           displayName: createdPost.user.display_name,
           avatar: createdPost.user.avatar_url,
-          isVerified: createdPost.user.is_verified,
-        },
+          is_verified: createdPost.user.is_verified,
+        } as any,
         content: createdPost.content,
         images: createdPost.images,
         video: createdPost.video,
         podcastUrl: createdPost.podcast_url,
         streamingUrl: createdPost.streaming_url,
         type: createdPost.post_type as any,
-        category: createdPost.category,
+        category: createdPost.category as any,
         communityId: communityId,
         likes: createdPost.likes_count,
+        laughs: 0,
+        dislikes: 0,
         celebrations: createdPost.celebrations_count,
         golazos: createdPost.golazos_count,
         comments: [],
@@ -229,7 +231,11 @@ export function NewPostDialog({ isOpen, onClose, onPostCreated, communityId }: N
       if (imageFileInputRef.current) imageFileInputRef.current.value = '';
       if (videoFileInputRef.current) videoFileInputRef.current.value = '';
       if (podcastFileInputRef.current) podcastFileInputRef.current.value = '';
-      onClose();
+      
+      // Cerrar el diálogo DESPUÉS de notificar
+      setTimeout(() => {
+        onClose();
+      }, 100);
     } catch (error: any) {
       console.error('Error creating post:', error);
       toast.error(error.message || 'Error al crear la publicación.');

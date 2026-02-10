@@ -14,12 +14,14 @@ import {
   Verified,
   MoreHorizontal,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ReelComments } from './reel-comments';
 import { UserProfileDialog } from '@/components/ui/user-profile-dialog';
 import { ReelOptionsMenu } from './reel-options-menu';
+import { UploadReelModal } from './upload-reel-modal';
 
 interface Reel {
   id: string;
@@ -68,15 +70,20 @@ export function ReelCard({
   const [isMuted, setIsMuted] = useState(false); // Iniciar con audio activado
   const [showControls, setShowControls] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const [isInfoExpanded, setIsInfoExpanded] = useState(true);
   const [showComments, setShowComments] = useState(false);
   const [isPaused, setIsPaused] = useState(false); // Para el hold/press
   const [showLikeAnimation, setShowLikeAnimation] = useState(false); // Animación de like
   const [showUserProfile, setShowUserProfile] = useState(false); // Modal de perfil
+  const [showUploadModal, setShowUploadModal] = useState(false); // Modal de upload
   const [viewCounted, setViewCounted] = useState(false); // Para evitar contar múltiples veces
   const lastTapRef = useRef<number>(0);
   const holdTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isHoldingRef = useRef(false);
+  const progressBarRef = useRef<HTMLDivElement>(null);
 
   // Log para debug
   useEffect(() => {
@@ -207,13 +214,29 @@ export function ReelCard({
     if (!video) return;
 
     const updateProgress = () => {
-      const progress = (video.currentTime / video.duration) * 100;
-      setProgress(progress);
+      const currentTime = video.currentTime;
+      const duration = video.duration;
+      const progress = (currentTime / duration) * 100;
+      
+      if (!isDragging) {
+        setProgress(progress);
+        setCurrentTime(currentTime);
+        setDuration(duration);
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration);
     };
 
     video.addEventListener('timeupdate', updateProgress);
-    return () => video.removeEventListener('timeupdate', updateProgress);
-  }, []);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    
+    return () => {
+      video.removeEventListener('timeupdate', updateProgress);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [isDragging]);
 
   const togglePlayPause = () => {
     const video = videoRef.current;
@@ -235,6 +258,92 @@ export function ReelCard({
     video.muted = !video.muted;
     setIsMuted(video.muted);
   };
+
+  // Función para formatear tiempo (mm:ss)
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Manejar click en la barra de progreso
+  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const video = videoRef.current;
+    const progressBar = progressBarRef.current;
+    if (!video || !progressBar) return;
+
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = (clickX / rect.width) * 100;
+    const newTime = (percentage / 100) * video.duration;
+
+    video.currentTime = newTime;
+    setProgress(percentage);
+    setCurrentTime(newTime);
+  };
+
+  // Manejar arrastre en la barra de progreso
+  const handleProgressBarDragStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    const video = videoRef.current;
+    if (video && isPlaying) {
+      video.pause();
+    }
+  };
+
+  const handleProgressBarDrag = (e: MouseEvent | TouchEvent) => {
+    if (!isDragging) return;
+    
+    const video = videoRef.current;
+    const progressBar = progressBarRef.current;
+    if (!video || !progressBar) return;
+
+    const rect = progressBar.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clickX = clientX - rect.left;
+    const percentage = Math.max(0, Math.min(100, (clickX / rect.width) * 100));
+    const newTime = (percentage / 100) * video.duration;
+
+    setProgress(percentage);
+    setCurrentTime(newTime);
+  };
+
+  const handleProgressBarDragEnd = () => {
+    if (!isDragging) return;
+    
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.currentTime = currentTime;
+    setIsDragging(false);
+    
+    if (isPlaying) {
+      video.play();
+    }
+  };
+
+  // Agregar event listeners para el arrastre
+  useEffect(() => {
+    if (isDragging) {
+      const handleMouseMove = (e: MouseEvent) => handleProgressBarDrag(e);
+      const handleMouseUp = () => handleProgressBarDragEnd();
+      const handleTouchMove = (e: TouchEvent) => handleProgressBarDrag(e);
+      const handleTouchEnd = () => handleProgressBarDragEnd();
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('touchmove', handleTouchMove);
+      document.addEventListener('touchend', handleTouchEnd);
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
+  }, [isDragging, currentTime]);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
@@ -520,12 +629,35 @@ export function ReelCard({
         </div>
       )}
 
-      {/* Progress Bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+      {/* Progress Bar - Interactiva */}
+      <div className="absolute bottom-0 left-0 right-0 z-30 group/progress">
         <div 
-          className="h-full bg-neon-green transition-all duration-100"
-          style={{ width: `${progress}%` }}
-        />
+          ref={progressBarRef}
+          className="relative h-1 bg-white/20 cursor-pointer group-hover/progress:h-2 transition-all duration-200"
+          onClick={handleProgressBarClick}
+          onMouseDown={handleProgressBarDragStart}
+          onTouchStart={handleProgressBarDragStart}
+        >
+          {/* Barra de progreso */}
+          <div 
+            className="absolute top-0 left-0 h-full bg-neon-green transition-all duration-100"
+            style={{ width: `${progress}%` }}
+          />
+          
+          {/* Indicador de posición (thumb) */}
+          <div 
+            className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-neon-green rounded-full shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity duration-200"
+            style={{ left: `${progress}%`, transform: 'translate(-50%, -50%)' }}
+          />
+          
+          {/* Tooltip con tiempo */}
+          <div 
+            className="absolute -top-8 left-0 bg-black/90 backdrop-blur-sm text-white text-xs px-2 py-1 rounded opacity-0 group-hover/progress:opacity-100 transition-opacity duration-200 pointer-events-none"
+            style={{ left: `${progress}%`, transform: 'translateX(-50%)' }}
+          >
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </div>
+        </div>
       </div>
 
 
@@ -561,27 +693,30 @@ export function ReelCard({
       </div>
 
       {/* User Info & Actions Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 pb-20 lg:pb-4 px-4 pt-8 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
-        {/* Collapse/Expand Button */}
-        <div className="flex justify-center mb-2">
-          <button
-            onClick={() => setIsInfoExpanded(!isInfoExpanded)}
-            className="bg-black/60 backdrop-blur-sm rounded-full p-2 hover:bg-black/80 transition-all duration-300 hover:scale-110 border border-white/20"
-          >
-            {isInfoExpanded ? (
-              <ChevronDown className="w-4 h-4 text-white" />
-            ) : (
-              <ChevronUp className="w-4 h-4 text-white" />
-            )}
-          </button>
-        </div>
-        
-        {/* Info indicator when collapsed */}
-        {!isInfoExpanded && (
+      <div className={cn(
+        "absolute bottom-0 left-0 right-0 pb-20 lg:pb-4 px-4 transition-all duration-300",
+        isInfoExpanded 
+          ? "bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-8" 
+          : "bg-transparent pt-2"
+      )}>
+        {/* Collapse/Expand Button - Visible en ambos estados */}
+        {isInfoExpanded ? (
           <div className="flex justify-center mb-2">
-            <div className="bg-neon-green/20 backdrop-blur-sm rounded-full px-3 py-1 border border-neon-green/30">
-              <span className="text-neon-green text-xs font-medium">Toca ↑ para ver info</span>
-            </div>
+            <button
+              onClick={() => setIsInfoExpanded(!isInfoExpanded)}
+              className="bg-black/60 backdrop-blur-sm rounded-full p-2 hover:bg-black/80 transition-all duration-300 hover:scale-110 border border-white/20"
+            >
+              <ChevronDown className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        ) : (
+          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-30 animate-in fade-in duration-300">
+            <button
+              onClick={() => setIsInfoExpanded(!isInfoExpanded)}
+              className="bg-black/70 backdrop-blur-sm rounded-full p-3 hover:bg-black/90 transition-all duration-300 hover:scale-110 border-2 border-neon-green/50 shadow-lg shadow-neon-green/20"
+            >
+              <ChevronUp className="w-5 h-5 text-neon-green" />
+            </button>
           </div>
         )}
 
@@ -680,6 +815,17 @@ export function ReelCard({
 
           {/* Right Side - Action Buttons */}
           <div className="flex flex-col items-center space-y-3 mb-4">
+            {/* Upload Button */}
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="flex flex-col items-center space-y-1 group"
+            >
+              <div className="bg-neon-green/20 backdrop-blur-sm rounded-full p-3 hover:bg-neon-green/30 transition-all duration-300 group-hover:scale-110 border border-neon-green/40">
+                <Plus className="w-6 h-6 text-neon-green" />
+              </div>
+              <span className="text-white text-xs font-medium">Subir</span>
+            </button>
+
             {/* Like Button */}
             <button
               onClick={onLike}
@@ -732,9 +878,9 @@ export function ReelCard({
 
         {/* Always visible action buttons when collapsed */}
         {!isInfoExpanded && (
-          <div className="flex justify-between items-end pr-4 pb-4">
+          <div className="flex justify-between items-end animate-in slide-in-from-bottom duration-300">
             {/* Minimal user info when collapsed */}
-            <div className="flex items-center space-x-2 pl-4">
+            <div className="flex items-center space-x-2">
               <Image
                 src={reel.user.avatar}
                 alt={reel.user.displayName}
@@ -840,6 +986,17 @@ export function ReelCard({
           posts: 0,
           interests: [],
           createdAt: new Date().toISOString(),
+        }}
+      />
+
+      {/* Upload Reel Modal */}
+      <UploadReelModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onReelUploaded={(newReel) => {
+          console.log('✅ Nuevo reel subido:', newReel);
+          // Aquí podrías actualizar la lista de reels si es necesario
+          setShowUploadModal(false);
         }}
       />
     </div>

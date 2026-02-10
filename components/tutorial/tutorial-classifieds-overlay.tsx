@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTutorialClassifieds } from './tutorial-classifieds-provider';
 import { X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
 
 export function TutorialClassifiedsOverlay() {
@@ -12,6 +13,48 @@ export function TutorialClassifiedsOverlay() {
   const [isCenter, setIsCenter] = useState(false);
 
   const step = getCurrentStep();
+  const isLastStep = currentStep === totalSteps - 1;
+
+  // Efecto de confeti en el último paso
+  useEffect(() => {
+    if (isActive && isLastStep && step?.id === 7) {
+      console.log('🎊 Mostrando confeti en tutorial de clasificados');
+      
+      const duration = 3000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ['#00FF88', '#51C6E0', '#8B5CF6', '#FF6B9D']
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ['#00FF88', '#51C6E0', '#8B5CF6', '#FF6B9D']
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+
+      frame();
+    }
+  }, [isActive, isLastStep, step]);
+
+  useEffect(() => {
+    console.log('🎯 Tutorial Overlay - Estado:', {
+      isActive,
+      step: step?.title,
+      targetElement: step?.targetElement
+    });
+  }, [isActive, step]);
 
   useEffect(() => {
     if (!isActive || !step) return;
@@ -43,7 +86,9 @@ export function TutorialClassifiedsOverlay() {
 
         // Ajustar posición según el viewport
         const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
         const cardWidth = 384; // max-w-md = 384px
+        const cardHeight = 400; // altura estimada del card
 
         switch (step.position) {
           case 'top':
@@ -64,10 +109,25 @@ export function TutorialClassifiedsOverlay() {
             break;
         }
 
+        // Verificar si el card se desborda y centrarlo si es necesario
+        const wouldOverflowTop = top < 20;
+        const wouldOverflowBottom = (top + cardHeight) > (scrollTop + viewportHeight - 20);
+        const wouldOverflowLeft = (left - cardWidth / 2) < 20;
+        const wouldOverflowRight = (left + cardWidth / 2) > (viewportWidth - 20);
+
+        if (wouldOverflowTop || wouldOverflowBottom || wouldOverflowLeft || wouldOverflowRight) {
+          // Si se desborda, centrar el card
+          setIsCenter(true);
+          return;
+        }
+
         setPosition({ top, left });
 
         // Scroll suave al elemento
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        // Si no encuentra el elemento, centrar
+        setIsCenter(true);
       }
     };
 
@@ -101,6 +161,13 @@ export function TutorialClassifiedsOverlay() {
 
   if (!isActive || !step) return null;
 
+  console.log('🎯 RENDERIZANDO OVERLAY:', {
+    isActive,
+    step: step.title,
+    targetElement: step.targetElement,
+    position: step.position
+  });
+
   return (
     <AnimatePresence>
       {/* Overlay oscuro */}
@@ -108,7 +175,7 @@ export function TutorialClassifiedsOverlay() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/80 z-[9998]"
+        className="fixed inset-0 bg-black/50 z-[9998]"
         onClick={skipTutorial}
       />
 
@@ -120,7 +187,7 @@ export function TutorialClassifiedsOverlay() {
         transition={{ type: 'spring', damping: 20 }}
         className={`fixed z-[9999] ${
           isCenter 
-            ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4' 
+            ? 'inset-x-0 top-0 flex items-start justify-center pt-20 p-4' 
             : 'px-4 sm:px-0'
         }`}
         style={!isCenter ? { 
@@ -130,7 +197,7 @@ export function TutorialClassifiedsOverlay() {
         } : {}}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-2 border-neon-green/50 rounded-2xl shadow-2xl shadow-neon-green/20 p-4 sm:p-6 max-w-[calc(100vw-2rem)] sm:max-w-md w-full sm:w-96">
+        <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-2 border-neon-green/50 rounded-2xl shadow-2xl shadow-neon-green/20 p-4 sm:p-6 w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
           {/* Header */}
           <div className="flex items-start justify-between mb-3 sm:mb-4">
             <div className="flex items-center gap-2">
@@ -198,7 +265,7 @@ export function TutorialClassifiedsOverlay() {
                 onClick={nextStep}
                 className="bg-neon-green text-black hover:bg-neon-green/80 font-semibold flex-1 sm:flex-none text-xs sm:text-sm"
               >
-                {currentStep === totalSteps - 1 ? 'Finalizar' : 'Siguiente'}
+                {currentStep === totalSteps - 1 ? '¡Comenzar! 🚀' : 'Siguiente'}
                 {currentStep < totalSteps - 1 && <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />}
               </Button>
             </div>

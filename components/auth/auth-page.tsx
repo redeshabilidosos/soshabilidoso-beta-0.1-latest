@@ -9,7 +9,11 @@ import { SimpleLogo } from '@/components/ui/simple-logo';
 import { toast } from 'sonner'; // Importar toast para notificaciones
 
 // Lazy loading del dialog pesado
-const ForgotPasswordDialog = lazy(() => import('./forgot-password-dialog').then(m => ({ default: m.ForgotPasswordDialog })));
+const ForgotPasswordDialog = lazy(() => 
+  import('./forgot-password-dialog').then(module => ({ 
+    default: module.ForgotPasswordDialog 
+  }))
+);
 
 export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -422,7 +426,7 @@ export function AuthPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full pl-5 pr-14 py-4 text-lg bg-white/10 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                  className={`w-full pl-5 pr-12 py-4 text-lg bg-white/10 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
                     errors.password ? 'border-red-500/50 focus:ring-red-500/50' : 'border-white/20 focus:ring-neon-green/50'
                   }`}
                   placeholder="••••••••"
@@ -431,9 +435,9 @@ export function AuthPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 hover:bg-white/10 rounded"
                 >
-                  {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               {errors.password && (
@@ -455,7 +459,7 @@ export function AuthPage() {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full pl-5 pr-14 py-4 text-lg bg-white/10 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                    className={`w-full pl-5 pr-12 py-4 text-lg bg-white/10 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
                       errors.confirmPassword ? 'border-red-500/50 focus:ring-red-500/50' : 'border-white/20 focus:ring-neon-green/50'
                     }`}
                     placeholder="••••••••"
@@ -464,9 +468,9 @@ export function AuthPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 hover:bg-white/10 rounded"
                   >
-                    {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 {errors.confirmPassword && (

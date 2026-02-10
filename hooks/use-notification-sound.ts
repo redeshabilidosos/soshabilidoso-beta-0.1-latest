@@ -10,12 +10,16 @@ export function useNotificationSound(options: UseNotificationSoundOptions = {}) 
   
   const messageAudioRef = useRef<HTMLAudioElement | null>(null);
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
+  const sendMessageAudioRef = useRef<HTMLAudioElement | null>(null);
+  const leaveMeetingAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     // Crear instancias de Audio solo en el cliente
     if (typeof window !== 'undefined') {
       messageAudioRef.current = new Audio('/sounds/sonidomensage.mp3');
       notificationAudioRef.current = new Audio('/sounds/sonidonotificacion.mp3');
+      sendMessageAudioRef.current = new Audio('/sounds/tapm.mp3');
+      leaveMeetingAudioRef.current = new Audio('/sounds/finishreuniongrupall.mp3');
       
       // Configurar volumen
       if (messageAudioRef.current) {
@@ -24,16 +28,26 @@ export function useNotificationSound(options: UseNotificationSoundOptions = {}) 
       if (notificationAudioRef.current) {
         notificationAudioRef.current.volume = volume;
       }
+      if (sendMessageAudioRef.current) {
+        sendMessageAudioRef.current.volume = volume * 0.6; // 60% del volumen para envío (más suave)
+      }
+      if (leaveMeetingAudioRef.current) {
+        leaveMeetingAudioRef.current.volume = volume;
+      }
 
       // Precargar los sonidos
       messageAudioRef.current?.load();
       notificationAudioRef.current?.load();
+      sendMessageAudioRef.current?.load();
+      leaveMeetingAudioRef.current?.load();
     }
 
     return () => {
       // Limpiar al desmontar
       messageAudioRef.current = null;
       notificationAudioRef.current = null;
+      sendMessageAudioRef.current = null;
+      leaveMeetingAudioRef.current = null;
     };
   }, [volume]);
 
@@ -69,6 +83,38 @@ export function useNotificationSound(options: UseNotificationSoundOptions = {}) 
     }
   }, [enabled]);
 
+  const playSendMessageSound = useCallback(() => {
+    if (!enabled) return;
+    
+    try {
+      if (sendMessageAudioRef.current) {
+        // Reiniciar el audio si ya está reproduciéndose
+        sendMessageAudioRef.current.currentTime = 0;
+        sendMessageAudioRef.current.play().catch(error => {
+          console.warn('No se pudo reproducir el sonido de envío:', error);
+        });
+      }
+    } catch (error) {
+      console.warn('Error al reproducir sonido de envío:', error);
+    }
+  }, [enabled]);
+
+  const playLeaveMeetingSound = useCallback(() => {
+    if (!enabled) return;
+    
+    try {
+      if (leaveMeetingAudioRef.current) {
+        // Reiniciar el audio si ya está reproduciéndose
+        leaveMeetingAudioRef.current.currentTime = 0;
+        leaveMeetingAudioRef.current.play().catch(error => {
+          console.warn('No se pudo reproducir el sonido de salida de reunión:', error);
+        });
+      }
+    } catch (error) {
+      console.warn('Error al reproducir sonido de salida de reunión:', error);
+    }
+  }, [enabled]);
+
   const setVolume = useCallback((newVolume: number) => {
     const clampedVolume = Math.max(0, Math.min(1, newVolume));
     if (messageAudioRef.current) {
@@ -77,11 +123,19 @@ export function useNotificationSound(options: UseNotificationSoundOptions = {}) 
     if (notificationAudioRef.current) {
       notificationAudioRef.current.volume = clampedVolume;
     }
+    if (sendMessageAudioRef.current) {
+      sendMessageAudioRef.current.volume = clampedVolume;
+    }
+    if (leaveMeetingAudioRef.current) {
+      leaveMeetingAudioRef.current.volume = clampedVolume;
+    }
   }, []);
 
   return {
     playMessageSound,
     playNotificationSound,
+    playSendMessageSound,
+    playLeaveMeetingSound,
     setVolume,
   };
 }

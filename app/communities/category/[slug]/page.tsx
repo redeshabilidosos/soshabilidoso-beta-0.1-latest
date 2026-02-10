@@ -16,7 +16,7 @@ import { Sidebar } from "@/components/navigation/sidebar";
 import { MobileNav } from "@/components/navigation/mobile-nav";
 import { communitiesService, CommunityCategory, Community } from "@/lib/services/communities.service";
 import { useToast } from "@/hooks/use-toast";
-import { useForceBlackBackground } from "@/hooks/use-force-black-background";
+import { useParticleBackground } from "@/hooks/use-particle-background";
 
 export default function CategoryPage() {
   const router = useRouter();
@@ -31,8 +31,8 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
 
-  // Aplicar fondo negro con estrellas
-  useForceBlackBackground();
+  // Aplicar fondo negro con partículas animadas (igual que /feed)
+  useParticleBackground();
 
   useEffect(() => {
     if (slug) {
@@ -266,10 +266,10 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-hidden">
       <Sidebar />
       
-      <main className="pb-24 lg:ml-64 lg:pb-0 pt-28 md:pt-12 lg:pt-6 relative z-10 min-h-screen">
+      <main className="pb-24 lg:ml-64 lg:pb-0 pt-28 md:pt-12 lg:pt-6 relative z-10 min-h-screen overflow-x-hidden">
         <div className="max-w-6xl mx-auto p-4 space-y-6">
           {/* Header */}
           <div 

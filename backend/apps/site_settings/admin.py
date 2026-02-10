@@ -25,6 +25,25 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             'fields': ('show_register_habilidosos_button', 'reality_form_enabled'),
             'description': 'Controla la visibilidad de funcionalidades en la aplicación'
         }),
+        ('Control de Sidebar - Visibilidad Global', {
+            'fields': (
+                'sidebar_show_feed',
+                'sidebar_show_profile',
+                'sidebar_show_search',
+                'sidebar_show_notifications',
+                'sidebar_show_clips',
+                'sidebar_show_reels',
+                'sidebar_show_live',
+                'sidebar_show_communities',
+                'sidebar_show_classifieds',
+                'sidebar_show_donations',
+                'sidebar_show_news',
+                'sidebar_show_messages',
+                'sidebar_show_settings',
+            ),
+            'description': 'Controla qué secciones del sidebar son visibles para TODOS los usuarios. '
+                          'Si desmarcas una opción, esa sección se ocultará del sidebar globalmente.'
+        }),
         ('Mantenimiento', {
             'fields': ('maintenance_mode', 'maintenance_message'),
             'classes': ('collapse',)

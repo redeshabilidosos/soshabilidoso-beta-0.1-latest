@@ -206,8 +206,7 @@ export function ImageCropEditor({
                 width: 'auto',
                 height: 'auto',
                 userSelect: 'none',
-                WebkitUserDrag: 'none'
-              }}
+              } as React.CSSProperties}
               draggable={false}
             />
             

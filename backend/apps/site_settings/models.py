@@ -46,6 +46,74 @@ class SiteSettings(models.Model):
         verbose_name='Formulario Reality habilitado',
         help_text='Activa o desactiva el acceso al formulario de registro del reality'
     )
+    
+    # Control de visibilidad del Sidebar - Secciones principales
+    sidebar_show_feed = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Feed/Inicio',
+        help_text='Ocultar/Mostrar la sección de Feed en el sidebar para todos los usuarios'
+    )
+    sidebar_show_profile = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Perfil',
+        help_text='Ocultar/Mostrar la sección de Perfil en el sidebar'
+    )
+    sidebar_show_search = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Buscar',
+        help_text='Ocultar/Mostrar la sección de Búsqueda de usuarios en el sidebar'
+    )
+    sidebar_show_notifications = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Notificaciones',
+        help_text='Ocultar/Mostrar la sección de Notificaciones en el sidebar'
+    )
+    sidebar_show_clips = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Clips',
+        help_text='Ocultar/Mostrar la sección de Clips en el sidebar'
+    )
+    sidebar_show_reels = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Reels',
+        help_text='Ocultar/Mostrar la sección de Reels en el sidebar'
+    )
+    sidebar_show_live = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar En Vivo',
+        help_text='Ocultar/Mostrar la sección de Transmisiones en Vivo en el sidebar'
+    )
+    sidebar_show_communities = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Comunidades',
+        help_text='Ocultar/Mostrar la sección de Comunidades en el sidebar'
+    )
+    sidebar_show_classifieds = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Clasificados',
+        help_text='Ocultar/Mostrar la sección de Clasificados en el sidebar'
+    )
+    sidebar_show_donations = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Donaciones',
+        help_text='Ocultar/Mostrar la sección de Donaciones en el sidebar'
+    )
+    sidebar_show_news = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Hábil News',
+        help_text='Ocultar/Mostrar la sección de Noticias en el sidebar'
+    )
+    sidebar_show_messages = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Mensajes',
+        help_text='Ocultar/Mostrar la sección de Mensajes en el sidebar'
+    )
+    sidebar_show_settings = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar Configuración',
+        help_text='Ocultar/Mostrar la sección de Configuración en el sidebar'
+    )
+    
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name='Última actualización'

@@ -33,12 +33,12 @@ import { cn } from '@/lib/utils';
 // Navegación principal (siempre visible en la barra)
 const leftNavigation = [
   { name: 'Inicio', href: '/feed', icon: Home },
-  { name: 'Buscar', href: '/users', icon: Search },
+  { name: 'Clips', href: '/reels', icon: Play },
   { name: 'Comunidades', href: '/communities', icon: Users },
 ];
 
 const rightNavigation = [
-  { name: 'Clips', href: '/reels', icon: Play },
+  { name: 'Buscar', href: '/users', icon: Search },
   { name: 'Notificaciones', href: '/notifications', icon: Bell },
 ];
 
@@ -125,6 +125,7 @@ export const MobileNav = memo(function MobileNav() {
         })}
 
         <button
+          id="create-button-mobile"
           onClick={() => toggleModal('createMenu', true)}
           className="flex items-center justify-center p-1 rounded-lg transition-all duration-300 flex-1"
         >
@@ -162,7 +163,12 @@ export const MobileNav = memo(function MobileNav() {
         })}
 
         <button
-          onClick={() => toggleModal('dropdown')}
+          onClick={() => {
+            console.log('🔘 Botón de 3 puntos clickeado');
+            console.log('📊 Estado actual del dropdown:', modals.dropdown);
+            toggleModal('dropdown');
+            console.log('📊 Nuevo estado del dropdown:', !modals.dropdown);
+          }}
           className={cn(
             'flex items-center justify-center p-2 rounded-lg transition-all duration-300 flex-1',
             modals.dropdown || isSecondaryActive
@@ -180,30 +186,47 @@ export const MobileNav = memo(function MobileNav() {
   // Contenido del dropdown de más opciones
   const dropdownContent = (
     <div 
-      className={cn(
-        "lg:hidden fixed inset-0 transition-all duration-300",
-        modals.dropdown ? "pointer-events-auto" : "pointer-events-none"
-      )}
-      style={{ zIndex: 2147483646 }}
+      style={{ 
+        position: 'fixed',
+        inset: 0,
+        zIndex: 999999999,
+        pointerEvents: modals.dropdown ? 'auto' : 'none',
+        display: modals.dropdown ? 'block' : 'none',
+        backgroundColor: 'rgba(255, 0, 0, 0.5)' // ROJO para debugging
+      }}
     >
+      {console.log('🎨 Renderizando dropdown, estado:', modals.dropdown)}
+      
       {/* Overlay */}
       <div 
-        className={cn(
-          "absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300",
-          modals.dropdown ? "opacity-100" : "opacity-0"
-        )}
-        onClick={() => toggleModal('dropdown', false)}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backdropFilter: 'blur(4px)'
+        }}
+        onClick={() => {
+          console.log('🖱️ Click en overlay');
+          toggleModal('dropdown', false);
+        }}
       />
 
       {/* Dropdown Menu */}
       <div 
-        className={cn(
-          "absolute right-4 left-4 glass-card border border-neon-green/20 rounded-2xl p-4 transition-all duration-300 transform",
-          modals.dropdown 
-            ? "opacity-100 translate-y-0 scale-100" 
-            : "opacity-0 translate-y-4 scale-95 pointer-events-none"
-        )}
-        style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
+        style={{ 
+          position: 'absolute',
+          right: '16px',
+          left: '16px',
+          bottom: '90px',
+          maxHeight: 'calc(100vh - 180px)',
+          overflowY: 'auto',
+          zIndex: 999999999,
+          backgroundColor: '#1a1a1a',
+          border: '2px solid #00FF88',
+          borderRadius: '16px',
+          padding: '16px'
+        }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white font-semibold">Más opciones</h3>

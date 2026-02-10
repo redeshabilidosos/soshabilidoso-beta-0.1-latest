@@ -57,11 +57,11 @@ if "%ERRORLEVEL%"=="0" (
 )
 echo.
 
-REM Iniciar Backend Django en todas las interfaces
-echo [4/7] Iniciando Backend Django (puerto 8000)...
-start "Django Backend" cmd /k "cd backend && venv312\Scripts\activate && python manage.py runserver 0.0.0.0:8000"
+REM Iniciar Backend Django con Daphne (soporte WebSocket)
+echo [4/7] Iniciando Backend Django con Daphne (puerto 8000)...
+start "Django Backend (Daphne)" cmd /k "cd backend && venv312\Scripts\activate && venv312\Scripts\python.exe -m daphne -b 0.0.0.0 -p 8000 sos_habilidoso.asgi:application"
 timeout /t 3 /nobreak >nul
-echo ✅ Backend iniciado en 0.0.0.0:8000 (accesible desde red)
+echo ✅ Backend iniciado en 0.0.0.0:8000 con soporte WebSocket
 echo.
 
 REM Iniciar Frontend Next.js

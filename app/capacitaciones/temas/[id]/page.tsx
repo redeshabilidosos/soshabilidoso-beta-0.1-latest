@@ -15,7 +15,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { MobileNav } from "@/components/navigation/mobile-nav";
 import { toast } from "sonner";
-import { useForceBlackBackground } from "@/hooks/use-force-black-background";
+import { useParticleBackground } from "@/hooks/use-particle-background";
+import confetti from 'canvas-confetti';
 
 // API URL
 const API_URL = 'http://127.0.0.1:8000/api';
@@ -30,8 +31,41 @@ export default function TemaPage() {
   const [completando, setCompletando] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
 
-  // Aplicar fondo negro con estrellas
-  useForceBlackBackground();
+  // Aplicar fondo negro con partículas animadas
+  useParticleBackground();
+
+  // Efecto de confeti cuando se completa un tema
+  useEffect(() => {
+    if (showCompletionModal) {
+      console.log('🎊 Mostrando confeti por completar tema');
+      
+      const duration = 3000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ['#00FF88', '#51C6E0', '#8B5CF6', '#FF6B9D', '#FBBF24']
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ['#00FF88', '#51C6E0', '#8B5CF6', '#FF6B9D', '#FBBF24']
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+
+      frame();
+    }
+  }, [showCompletionModal]);
 
   useEffect(() => {
     // Agregar atributo al body para identificar la página

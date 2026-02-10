@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { MobileNav } from "@/components/navigation/mobile-nav";
-import { useForceBlackBackground } from "@/hooks/use-force-black-background";
+import { useParticleBackground } from "@/hooks/use-particle-background";
 
 interface Tema {
   id: string;
@@ -46,8 +46,8 @@ export default function SeccionPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Aplicar fondo negro con estrellas
-  useForceBlackBackground();
+  // Aplicar fondo negro con partículas animadas
+  useParticleBackground();
 
   useEffect(() => {
     // Agregar atributo al body para identificar la página

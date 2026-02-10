@@ -63,10 +63,11 @@ mysqlCheck.on('close', (code) => {
   }
   log('', 'reset');
   
-  // 2. Iniciar Backend (Django)
-  log('[2/3] 🐍 Iniciando Backend Django (Python 3.12)...', 'cyan');
+  // 2. Iniciar Backend (Django con Daphne para WebSockets)
+  log('[2/3] 🐍 Iniciando Backend Django con Daphne (ASGI)...', 'cyan');
   log('   Puerto: 8000', 'blue');
   log('   Base de datos: habilidosos_clean (MySQL)', 'blue');
+  log('   WebSockets: ✅ Habilitados (Chat y Notificaciones en tiempo real)', 'green');
   log('', 'reset');
   
   const path = require('path');
@@ -75,16 +76,16 @@ mysqlCheck.on('close', (code) => {
   let backend;
   
   if (isWindows) {
-    // En Windows, usar el Python del entorno virtual directamente
+    // En Windows, usar Daphne para soporte de WebSockets
     const pythonPath = path.join(backendDir, 'venv312', 'Scripts', 'python.exe');
-    backend = spawn(pythonPath, ['manage.py', 'runserver', '127.0.0.1:8000'], {
+    backend = spawn(pythonPath, ['-m', 'daphne', '-b', '0.0.0.0', '-p', '8000', 'sos_habilidoso.asgi:application'], {
       cwd: backendDir,
       stdio: 'inherit'
     });
   } else {
     // En Unix/Linux/Mac
     const pythonPath = path.join(backendDir, 'venv312', 'bin', 'python');
-    backend = spawn(pythonPath, ['manage.py', 'runserver', '127.0.0.1:8000'], {
+    backend = spawn(pythonPath, ['-m', 'daphne', '-b', '0.0.0.0', '-p', '8000', 'sos_habilidoso.asgi:application'], {
       cwd: backendDir,
       stdio: 'inherit'
     });
@@ -119,11 +120,16 @@ mysqlCheck.on('close', (code) => {
       log('   → http://localhost:4000', 'blue');
       log('   → Landing: http://localhost:4000/landing.html', 'blue');
       console.log('');
-      log('   Backend (Django):', 'cyan');
+      log('   Backend (Django + Daphne ASGI):', 'cyan');
       log('   → API: http://127.0.0.1:8000/api/', 'blue');
       log('   → Admin: http://127.0.0.1:8000/admin/', 'blue');
+      log('   → WebSockets: ws://127.0.0.1:8000/ws/', 'green');
       log('   → Usuario: admin@test.com', 'yellow');
       log('   → Password: admin123', 'yellow');
+      console.log('');
+      log('   🔔 Notificaciones en tiempo real: ✅', 'green');
+      log('   💬 Chat en tiempo real: ✅', 'green');
+      log('   📡 Feed en tiempo real: ✅', 'green');
       console.log('');
       log('   Base de Datos (MySQL):', 'cyan');
       log('   → Puerto: 3307', 'blue');

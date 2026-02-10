@@ -55,12 +55,17 @@ export function useChatWebSocket({
         try {
           const data = JSON.parse(event.data);
           
+          console.log('📨 WebSocket message received:', data);
+          
           switch (data.type) {
             case 'chat_message':
-              // Solo agregar el mensaje si no es del usuario actual
+              // Mensaje nuevo recibido
+              console.log('💬 New chat message:', data.message);
+              onNewMessage(data.message);
+              
+              // Reproducir sonido solo si el mensaje es de otro usuario
               if (data.message.sender.id !== userId) {
-                onNewMessage(data.message);
-                // Reproducir sonido de mensaje
+                console.log('🔊 Playing message sound for message from:', data.message.sender.username);
                 playMessageSound();
               }
               break;
@@ -85,8 +90,12 @@ export function useChatWebSocket({
               console.log(`Message ${data.message_id} read by ${data.username}`);
               break;
             
+            case 'connection_success':
+              console.log('✅ WebSocket connection confirmed:', data.message);
+              break;
+            
             case 'error':
-              console.error('WebSocket error:', data.message);
+              console.error('❌ WebSocket error:', data.message);
               break;
           }
         } catch (error) {

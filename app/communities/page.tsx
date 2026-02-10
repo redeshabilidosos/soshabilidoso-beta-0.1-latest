@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Users, Search, ChevronRight, Sparkles, 
   TrendingUp, Grid3X3, List, Plus, X, 
-  Globe, Lock, Crown, Layers
+  Globe, Lock, Crown, Layers, GraduationCap
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,11 @@ import { useToast } from "@/hooks/use-toast";
 import { DynamicCommunityForm } from "@/components/communities/dynamic-community-form";
 import { useAuth } from "@/components/providers/providers";
 import { LoadingScreen } from "@/components/communities/loading-screen";
-import { useForceBlackBackground } from "@/hooks/use-force-black-background";
+import { useParticleBackground } from "@/hooks/use-particle-background";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { MobileNav } from "@/components/navigation/mobile-nav";
+import { TutorialCommunitiesProvider, useTutorialCommunities } from "@/components/tutorial/tutorial-communities-provider";
+import { TutorialCommunitiesOverlay } from "@/components/tutorial/tutorial-communities-overlay";
 
 // Componente CategoryCard memoizado
 const CategoryCard = memo(({ category, onClick }: { 
@@ -95,11 +97,13 @@ const CommunityCard = memo(({ community, onClick }: {
       </div>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-green to-emerald-600 flex items-center justify-center text-xl border-2 border-black shadow-lg flex-shrink-0 overflow-hidden">
+          <div className="w-12 h-12 rounded-xl bg-[#51C6E0] flex items-center justify-center text-xl border-2 border-black shadow-lg flex-shrink-0 overflow-hidden">
             {community.profile_image ? (
               <img src={community.profile_image} alt="" className="w-full h-full rounded-xl object-cover" loading="lazy" />
             ) : (
-              <Users className="w-6 h-6 text-black" />
+              <span className="text-white font-bold text-lg">
+                {community.name.charAt(0).toUpperCase()}
+              </span>
             )}
           </div>
           <div className="flex-1 min-w-0">
@@ -155,19 +159,23 @@ const CommunitySkeleton = () => (
   </Card>
 );
 
-export default function CommunitiesPage() {
+// Componente interno que usa el hook del tutorial
+function CommunitiesPageContent() {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { startTutorial, setLoadingComplete } = useTutorialCommunities();
   
-  useForceBlackBackground();
+  useParticleBackground();
   
   const [categories, setCategories] = useState<CommunityCategory[]>([]);
   const [allCommunities, setAllCommunities] = useState<Community[]>([]);
+  const [suggestedCommunities, setSuggestedCommunities] = useState<Community[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createStep, setCreateStep] = useState<'type' | 'form'>('type');
@@ -193,12 +201,29 @@ export default function CommunitiesPage() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [cats, communities] = await Promise.all([
+      setLoadingSuggestions(true);
+      
+      const token = localStorage.getItem('access_token');
+      
+      const [cats, communities, suggestedResponse] = await Promise.all([
         communitiesService.getCategories(),
-        communitiesService.getCommunities({ only_main: true })
+        communitiesService.getCommunities({ only_main: true }),
+        fetch('http://127.0.0.1:8000/api/communities/suggested/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => null)
       ]);
+      
       setCategories(cats);
       setAllCommunities(communities);
+      
+      // Procesar comunidades sugeridas
+      if (suggestedResponse && suggestedResponse.ok) {
+        const suggested = await suggestedResponse.json();
+        setSuggestedCommunities(suggested.slice(0, 6)); // Mostrar máximo 6
+      } else {
+        // Si falla, usar las primeras comunidades como sugeridas
+        setSuggestedCommunities(communities.slice(0, 6));
+      }
     } catch (error) {
       console.error('Error loading data:', error);
       toast({
@@ -207,7 +232,10 @@ export default function CommunitiesPage() {
         variant: "destructive",
       });
     } finally {
-      setTimeout(() => setLoading(false), 100);
+      setTimeout(() => {
+        setLoading(false);
+        setLoadingSuggestions(false);
+      }, 100);
     }
   }, [toast]);
 
@@ -323,7 +351,11 @@ export default function CommunitiesPage() {
       <AnimatePresence>
         {(loading || showLoadingScreen) && (
           <LoadingScreen 
-            onLoadingComplete={() => setShowLoadingScreen(false)} 
+            onLoadingComplete={() => {
+              console.log('🎬 Animación de carga completada');
+              setShowLoadingScreen(false);
+              setLoadingComplete(true); // Notificar al tutorial que puede iniciar
+            }} 
             isDataLoaded={!loading}
           />
         )}
@@ -332,7 +364,7 @@ export default function CommunitiesPage() {
       <div className="min-h-screen bg-black text-white relative overflow-hidden">
         <Sidebar />
         
-        <main className="relative z-10 lg:ml-64 pb-24 lg:pb-0">
+        <main id="communities-page" className="relative z-10 lg:ml-64 pb-24 lg:pb-0">
           {/* Header */}
           <div className="bg-gradient-to-b from-neon-green/10 to-transparent py-12 px-4">
             <div className="max-w-6xl mx-auto">
@@ -365,10 +397,74 @@ export default function CommunitiesPage() {
                   />
                 </div>
                 
-                <h1 className="text-4xl font-bold mb-2">
-                  <Sparkles className="w-8 h-8 inline mr-2 text-neon-green" />
-                  Comunidades
-                </h1>
+                {/* Título y botón de tutorial reorganizados */}
+                <div className="flex flex-col items-center gap-3 mb-2">
+                  {/* Título */}
+                  <h1 className="text-3xl sm:text-4xl font-bold text-center">
+                    <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 inline mr-2 text-neon-green" />
+                    Comunidades
+                  </h1>
+                  
+                  {/* Botón Tutorial - Debajo del título */}
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      rotate: [0, -5, 5, -5, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatDelay: 1,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    <motion.button
+                      onClick={startTutorial}
+                      className="relative px-4 py-2 rounded-md border-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-black transition-colors font-semibold text-sm overflow-hidden"
+                      animate={{
+                        boxShadow: [
+                          "0 0 20px rgba(0, 255, 136, 0.5)",
+                          "0 0 30px rgba(0, 255, 136, 0.8)",
+                          "0 0 20px rgba(0, 255, 136, 0.5)",
+                        ],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      {/* Capa de brillo interno que pulsa */}
+                      <motion.div
+                        className="absolute inset-0 bg-neon-green rounded-md"
+                        animate={{
+                          opacity: [0, 0.2, 0],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      />
+                      
+                      <motion.div
+                        className="relative flex items-center gap-2"
+                        animate={{
+                          y: [0, -2, 0],
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <GraduationCap className="w-4 h-4" />
+                        <span>Tutorial</span>
+                      </motion.div>
+                    </motion.button>
+                  </motion.div>
+                </div>
+                
                 <p className="text-gray-400">
                   Explora y únete a comunidades de tu interés
                 </p>
@@ -378,6 +474,7 @@ export default function CommunitiesPage() {
               <div className="max-w-xl mx-auto relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <Input
+                  id="search-communities"
                   placeholder="Buscar comunidades..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -419,7 +516,8 @@ export default function CommunitiesPage() {
             {/* Categories */}
             {!searchQuery && (
               <>
-                <section className="mb-12">
+                {/* Categorías - Ahora primero */}
+                <section className="mb-12 categories-section">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold flex items-center gap-2">
                       <Grid3X3 className="w-6 h-6 text-neon-green" />
@@ -443,23 +541,50 @@ export default function CommunitiesPage() {
                   )}
                 </section>
 
+                {/* Comunidades Sugeridas - Ahora segundo */}
+                {suggestedCommunities.length > 0 && (
+                  <section className="mb-12 suggested-section">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <Sparkles className="w-6 h-6 text-neon-green" />
+                        Comunidades para ti
+                      </h2>
+                    </div>
+                    {loadingSuggestions ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[...Array(6)].map((_, i) => <CommunitySkeleton key={i} />)}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {suggestedCommunities.map((community) => (
+                          <CommunityCard 
+                            key={community.id}
+                            community={community}
+                            onClick={() => handleCommunityClick(community.id)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                )}
+
                 {/* Featured Communities */}
-                <section>
+                <section className="featured-section">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold flex items-center gap-2">
                       <TrendingUp className="w-6 h-6 text-neon-green" />
                       Comunidades Destacadas
                     </h2>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 view-toggle">
                       <Button
-                        variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                        variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                         size="sm"
                         onClick={() => setViewMode('grid')}
                       >
                         <Grid3X3 className="w-4 h-4" />
                       </Button>
                       <Button
-                        variant={viewMode === 'list' ? 'default' : 'ghost'}
+                        variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                         size="sm"
                         onClick={() => setViewMode('list')}
                       >
@@ -498,7 +623,7 @@ export default function CommunitiesPage() {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="fixed bottom-24 right-6 lg:bottom-8 lg:right-8 z-50"
+          className="fixed bottom-24 right-6 lg:bottom-8 lg:right-8 z-50 create-community-btn"
         >
           <motion.button
             whileHover={{ scale: 1.1 }}
@@ -676,7 +801,19 @@ export default function CommunitiesPage() {
             </motion.div>
           </div>
         )}
+
+        {/* Tutorial Overlay */}
+        <TutorialCommunitiesOverlay />
       </div>
     </>
+  );
+}
+
+// Componente principal envuelto con el provider
+export default function CommunitiesPage() {
+  return (
+    <TutorialCommunitiesProvider>
+      <CommunitiesPageContent />
+    </TutorialCommunitiesProvider>
   );
 }

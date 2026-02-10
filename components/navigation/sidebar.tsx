@@ -15,12 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 // Memoizar el componente de navegación individual - navegación instantánea
 const NavItem = memo(function NavItem({ 
@@ -56,39 +50,30 @@ const NavItem = memo(function NavItem({
   const IconComponent = (Icons as any)[item.icon] || Icons.Home;
   
   return (
-    <TooltipProvider delayDuration={300}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href={item.path}
-            prefetch={true}
-            className={cn(
-              'nav-item flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-all duration-200 overflow-hidden relative group',
-              isActive 
-                ? 'bg-neon-green/10 text-neon-green border border-neon-green/30 shadow-sm' 
-                : 'text-gray-300 hover:bg-white/5 hover:text-white hover:border hover:border-white/10'
-            )}
-          >
-            <IconComponent size={20} className={cn(
-              'transition-transform duration-200',
-              isActive ? 'scale-110' : 'group-hover:scale-105'
-            )} />
-            <span className="font-medium text-sm">{item.label}</span>
-            {showBadge && badgeCount && (
-              <Badge 
-                variant="destructive" 
-                className="ml-auto h-5 min-w-[20px] px-1.5 text-xs font-bold"
-              >
-                {badgeCount > 99 ? '99+' : badgeCount}
-              </Badge>
-            )}
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="bg-gray-900 border-white/10">
-          <p>{item.label}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Link
+      href={item.path}
+      prefetch={true}
+      className={cn(
+        'nav-item flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-all duration-200 overflow-hidden relative group',
+        isActive 
+          ? 'bg-neon-green/10 text-neon-green border border-neon-green/30 shadow-sm' 
+          : 'text-gray-300 hover:bg-white/5 hover:text-white hover:border hover:border-white/10'
+      )}
+    >
+      <IconComponent size={20} className={cn(
+        'transition-transform duration-200',
+        isActive ? 'scale-110' : 'group-hover:scale-105'
+      )} />
+      <span className="font-medium text-sm">{item.label}</span>
+      {showBadge && badgeCount && (
+        <Badge 
+          variant="destructive" 
+          className="ml-auto h-5 min-w-[20px] px-1.5 text-xs font-bold"
+        >
+          {badgeCount > 99 ? '99+' : badgeCount}
+        </Badge>
+      )}
+    </Link>
   );
 });
 
@@ -99,11 +84,53 @@ export const Sidebar = memo(function Sidebar() {
   const [mounted, setMounted] = useState(false);
   const [menuRoutes, setMenuRoutes] = useState<MenuRoute[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
+  const [sidebarSettings, setSidebarSettings] = useState<Record<string, boolean>>({});
   
   // TODO: Reemplazar con hooks reales conectados a la API
   const unreadMessages = 3; // Mensajes no leídos
   const communitiesCount = 5; // Comunidades suscritas
   const classifiedsCount = 2; // Publicaciones en clasificados
+
+  // Cargar configuraciones de visibilidad del sidebar desde el backend
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadSidebarSettings = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/site-settings/`);
+        if (response.ok && isMounted) {
+          const data = await response.json();
+          setSidebarSettings({
+            feed: data.sidebar_show_feed ?? true,
+            profile: data.sidebar_show_profile ?? true,
+            users: data.sidebar_show_search ?? true,
+            notifications: data.sidebar_show_notifications ?? true,
+            clips: data.sidebar_show_clips ?? true,
+            reels: data.sidebar_show_reels ?? true,
+            live: data.sidebar_show_live ?? true,
+            communities: data.sidebar_show_communities ?? true,
+            classifieds: data.sidebar_show_classifieds ?? true,
+            donations: data.sidebar_show_donations ?? true,
+            'habil-news': data.sidebar_show_news ?? true,
+            messages: data.sidebar_show_messages ?? true,
+            settings: data.sidebar_show_settings ?? true,
+          });
+        }
+      } catch (error) {
+        console.error('Error loading sidebar settings:', error);
+        // En caso de error, mostrar todo por defecto
+        if (isMounted) {
+          setSidebarSettings({});
+        }
+      }
+    };
+
+    loadSidebarSettings();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Cargar rutas del menú desde el backend con caché - SOLO UNA VEZ
   useEffect(() => {
@@ -135,6 +162,16 @@ export const Sidebar = memo(function Sidebar() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Filtrar rutas basándose en la configuración de visibilidad del sidebar
+  const visibleRoutes = menuRoutes.filter(route => {
+    // Si no hay configuración cargada aún, mostrar todo
+    if (Object.keys(sidebarSettings).length === 0) return true;
+    
+    // Verificar si la sección está habilitada en la configuración global
+    const isVisible = sidebarSettings[route.route_key];
+    return isVisible !== false; // Mostrar si es true o undefined
+  });
 
   // No mostrar nada si no hay usuario y no está cargando (no autenticado)
   if (!user && !isLoading) return null;
@@ -177,7 +214,7 @@ export const Sidebar = memo(function Sidebar() {
               <div className="w-8 h-8 border-2 border-neon-green/20 border-t-neon-green rounded-full animate-spin" />
             </div>
           ) : (
-            menuRoutes.map((item) => (
+            visibleRoutes.map((item) => (
               <NavItem
                 key={item.route_key}
                 item={item}

@@ -120,7 +120,7 @@ export function UpdateAvatarDialog({ isOpen, onClose, currentAvatar }: UpdateAva
           {/* Selector de método */}
           <div className="flex space-x-2">
             <CyberButton
-              variant={uploadMethod === 'url' ? 'default' : 'outline'}
+              variant={uploadMethod === 'url' ? 'primary' : 'outline'}
               onClick={() => setUploadMethod('url')}
               className="flex-1"
               disabled={isLoading}
@@ -129,7 +129,7 @@ export function UpdateAvatarDialog({ isOpen, onClose, currentAvatar }: UpdateAva
               URL
             </CyberButton>
             <CyberButton
-              variant={uploadMethod === 'file' ? 'default' : 'outline'}
+              variant={uploadMethod === 'file' ? 'primary' : 'outline'}
               onClick={() => setUploadMethod('file')}
               className="flex-1"
               disabled={isLoading}

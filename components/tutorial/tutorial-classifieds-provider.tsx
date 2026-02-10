@@ -28,98 +28,56 @@ const tutorialSteps: TutorialStep[] = [
   {
     id: 0,
     title: '¡Bienvenido a Clasificados!',
-    description: 'Descubre cómo comprar, vender e intercambiar con la comunidad SOS-HABILIDOSO. Te guiaremos paso a paso.',
+    description: 'Descubre las 6 secciones principales de Clasificados. Te mostraremos cada una paso a paso.',
     targetElement: 'center',
     position: 'center',
   },
   {
     id: 1,
-    title: 'Explora Clasificados',
-    description: 'Aquí puedes buscar productos, servicios y trabajos freelance publicados por la comunidad.',
+    title: 'Explorar - Posición 2',
+    description: 'Busca y descubre productos, servicios y trabajos publicados por la comunidad. Aquí encontrarás todo lo que necesitas.',
     targetElement: '#tab-browse',
     position: 'bottom',
   },
   {
     id: 2,
-    title: 'Busca lo que necesitas',
-    description: 'Usa la barra de búsqueda para encontrar productos o servicios específicos.',
-    targetElement: '#search-bar',
-    position: 'bottom',
-  },
-  {
-    id: 3,
-    title: 'Filtra tus resultados',
-    description: 'Aplica filtros para refinar tu búsqueda por categoría, precio, ubicación y más.',
-    targetElement: '#filters-button',
-    position: 'bottom',
-  },
-  {
-    id: 4,
-    title: 'Navega por categorías',
-    description: 'Selecciona una categoría para ver clasificados específicos. Cada categoría muestra el número de anuncios disponibles.',
-    targetElement: '#categories-pills',
-    position: 'bottom',
-  },
-  {
-    id: 5,
-    title: 'Detalles del anuncio',
-    description: 'Cada card muestra información clave: imagen, título, precio, ubicación, vendedor y estadísticas. Haz click en el ojo para ver más detalles.',
-    targetElement: '#first-classified-card',
-    position: 'top',
-  },
-  {
-    id: 6,
-    title: 'Guarda tus favoritos',
-    description: 'Dale like a los anuncios que te interesen para guardarlos y verlos después.',
-    targetElement: '.classified-card-like',
-    position: 'left',
-  },
-  {
-    id: 7,
-    title: 'Gestiona tus anuncios',
-    description: 'Aquí encontrarás todos tus anuncios publicados y podrás editarlos o pausarlos.',
+    title: 'Mis Ads - Posición 3',
+    description: 'Gestiona todos tus anuncios publicados. Edita, pausa o elimina tus publicaciones desde aquí.',
     targetElement: '#tab-my-ads',
     position: 'bottom',
   },
   {
-    id: 8,
-    title: 'Busca oportunidades laborales',
-    description: 'Explora ofertas de empleo o publica tu propia oferta para encontrar talento.',
+    id: 3,
+    title: 'Empleos - Posición 4',
+    description: 'Explora ofertas de empleo o publica tu propia oferta para encontrar el talento que necesitas.',
     targetElement: '#tab-jobs',
     position: 'bottom',
   },
   {
-    id: 9,
-    title: 'Conecta con empresas',
-    description: 'Networking empresarial para proyectos y colaboraciones profesionales.',
+    id: 4,
+    title: 'Conexión - Posición 5',
+    description: 'Networking empresarial. Conecta con empresas para proyectos y colaboraciones profesionales.',
     targetElement: '#tab-enterprises',
     position: 'bottom',
   },
   {
-    id: 10,
-    title: 'Eventos culturales',
-    description: 'Descubre y publica eventos culturales, deportivos y comunitarios.',
+    id: 5,
+    title: 'Agenda - Posición 6',
+    description: 'Descubre y publica eventos culturales, deportivos y comunitarios. Mantente al día con la comunidad.',
     targetElement: '#tab-cultural-agenda',
     position: 'bottom',
   },
   {
-    id: 11,
-    title: 'Crea tu primera publicación',
-    description: '¡Es hora de publicar! Elige entre producto físico, servicio o trabajo freelancer.',
+    id: 6,
+    title: 'Publicar - Posición 7',
+    description: '¡Crea tu primera publicación! Elige entre producto físico, servicio marketplace o trabajo freelancer.',
     targetElement: '#tab-create',
     position: 'bottom',
   },
   {
-    id: 12,
-    title: 'Elige el tipo de anuncio',
-    description: 'Selecciona el tipo que mejor se adapte a lo que quieres ofrecer. Cada tipo tiene características específicas.',
-    targetElement: '#publication-types',
-    position: 'top',
-  },
-  {
-    id: 13,
-    title: '¡Tutorial completado!',
-    description: 'Ya conoces todas las funcionalidades de Clasificados. ¡Comienza a explorar y publicar!',
+    id: 7,
+    title: '🎊 ¡FELICIDADES! 🎊',
+    description: '¡Has completado el tutorial de Clasificados!\n\n✅ Conoces las 6 secciones principales\n✅ Sabes cómo explorar productos y servicios\n✅ Puedes publicar tus propios anuncios\n✅ Estás listo para conectar con la comunidad\n\n¡Comienza a explorar y publicar ahora!',
     targetElement: 'center',
     position: 'center',
   },
@@ -133,13 +91,23 @@ export function TutorialClassifiedsProvider({ children }: { children: ReactNode 
     // Verificar si el usuario ya completó el tutorial
     const tutorialCompleted = localStorage.getItem('classifieds_tutorial_completed');
     
+    console.log('🎓 Tutorial Clasificados - Estado:', {
+      tutorialCompleted,
+      isActive,
+      currentStep,
+      willStart: !tutorialCompleted
+    });
+    
     if (!tutorialCompleted) {
-      // Iniciar el tutorial automáticamente después de 1 segundo
+      // Iniciar el tutorial automáticamente después de 500ms (más rápido)
       const timer = setTimeout(() => {
+        console.log('🎓 ✅ INICIANDO TUTORIAL DE CLASIFICADOS...');
         setIsActive(true);
-      }, 1000);
+      }, 500);
       
       return () => clearTimeout(timer);
+    } else {
+      console.log('🎓 ⏭️ Tutorial ya completado, no se iniciará automáticamente');
     }
   }, []);
 

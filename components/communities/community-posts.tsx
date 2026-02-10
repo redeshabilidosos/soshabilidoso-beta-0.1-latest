@@ -428,7 +428,7 @@ export function CommunityPosts({ communityId, canPost = false }: CommunityPostsP
         {(['all', 'announcement', 'lesson', 'achievement', 'discussion', 'assignment'] as const).map((filterType) => (
           <CyberButton
             key={filterType}
-            variant={filter === filterType ? 'default' : 'outline'}
+            variant={filter === filterType ? 'primary' : 'outline'}
             size="sm"
             onClick={() => setFilter(filterType)}
             className="text-sm"
@@ -465,7 +465,7 @@ export function CommunityPosts({ communityId, canPost = false }: CommunityPostsP
                 <div className="flex items-start space-x-3">
                   <Avatar className="w-12 h-12">
                     <AvatarImage src={post.author.avatar} />
-                    <AvatarFallback className="bg-gradient-to-br from-neon-green to-neon-blue text-white">
+                    <AvatarFallback className="bg-[#51C6E0] text-white font-bold">
                       {post.author.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>

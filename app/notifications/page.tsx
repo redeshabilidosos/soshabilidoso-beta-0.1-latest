@@ -13,11 +13,22 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Bell, Heart, MessageCircle, UserPlus, Trophy, Check, X, Mail, User, ArrowLeft } from 'lucide-react';
 import { usersService } from '@/lib/services/users.service';
+import { FriendRequestSuccessDialog } from '@/components/ui/friend-request-success-dialog';
+import { FriendRequestErrorDialog } from '@/components/ui/friend-request-error-dialog';
 export default function NotificationsPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const { notifications, isLoading, markAsRead, markAllAsRead, refreshNotifications } = useNotifications();
   const [filter, setFilter] = useState<string>('all');
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [successDialogData, setSuccessDialogData] = useState<{
+    friendName: string;
+    friendUsername: string;
+    friendAvatar?: string;
+    isAccepted: boolean;
+  } | null>(null);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     // Solo redirigir si ya terminó de cargar la autenticación y no hay usuario
@@ -105,17 +116,33 @@ export default function NotificationsPage() {
       
       if (accept) {
         await usersService.acceptFriendRequest(requestId);
-        alert('¡Solicitud de amistad aceptada!');
+        // Mostrar modal de éxito
+        setSuccessDialogData({
+          friendName: notification.sender?.display_name || 'Usuario',
+          friendUsername: notification.sender?.username || 'usuario',
+          friendAvatar: notification.sender?.avatar_url,
+          isAccepted: true
+        });
+        setShowSuccessDialog(true);
       } else {
         await usersService.rejectFriendRequest(requestId);
-        alert('Solicitud de amistad rechazada');
+        // Mostrar modal de rechazo
+        setSuccessDialogData({
+          friendName: notification.sender?.display_name || 'Usuario',
+          friendUsername: notification.sender?.username || 'usuario',
+          friendAvatar: notification.sender?.avatar_url,
+          isAccepted: false
+        });
+        setShowSuccessDialog(true);
       }
       
       // Refrescar notificaciones después de responder
       await refreshNotifications();
     } catch (error: any) {
       console.error('Error handling friend request:', error);
-      alert(error.message || 'Error al procesar la solicitud de amistad. Por favor intenta de nuevo.');
+      // Mostrar modal de error en lugar de alert
+      setErrorMessage(error.message || 'Error al procesar la solicitud de amistad. Por favor intenta de nuevo.');
+      setShowErrorDialog(true);
     }
   };
 
@@ -135,7 +162,7 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-transparent">
       <Sidebar />
       
-      <main className="pb-24 lg:ml-64 lg:pb-0 pt-12 md:pt-6 lg:pt-6 relative z-10 min-h-screen">
+      <main id="notifications-page" className="pb-24 lg:ml-64 lg:pb-0 pt-12 md:pt-6 lg:pt-6 relative z-10 min-h-screen">
         <div className="max-w-4xl mx-auto p-4 space-y-4">
           {/* Botón Regresar - Solo visible en móvil y tablet */}
           <div className="lg:hidden">
@@ -325,7 +352,9 @@ export default function NotificationsPage() {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleViewProfile(notification.sender.username);
+                              if (notification.sender) {
+                                handleViewProfile(notification.sender.username);
+                              }
                             }}
                             className="bg-gray-800/50 hover:bg-gray-700/50 border-gray-700"
                             variant="outline"
@@ -345,6 +374,31 @@ export default function NotificationsPage() {
       </main>
 
       <MobileNav />
+      
+      {/* Modal de éxito/rechazo de solicitud de amistad */}
+      {successDialogData && (
+        <FriendRequestSuccessDialog
+          open={showSuccessDialog}
+          onClose={() => {
+            setShowSuccessDialog(false);
+            setSuccessDialogData(null);
+          }}
+          friendName={successDialogData.friendName}
+          friendUsername={successDialogData.friendUsername}
+          friendAvatar={successDialogData.friendAvatar}
+          isAccepted={successDialogData.isAccepted}
+        />
+      )}
+      
+      {/* Modal de error */}
+      <FriendRequestErrorDialog
+        open={showErrorDialog}
+        onClose={() => {
+          setShowErrorDialog(false);
+          setErrorMessage('');
+        }}
+        errorMessage={errorMessage}
+      />
     </div>
   );
 }

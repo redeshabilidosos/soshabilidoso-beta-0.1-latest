@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { MessageCircle, X } from 'lucide-react';
 import { useAuth } from '@/components/providers/providers';
+import { messagingService } from '@/lib/services/messaging.service';
+import { useNotificationSound } from '@/hooks/use-notification-sound';
 
 export default function FloatingChatButton() {
   const { user } = useAuth();
@@ -14,7 +16,12 @@ export default function FloatingChatButton() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hasMoved, setHasMoved] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const buttonRef = useRef<HTMLDivElement>(null);
+  const previousCountRef = useRef(0);
+
+  // Hook para sonidos
+  const { playMessageSound } = useNotificationSound({ enabled: true });
 
   // Umbral mínimo de movimiento para considerar que es un drag (en píxeles)
   const DRAG_THRESHOLD = 5;
@@ -32,6 +39,37 @@ export default function FloatingChatButton() {
       });
     }
   }, []);
+
+  // Obtener conteo de mensajes no leídos
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const chats = await messagingService.getChats();
+        const totalUnread = chats.results.reduce((sum, chat) => sum + (chat.unread_count || 0), 0);
+        
+        // Si hay más mensajes no leídos que antes, reproducir sonido
+        if (totalUnread > previousCountRef.current && previousCountRef.current > 0) {
+          console.log('🔊 Nuevo mensaje no leído detectado');
+          playMessageSound();
+        }
+        
+        previousCountRef.current = totalUnread;
+        setUnreadCount(totalUnread);
+      } catch (error) {
+        console.error('Error al obtener mensajes no leídos:', error);
+      }
+    };
+
+    // Cargar inmediatamente
+    fetchUnreadCount();
+
+    // Actualizar cada 5 segundos
+    const interval = setInterval(fetchUnreadCount, 5000);
+
+    return () => clearInterval(interval);
+  }, [user, playMessageSound]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -159,10 +197,14 @@ export default function FloatingChatButton() {
             <MessageCircle className="w-6 h-6 md:w-7 md:h-7 text-white" />
           </div>
 
-          {/* Indicador de mensajes no leídos */}
-          <div className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-black animate-pulse">
-            <span className="text-white text-[10px] md:text-xs font-bold">3</span>
-          </div>
+          {/* Indicador de mensajes no leídos - solo mostrar si hay mensajes */}
+          {unreadCount > 0 && (
+            <div className="absolute -top-1 -right-1 min-w-[20px] h-5 md:min-w-[24px] md:h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-black animate-pulse px-1">
+              <span className="text-white text-[10px] md:text-xs font-bold">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            </div>
+          )}
 
           {/* Tooltip - solo en desktop */}
           <div className="hidden md:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black/90 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">

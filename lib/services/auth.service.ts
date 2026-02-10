@@ -20,6 +20,10 @@ export interface RegisterData {
   team?: string;
   bio?: string;
   contact_number?: string;
+  account_type?: 'user' | 'enterprise';
+  company_name?: string;
+  industry?: string;
+  website?: string;
 }
 
 export interface AuthResponse {

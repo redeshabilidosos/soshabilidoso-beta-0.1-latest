@@ -153,7 +153,7 @@ export function JobSearchSection({ onCreateJob }: JobSearchSectionProps) {
               {modalityOptions.map((modality) => (
                 <CyberButton
                   key={modality}
-                  variant={selectedModality === modality ? 'default' : 'outline'}
+                  variant={selectedModality === modality ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedModality(modality)}
                   className={selectedModality === modality ? 'bg-neon-green text-black' : ''}

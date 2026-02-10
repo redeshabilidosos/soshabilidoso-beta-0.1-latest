@@ -260,11 +260,11 @@ export default function FriendsPage() {
                               onClick={() => handleSendFriendRequest(user.username)}
                               className="flex items-center space-x-2"
                               size="sm"
-                              disabled={user.friend_request_status === 'pending'}
+                              disabled={user.friend_request_status === 'sent'}
                             >
                               <UserPlus size={16} />
                               <span>
-                                {user.friend_request_status === 'pending' ? 'Pendiente' : 'Agregar'}
+                                {user.friend_request_status === 'sent' ? 'Pendiente' : 'Agregar'}
                               </span>
                             </CyberButton>
                             <CyberButton

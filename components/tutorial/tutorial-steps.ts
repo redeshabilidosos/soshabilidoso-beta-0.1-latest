@@ -16,7 +16,7 @@ export const tutorialSteps: TutorialStep[] = [
     id: 'welcome',
     target: 'body',
     title: '¡Bienvenido a SOS Habilidoso! 🚀',
-    content: 'La red social futurista donde compartes tu pasión por el deporte, la cultura y tus habilidades.\n\nDéjanos mostrarte cómo funciona todo en solo 2 minutos.',
+    content: 'La red social futurista donde compartes tu pasión por los deportes, la cultura y tus habilidades.\n\nDéjanos mostrarte cómo funciona todo en solo 2 minutos.',
     placement: 'center',
     showProgress: false,
   },
@@ -98,81 +98,81 @@ export const tutorialSteps: TutorialStep[] = [
     highlightPadding: 20,
   },
 
-  // PASO 8: PERFIL
+  // PASO 8: PERFIL (desde sidebar)
   {
-    id: 'profile-section',
-    target: '#profile-section',
-    title: 'TU PERFIL PERSONAL 🎭',
-    content: 'Personaliza tu perfil:\n📸 Foto de perfil y portada\n📝 Biografía y descripción\n⚽ Posición y equipo\n📊 Estadísticas y logros\n\n¡Haz que tu perfil destaque!',
-    placement: 'bottom',
-    route: '/profile',
-    highlightPadding: 20,
-  },
-
-  // PASO 9: COMUNIDADES
-  {
-    id: 'communities-page',
-    target: '#communities-search',
-    title: 'ÚNETE A COMUNIDADES 🌍',
-    content: 'Encuentra tu tribu:\n🏆 Deportes\n🎨 Arte y cultura\n🎵 Música\n🍳 Gastronomía\n📚 Educación\n...y mucho más!\n\nCrea tu propia comunidad o únete a una existente.',
-    placement: 'bottom',
-    route: '/communities',
-    highlightPadding: 15,
-  },
-
-  // PASO 10: CLIPS
-  {
-    id: 'clips-viewer',
-    target: '#clips-viewer',
-    title: 'CLIPS - Videos Cortos 📹',
-    content: 'Descubre contenido viral:\n👆 Desliza hacia arriba para el siguiente\n❤️ Dale like a tus favoritos\n💬 Comenta y comparte\n👤 Sigue a los creadores\n\n¡Entretenimiento sin fin!',
-    placement: 'center',
-    route: '/clips',
-    highlightPadding: 0,
-  },
-
-  // PASO 11: MENSAJES
-  {
-    id: 'messages-page',
-    target: '#messages-chat-list',
-    title: 'MENSAJES PRIVADOS 📨',
-    content: 'Chatea con tus amigos:\n💬 Conversaciones en tiempo real\n🎨 Personaliza tus burbujas\n✨ Fondos animados\n❤️ Reacciona a mensajes\n\n¡Mantente conectado!',
+    id: 'sidebar-perfil',
+    target: '[href="/profile"]',
+    title: 'PERFIL - Tu identidad digital 👤',
+    content: 'Aquí personalizas tu perfil:\n📸 Foto y portada\n📝 Biografía\n⚽ Posición y equipo\n📊 Estadísticas\n\n¡Haz que tu perfil destaque!',
     placement: 'right',
-    route: '/messages',
-    highlightPadding: 20,
-  },
-
-  // PASO 12: NOTIFICACIONES
-  {
-    id: 'notifications-page',
-    target: '#notifications-header',
-    title: 'NOTIFICACIONES 🔔',
-    content: 'Mantente al día con:\n❤️ Likes y reacciones\n💬 Comentarios\n👤 Nuevos seguidores\n🤝 Solicitudes de amistad\n🏘️ Actividad en comunidades\n\n¡Nunca te pierdas nada!',
-    placement: 'bottom',
-    route: '/notifications',
-    highlightPadding: 20,
-  },
-
-  // PASO 13: CONFIGURACIÓN
-  {
-    id: 'settings-page',
-    target: '#settings-tabs',
-    title: 'PERSONALIZA TU EXPERIENCIA ⚙️',
-    content: 'Ajusta todo a tu gusto:\n👤 Edita tu perfil\n🔒 Privacidad y seguridad\n🎨 Apariencia (colores de fondo)\n🔔 Notificaciones\n🏢 Gestiona tu empresa\n\n¡Haz que SOS Habilidoso sea tuyo!',
-    placement: 'right',
-    route: '/settings',
-    highlightPadding: 20,
-  },
-
-  // PASO 14: BOTÓN CREAR (móvil)
-  {
-    id: 'mobile-create-button',
-    target: '#mobile-nav-bar',
-    title: 'CREA CONTENIDO RÁPIDO ⚡',
-    content: 'El botón "+" te permite crear:\n📝 Publicación\n📸 Story\n🎬 Reel/Clip\n📡 Transmisión en vivo\n\n¡Todo desde un solo lugar!',
-    placement: 'top',
     route: '/feed',
-    highlightPadding: 15,
+    highlightPadding: 20,
+  },
+
+  // PASO 9: COMUNIDADES (desde sidebar)
+  {
+    id: 'sidebar-comunidades',
+    target: '[href="/communities"]',
+    title: 'COMUNIDADES - Encuentra tu tribu 🌍',
+    content: 'Únete a comunidades de:\n🏆 Deportes\n🎨 Arte y cultura\n🎵 Música\n📚 Educación\n\n¡Crea o únete a comunidades!',
+    placement: 'right',
+    route: '/feed',
+    highlightPadding: 20,
+  },
+
+  // PASO 10: CLASIFICADOS (desde sidebar)
+  {
+    id: 'sidebar-clasificados',
+    target: '[href="/classifieds"]',
+    title: 'CLASIFICADOS - Compra y vende 🛒',
+    content: 'Marketplace local:\n🛍️ Productos\n💼 Servicios\n👔 Empleos\n🏢 Empresas\n\n¡Encuentra lo que necesitas!',
+    placement: 'right',
+    route: '/feed',
+    highlightPadding: 20,
+  },
+
+  // PASO 11: MENSAJES (desde sidebar)
+  {
+    id: 'sidebar-mensajes',
+    target: '[href="/messages"]',
+    title: 'MENSAJES - Chatea en privado 💬',
+    content: 'Conversaciones privadas:\n💬 Chat en tiempo real\n🎨 Burbujas personalizadas\n✨ Fondos animados\n❤️ Reacciones\n\n¡Mantente conectado!',
+    placement: 'right',
+    route: '/feed',
+    highlightPadding: 20,
+  },
+
+  // PASO 12: EN VIVO (desde sidebar)
+  {
+    id: 'sidebar-envivo',
+    target: '[href="/streaming"]',
+    title: 'EN VIVO - Transmite en directo 📡',
+    content: 'Transmisiones en vivo:\n🎥 Comparte momentos en tiempo real\n👥 Interactúa con tu audiencia\n💬 Chat en vivo\n🎁 Recibe donaciones\n\n¡Conéctate con tu comunidad!',
+    placement: 'right',
+    route: '/feed',
+    highlightPadding: 20,
+  },
+
+  // PASO 13: CLIPS (desde sidebar)
+  {
+    id: 'sidebar-clips',
+    target: '[href="/clips"]',
+    title: 'CLIPS - Videos cortos 🎬',
+    content: 'Contenido viral:\n👆 Desliza para ver más\n❤️ Dale like\n💬 Comenta\n📤 Comparte\n\n¡Entretenimiento sin fin!',
+    placement: 'right',
+    route: '/feed',
+    highlightPadding: 20,
+  },
+
+  // PASO 14: CONFIGURACIÓN (desde sidebar)
+  {
+    id: 'sidebar-configuracion',
+    target: '[href="/settings"]',
+    title: 'CONFIGURACIÓN - Personaliza todo ⚙️',
+    content: 'Ajusta tu experiencia:\n👤 Edita perfil\n🔒 Privacidad\n🎨 Apariencia\n🔔 Notificaciones\n\n¡Haz que sea tuyo!',
+    placement: 'right',
+    route: '/feed',
+    highlightPadding: 20,
   },
 
   // PASO 15: FINALIZACIÓN
@@ -180,7 +180,7 @@ export const tutorialSteps: TutorialStep[] = [
     id: 'completion',
     target: 'body',
     title: '¡FELICIDADES! 🎊',
-    content: 'Ya conoces lo básico de SOS Habilidoso.\n\nAhora es tu turno:\n✅ Completa tu perfil\n✅ Sigue a usuarios interesantes\n✅ Únete a comunidades\n✅ Crea tu primera publicación\n\n¿Listo para comenzar tu aventura?',
+    content: '¡Has completado el tutorial!\n\nAhora es tu turno:\n✅ Completa tu perfil\n✅ Sigue a usuarios\n✅ Únete a comunidades\n✅ Crea tu primera publicación\n\n¿Listo para comenzar? 🚀',
     placement: 'center',
     route: '/feed',
     showProgress: false,

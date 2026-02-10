@@ -5,12 +5,16 @@ import { usePathname } from 'next/navigation';
 import { Providers } from '@/components/providers/providers';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { BackgroundColorProvider } from '@/components/providers/background-color-provider';
+import { TutorialProvider } from '@/components/tutorial/tutorial-provider';
 import { useForceSidebarBlack } from '@/hooks/use-force-sidebar-black';
 import { usePreloadData } from '@/lib/hooks/use-preload-data';
 import { Toaster } from '@/components/ui/toaster';
 import { preloadSiteSettings } from '@/lib/services/site-settings';
 import { menuConfigService } from '@/lib/services/menu-config';
 import { RoutePrefetcher } from '@/components/navigation/route-prefetcher';
+import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
+import { SwipeHint } from '@/components/navigation/swipe-hint';
+import { GestureTutorial } from '@/components/tutorial/gesture-tutorial';
 
 // Lazy loading de componentes flotantes
 const FloatingChatButton = lazy(() => import('@/components/ui/floating-chat-button'));
@@ -32,6 +36,7 @@ export const RootLayoutClient = memo(function RootLayoutClient({ children }: Roo
   const [isMounted, setIsMounted] = useState(false);
   const [showFloatingButtons, setShowFloatingButtons] = useState(false);
   const pathname = usePathname();
+  const { showSwipeHint } = useSwipeNavigation();
   
   // Forzar fondo negro del sidebar globalmente
   useForceSidebarBlack();
@@ -70,27 +75,33 @@ export const RootLayoutClient = memo(function RootLayoutClient({ children }: Roo
 
   return (
     <Providers>
-      <BackgroundColorProvider />
-      {/* Fondo de partículas animadas */}
-      {isMounted && showParticles && (
-        <Suspense fallback={null}>
-          <ParticleBackground />
-        </Suspense>
-      )}
-      <div className="min-h-screen relative" style={{ zIndex: 10 }}>
-        <ProtectedRoute>
-          {children}
-        </ProtectedRoute>
-        {isMounted && showFloatingButtons && !hideFloatingButtons && (
+      <TutorialProvider>
+        <BackgroundColorProvider />
+        {/* Fondo de partículas animadas */}
+        {isMounted && showParticles && (
           <Suspense fallback={null}>
-            <FloatingChatButton />
-            <FloatingLogoAndMenuButton />
-            <InstallPWAPrompt />
+            <ParticleBackground />
           </Suspense>
         )}
-        {isMounted && <RoutePrefetcher />}
-      </div>
-      <Toaster />
+        {/* Hint de swipe navigation */}
+        {isMounted && <SwipeHint show={showSwipeHint} />}
+        {/* Tutorial de gestos (solo móvil/tablet) */}
+        {isMounted && <GestureTutorial />}
+        <div className="min-h-screen relative" style={{ zIndex: 10 }}>
+          <ProtectedRoute>
+            {children}
+          </ProtectedRoute>
+          {isMounted && showFloatingButtons && !hideFloatingButtons && (
+            <Suspense fallback={null}>
+              <FloatingChatButton />
+              <FloatingLogoAndMenuButton />
+              <InstallPWAPrompt />
+            </Suspense>
+          )}
+          {isMounted && <RoutePrefetcher />}
+        </div>
+        <Toaster />
+      </TutorialProvider>
     </Providers>
   );
 });

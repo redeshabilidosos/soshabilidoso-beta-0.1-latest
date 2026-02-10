@@ -58,7 +58,12 @@ class SuggestedUsersView(generics.ListAPIView):
             if user2_id != user.id:
                 friend_ids.add(user2_id)
         
-        # Obtener usuarios que no son amigos pero tienen amigos en común
+        # Obtener IDs de usuarios que ya estamos siguiendo
+        following_ids = Follow.objects.filter(
+            follower=user
+        ).values_list('following_id', flat=True)
+        
+        # Obtener usuarios que no son amigos, no seguimos, y tienen amigos en común
         # También incluir usuarios populares si no hay suficientes sugerencias
         suggested = User.objects.filter(
             is_active=True
@@ -66,6 +71,8 @@ class SuggestedUsersView(generics.ListAPIView):
             id=user.id
         ).exclude(
             id__in=friend_ids
+        ).exclude(
+            id__in=following_ids  # Excluir usuarios que ya seguimos
         ).order_by('-followers_count', '-posts_count')[:10]
         
         return suggested

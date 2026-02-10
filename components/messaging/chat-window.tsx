@@ -5,7 +5,7 @@ import {
   Send, Smile, Settings, ArrowLeft, 
   Phone, Video, CheckCheck,
   Paperclip, Bell, BellOff, Heart, Sparkles, Moon, Stars,
-  ThumbsDown, Share2, X
+  ThumbsDown, Share2, X, UserX, AlertTriangle
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,7 @@ import EmojiPicker from 'emoji-picker-react';
 import { StoryPreviewMessage } from './story-preview-message';
 import { TypingIndicator } from './typing-indicator';
 import { useChatWebSocket } from '@/hooks/use-chat-websocket';
+import { useNotificationSound } from '@/hooks/use-notification-sound';
 import dynamic from 'next/dynamic';
 
 // Importar el visor de historias dinámicamente
@@ -80,9 +81,14 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [messageToShare, setMessageToShare] = useState<Message | null>(null);
   const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
+  const [showCallNotAvailable, setShowCallNotAvailable] = useState(false);
+  const [callType, setCallType] = useState<'voice' | 'video'>('voice');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  
+  // Hook para sonidos
+  const { playSendMessageSound, playMessageSound } = useNotificationSound({ enabled: notificationsEnabled });
 
   const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
   const userId = currentUser?.id;
@@ -92,8 +98,31 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
     chatId,
     userId,
     onNewMessage: (message) => {
-      setMessages(prev => [...prev, message]);
-      scrollToBottom();
+      console.log('📨 Mensaje recibido por WebSocket:', message);
+      
+      // Agregar mensaje sin verificar duplicados (el WebSocket es la fuente de verdad)
+      setMessages(prev => {
+        // Verificar si ya existe por ID
+        const exists = prev.some(m => m.id === message.id);
+        if (exists) {
+          console.log('⚠️ Mensaje duplicado, ignorando:', message.id);
+          return prev;
+        }
+        
+        console.log('✅ Agregando nuevo mensaje:', message.id);
+        const newMessages = [...prev, message];
+        
+        // Reproducir sonido solo si el mensaje es de otro usuario
+        if (message.sender.id !== userId) {
+          console.log('🔊 Reproduciendo sonido para mensaje de:', message.sender.username);
+          playMessageSound();
+        }
+        
+        // Scroll automático
+        setTimeout(() => scrollToBottom(), 100);
+        
+        return newMessages;
+      });
     },
     onTypingStart: (userId, username) => {
       setTypingUsers(prev => new Map(prev).set(userId, username));
@@ -119,7 +148,50 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
-  }, [chatId]);
+
+    // 🔄 Polling cada 10 segundos como respaldo (el WebSocket es primario)
+    const pollingInterval = setInterval(async () => {
+      // Solo hacer polling si el WebSocket NO está conectado
+      if (!isConnected) {
+        try {
+          console.log('🔄 Polling: WebSocket desconectado, verificando mensajes...');
+          const response = await messagingService.getMessages(chatId);
+          const newMessages = response.results.reverse();
+          
+          setMessages(prev => {
+            // Solo actualizar si hay mensajes nuevos
+            if (newMessages.length > prev.length) {
+              console.log(`✅ ${newMessages.length - prev.length} mensajes nuevos encontrados`);
+              
+              // Verificar si hay mensajes realmente nuevos
+              const latestNewMessage = newMessages[newMessages.length - 1];
+              const exists = prev.some(m => m.id === latestNewMessage?.id);
+              
+              if (!exists && latestNewMessage) {
+                // Reproducir sonido si el mensaje es de otro usuario
+                if (latestNewMessage.sender.id !== userId) {
+                  console.log('🔊 Nuevo mensaje de otro usuario, reproduciendo sonido');
+                  playMessageSound();
+                }
+                scrollToBottom();
+              }
+              
+              return newMessages;
+            }
+            return prev;
+          });
+        } catch (error) {
+          console.error('❌ Error en polling:', error);
+        }
+      } else {
+        console.log('✅ WebSocket conectado, polling deshabilitado');
+      }
+    }, 10000); // Cada 10 segundos (solo como respaldo)
+
+    return () => {
+      clearInterval(pollingInterval);
+    };
+  }, [chatId, userId, playMessageSound, isConnected]);
 
   useEffect(() => {
     scrollToBottom();
@@ -170,10 +242,17 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
     sendTypingStop(); // Detener indicador de escritura
     
     try {
-      const message = await messagingService.sendMessage(chatId, newMessage.trim());
-      setMessages(prev => [...prev, message]);
-      sendWsMessage(message); // Enviar por WebSocket
+      // Primero enviar por WebSocket para que sea instantáneo
+      sendWsMessage(newMessage.trim());
+      
+      // Luego guardar en la base de datos (el WebSocket ya lo mostrará)
+      await messagingService.sendMessage(chatId, newMessage.trim());
+      
       setNewMessage('');
+      
+      // 🔊 Reproducir sonido al enviar
+      playSendMessageSound();
+      
       // Mantener el foco en el input después de enviar
       setTimeout(() => {
         inputRef.current?.focus();
@@ -514,10 +593,22 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
           </div>
           
           <div className="flex items-center space-x-1">
-            <button className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white">
+            <button 
+              onClick={() => {
+                setCallType('voice');
+                setShowCallNotAvailable(true);
+              }}
+              className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+            >
               <Phone className="w-5 h-5" />
             </button>
-            <button className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white">
+            <button 
+              onClick={() => {
+                setCallType('video');
+                setShowCallNotAvailable(true);
+              }}
+              className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+            >
               <Video className="w-5 h-5" />
             </button>
             <button 
@@ -594,6 +685,55 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
                 )}
               >
                 {notificationsEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+              </button>
+            </div>
+
+            {/* Silenciar notificaciones de este chat */}
+            <div className="flex items-center justify-between pt-2 border-t border-white/5">
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-400 font-medium">Silenciar este chat</span>
+                <span className="text-[10px] text-gray-500">No recibirás notificaciones</span>
+              </div>
+              <button
+                onClick={() => {
+                  // TODO: Implementar lógica de silenciar chat
+                  toast({
+                    title: notificationsEnabled ? "Chat silenciado" : "Chat activado",
+                    description: notificationsEnabled 
+                      ? "No recibirás notificaciones de este chat" 
+                      : "Recibirás notificaciones de este chat",
+                  });
+                  setNotificationsEnabled(!notificationsEnabled);
+                }}
+                className={cn(
+                  "p-2 rounded-full transition-all duration-200",
+                  !notificationsEnabled 
+                    ? "bg-orange-500/20 text-orange-400" 
+                    : "bg-white/10 text-gray-400 hover:bg-white/20"
+                )}
+              >
+                <BellOff className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Bloquear usuario */}
+            <div className="flex items-center justify-between pt-2 border-t border-white/5">
+              <div className="flex flex-col">
+                <span className="text-xs text-red-400 font-medium">Bloquear usuario</span>
+                <span className="text-[10px] text-gray-500">No podrá enviarte mensajes</span>
+              </div>
+              <button
+                onClick={() => {
+                  // TODO: Implementar lógica de bloquear usuario
+                  toast({
+                    title: "⚠️ Bloquear usuario",
+                    description: "Esta función estará disponible próximamente",
+                    variant: "destructive"
+                  });
+                }}
+                className="p-2 rounded-full transition-all duration-200 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -1310,6 +1450,52 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
         message={messageToShare}
         currentChatId={chatId}
       />
+
+      {/* Modal: Servicio de llamadas no disponible */}
+      <Dialog open={showCallNotAvailable} onOpenChange={setShowCallNotAvailable}>
+        <DialogContent className="bg-gradient-to-br from-gray-900 to-black border border-white/10 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center">
+                  <span className="text-5xl">😅</span>
+                </div>
+                <span className="bg-gradient-to-r from-neon-green to-neon-blue bg-clip-text text-transparent">
+                  ¡Ups!
+                </span>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="text-center space-y-3">
+              <h3 className="text-xl font-semibold text-white">
+                {callType === 'voice' ? '📞 Servicio de Llamada' : '📹 Servicio de Videollamada'}
+              </h3>
+              <p className="text-gray-400 leading-relaxed">
+                El servicio de {callType === 'voice' ? 'llamadas de voz' : 'videollamadas'} aún no está listo.
+              </p>
+              <p className="text-neon-green font-medium">
+                Seguimos trabajando para brindarte la mejor experiencia
+              </p>
+            </div>
+
+            <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+              <div className="w-2 h-2 bg-neon-green rounded-full animate-pulse"></div>
+              <span>Próximamente disponible</span>
+            </div>
+          </div>
+
+          <div className="flex justify-center pt-2">
+            <Button
+              onClick={() => setShowCallNotAvailable(false)}
+              className="bg-gradient-to-r from-neon-green to-emerald-500 text-black hover:shadow-lg hover:shadow-neon-green/25 px-8"
+            >
+              Entendido
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

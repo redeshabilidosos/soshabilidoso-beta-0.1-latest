@@ -1,128 +1,94 @@
-# ⚡ Inicio Rápido - Chat en Tiempo Real
+# ⚡ Inicio Rápido - WebSocket + Daphne
 
 ## 🚀 3 Pasos para Iniciar
 
-### 1. Instalar Dependencias
+### 1️⃣ Verificar (Opcional)
+```bash
+verificar-daphne.bat
+```
+
+### 2️⃣ Iniciar Todo
+```bash
+npm run soshabilidoso
+```
+
+### 3️⃣ Probar WebSocket
+Abre en el navegador:
+```
+http://localhost:4000/test-websocket-notifications.html
+```
+
+## ✅ ¿Funciona?
+
+Debes ver:
+- 🟢 **Estado: Conectado**
+- ✅ Backend corriendo en puerto 8000
+- ✅ Daphne (ASGI) iniciado
+- ✅ WebSocket endpoint disponible
+- ✅ Token JWT válido
+- ✅ Conexión WebSocket establecida
+
+## 🎵 Probar Sonidos
+
+Abre:
+```
+http://localhost:4000/test-notification-sound.html
+```
+
+Prueba los 4 botones:
+- 🔔 Notificación
+- 💬 Mensaje Recibido
+- 📤 Mensaje Enviado (TAPM)
+- 🚪 Salir de Reunión
+
+## 🔧 Si algo falla
+
+### Error: MySQLdb module
 ```bash
 cd backend
-instalar_dependencias_websocket.bat
-cd ..
+pip install pymysql
 ```
 
-**Nota:** No necesitas Redis. El sistema funciona perfectamente sin él usando `InMemoryChannelLayer`.
-
-### 2. Iniciar Sistema
+### Error: WebSocket 404
 ```bash
-iniciar-chat-tiempo-real.bat
+# Detener proceso en puerto 8000
+netstat -ano | findstr :8000
+taskkill /PID <PID> /F
+
+# Reiniciar
+npm run soshabilidoso
 ```
 
-### 3. Probar
-- El navegador se abrirá automáticamente en `http://localhost:4000/messages`
-- Selecciona un chat
-- ¡Empieza a escribir!
+### Error: MySQL no disponible
+```bash
+# Verificar MySQL en puerto 3307
+netstat -ano | findstr :3307
+
+# Si no está corriendo, iniciar MariaDB
+```
+
+## 📱 Probar en la App
+
+1. Abre: `http://localhost:4000`
+2. Login: `admin@test.com` / `admin123`
+3. Abre un chat
+4. Envía un mensaje
+5. Debe sonar "tapm.mp3" ✅
+
+## 🎯 Accesos Rápidos
+
+- **App:** http://localhost:4000
+- **Admin:** http://127.0.0.1:8000/admin/
+- **API:** http://127.0.0.1:8000/api/
+- **Test WebSocket:** http://localhost:4000/test-websocket-notifications.html
+- **Test Sonidos:** http://localhost:4000/test-notification-sound.html
+
+## 📚 Más Info
+
+- `DAPHNE_CONFIGURADO.md` - Documentación completa
+- `GUIA_SEGURA_DAPHNE.md` - Troubleshooting
+- `RESUMEN_FINAL_WEBSOCKET.md` - Resumen técnico
 
 ---
 
-## 📋 Lo que se instaló
-
-### Backend
-- ✅ `channels` - Soporte para WebSocket
-- ✅ `channels-redis` - Channel layer con Redis
-- ✅ `daphne` - Servidor ASGI
-- ✅ `redis` - Cliente de Redis
-- ✅ `websockets` - Cliente WebSocket para pruebas
-
-### Frontend
-- ✅ Hook `useChatWebSocket` - Manejo de WebSocket
-- ✅ Componente `TypingIndicator` - Indicador de escritura
-- ✅ Integración en `ChatWindow` - Chat completo
-
----
-
-## ✨ Características
-
-- ✅ Mensajes instantáneos
-- ✅ Indicador "está escribiendo..."
-- ✅ Reconexión automática
-- ✅ Estado online/offline
-- ✅ Reacciones a mensajes
-- ✅ Editar/eliminar mensajes
-
----
-
-## 🔧 Comandos Útiles
-
-### Iniciar todo
-```bash
-iniciar-chat-tiempo-real.bat
-```
-
-### Solo backend
-```bash
-cd backend
-start_server_websocket.bat
-```
-
-### Verificar Redis
-```bash
-cd backend
-python test_redis_connection.py
-```
-
-### Probar WebSocket
-```bash
-cd backend
-python test_websocket_complete.py
-```
-
----
-
-## 📚 Documentación
-
-- **`INSTRUCCIONES_WEBSOCKET_INICIO.md`** - Instrucciones detalladas
-- **`WEBSOCKET_IMPLEMENTACION_COMPLETA.md`** - Documentación técnica
-- **`RESUMEN_WEBSOCKET_COMPLETADO.md`** - Resumen de implementación
-
----
-
-## 🐛 Problemas Comunes
-
-### "ModuleNotFoundError: No module named 'channels'"
-```bash
-cd backend
-instalar_dependencias_websocket.bat
-```
-
-### "Redis connection refused"
-No te preocupes, **esto es normal y no es un problema**.
-
-El sistema está configurado para funcionar sin Redis usando `InMemoryChannelLayer`.
-Todas las funcionalidades funcionan perfectamente.
-
-Para instalar Redis (opcional, solo para producción):
-```bash
-cd backend
-install_redis_windows.bat
-```
-
-Ver: `WEBSOCKET_SIN_REDIS.md` para más información.
-
-### "WebSocket connection failed"
-1. Verifica que el backend esté corriendo
-2. Cierra sesión y vuelve a iniciar sesión
-3. Verifica que tengas acceso al chat
-
----
-
-## ✅ Estado
-
-**Backend:** ✅ Completado
-**Frontend:** ✅ Completado
-**Documentación:** ✅ Completada
-**Scripts:** ✅ Completados
-
----
-
-**¡Todo listo para usar! 🎉**
-
-Ejecuta: `iniciar-chat-tiempo-real.bat`
+**¡Listo en 3 pasos!** 🎉

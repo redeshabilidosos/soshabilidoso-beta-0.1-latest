@@ -19,6 +19,20 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             'maintenance_message',
             'show_register_habilidosos_button',
             'reality_form_enabled',
+            # Control de visibilidad del Sidebar
+            'sidebar_show_feed',
+            'sidebar_show_profile',
+            'sidebar_show_search',
+            'sidebar_show_notifications',
+            'sidebar_show_clips',
+            'sidebar_show_reels',
+            'sidebar_show_live',
+            'sidebar_show_communities',
+            'sidebar_show_classifieds',
+            'sidebar_show_donations',
+            'sidebar_show_news',
+            'sidebar_show_messages',
+            'sidebar_show_settings',
             'updated_at'
         ]
 

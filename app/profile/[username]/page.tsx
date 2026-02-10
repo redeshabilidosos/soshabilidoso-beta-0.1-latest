@@ -244,14 +244,14 @@ export default function PublicProfilePage() {
               className="relative h-48 lg:h-64 cursor-pointer overflow-hidden rounded-t-lg"
               onClick={() => {
                 setSelectedImage({ 
-                  url: profileUser.cover_photo || 'https://images.pexels.com/photos/274422/pexels-photo-274422.jpeg?auto=compress&cs=tinysrgb&w=1200', 
+                  url: (profileUser as any).cover_photo || (profileUser as any).coverPhoto || '/app/assets/logososbetav1.png', 
                   type: 'cover' 
                 });
                 setImageModalOpen(true);
               }}
             >
               <img
-                src={profileUser.cover_photo || 'https://images.pexels.com/photos/274422/pexels-photo-274422.jpeg?auto=compress&cs=tinysrgb&w=1200'}
+                src={(profileUser as any).cover_photo || (profileUser as any).coverPhoto || '/app/assets/logososbetav1.png'}
                 alt="Cover"
                 className="w-full h-full object-cover hover:opacity-90 transition-opacity"
               />
@@ -370,13 +370,13 @@ export default function PublicProfilePage() {
                   </div>
                 )}
                 
-                {profileUser.interests && profileUser.interests.length > 0 && (
+                {(profileUser as any).interests && (profileUser as any).interests.length > 0 && (
                   <div className="flex items-start space-x-3">
                     <div className="w-3 h-3 bg-purple-400 rounded-full mt-1.5"></div>
                     <div>
                       <p className="text-gray-400 text-sm">Intereses</p>
                       <div className="flex flex-wrap gap-2 mt-1">
-                        {profileUser.interests.map((interest, index) => (
+                        {(profileUser as any).interests.map((interest: string, index: number) => (
                           <span key={index} className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded-full">
                             {interest}
                           </span>

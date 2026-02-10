@@ -369,7 +369,7 @@ export function EnterpriseProfile({ enterprise, isOwnProfile = false }: Enterpri
               ) : (
                 <>
                   <CyberButton
-                    variant={isFollowing ? 'outline' : 'default'}
+                    variant={isFollowing ? 'outline' : 'primary'}
                     onClick={() => setIsFollowing(!isFollowing)}
                   >
                     <Heart className={`w-4 h-4 mr-2 ${isFollowing ? 'fill-current text-red-500' : ''}`} />
@@ -735,10 +735,12 @@ export function EnterpriseProfile({ enterprise, isOwnProfile = false }: Enterpri
           <UpdateCoverPhotoDialog
             isOpen={isCoverPhotoDialogOpen}
             onClose={() => setIsCoverPhotoDialogOpen(false)}
+            currentCoverPhoto={enterprise.coverImage}
           />
           <UpdateAvatarDialog
             isOpen={isAvatarDialogOpen}
             onClose={() => setIsAvatarDialogOpen(false)}
+            currentAvatar={enterprise.avatar}
           />
         </>
       )}

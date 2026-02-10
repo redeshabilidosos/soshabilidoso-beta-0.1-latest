@@ -481,7 +481,7 @@ export default function ClipsPage() {
       </Suspense>
       
       {/* Main Content */}
-      <main className="lg:ml-64">
+      <main id="clips-viewer" className="lg:ml-64">
         <Suspense fallback={
           <div className="min-h-screen bg-black flex items-center justify-center">
             <div className="w-10 h-10 border-3 border-neon-green border-t-transparent rounded-full animate-spin"></div>

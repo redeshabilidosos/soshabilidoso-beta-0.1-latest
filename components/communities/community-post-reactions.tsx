@@ -8,7 +8,7 @@ import {
   ThumbsUp, 
   Laugh, 
   Angry, 
-  Sad,
+  Frown,
   MessageSquare,
   Share,
   Bookmark
@@ -39,7 +39,7 @@ const reactionTypes = [
   { type: 'love', icon: Heart, color: 'text-red-400', label: 'Me encanta' },
   { type: 'laugh', icon: Laugh, color: 'text-yellow-400', label: 'Me divierte' },
   { type: 'angry', icon: Angry, color: 'text-red-500', label: 'Me enoja' },
-  { type: 'sad', icon: Sad, color: 'text-gray-400', label: 'Me entristece' }
+  { type: 'sad', icon: Frown, color: 'text-gray-400', label: 'Me entristece' }
 ];
 
 export function CommunityPostReactions({
