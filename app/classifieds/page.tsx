@@ -41,6 +41,9 @@ import { PublicationFormDialog } from '@/components/classifieds/publication-form
 import { JobSearchSection } from '@/components/classifieds/job-search-section';
 import { EnterprisesSection } from '@/components/classifieds/enterprises-section';
 import { CulturalAgendaSection } from '@/components/classifieds/cultural-agenda-section';
+import { TutorialClassifiedsProvider } from '@/components/tutorial/tutorial-classifieds-provider';
+import { TutorialClassifiedsOverlay } from '@/components/tutorial/tutorial-classifieds-overlay';
+import { TutorialClassifiedsHighlight } from '@/components/tutorial/tutorial-classifieds-highlight';
 
 // Mock data para clasificados
 const mockClassifieds = [
@@ -321,8 +324,9 @@ export default function ClassifiedsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-transparent relative overflow-hidden">
-      <Sidebar />
+    <TutorialClassifiedsProvider>
+      <div className="min-h-screen bg-transparent relative overflow-hidden">
+        <Sidebar />
       
       <main className="pb-24 xl:ml-64 xl:pb-0 min-h-screen relative z-10">
         <div className="container mx-auto px-4 py-6 max-w-7xl pb-32 xl:pb-6">
@@ -352,6 +356,7 @@ export default function ClassifiedsPage() {
             <div className="sticky top-0 z-10 bg-black/90 backdrop-blur-md pb-4 -mx-4 px-4 border-b border-white/10">
               <TabsList className="grid w-full grid-cols-6 h-auto gap-0.5 bg-white/5 border border-white/10 p-0.5">
                 <TabsTrigger 
+                  id="tab-browse"
                   value="browse" 
                   className="flex flex-col items-center justify-center gap-0 text-xs py-1.5 px-0.5 data-[state=active]:bg-neon-green/20 data-[state=active]:text-neon-green transition-all min-w-0"
                 >
@@ -359,6 +364,7 @@ export default function ClassifiedsPage() {
                   <span className="text-[9px] leading-tight truncate w-full text-center">Explorar</span>
                 </TabsTrigger>
                 <TabsTrigger 
+                  id="tab-my-ads"
                   value="my-ads" 
                   className="flex flex-col items-center justify-center gap-0 text-xs py-1.5 px-0.5 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400 transition-all min-w-0"
                 >
@@ -366,6 +372,7 @@ export default function ClassifiedsPage() {
                   <span className="text-[9px] leading-tight truncate w-full text-center">Mis Ads</span>
                 </TabsTrigger>
                 <TabsTrigger 
+                  id="tab-jobs"
                   value="jobs" 
                   className="flex flex-col items-center justify-center gap-0 text-xs py-1.5 px-0.5 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 transition-all min-w-0"
                 >
@@ -373,6 +380,7 @@ export default function ClassifiedsPage() {
                   <span className="text-[9px] leading-tight truncate w-full text-center">Empleos</span>
                 </TabsTrigger>
                 <TabsTrigger 
+                  id="tab-enterprises"
                   value="enterprises" 
                   className="flex flex-col items-center justify-center gap-0 text-xs py-1.5 px-0.5 data-[state=active]:bg-yellow-500/20 data-[state=active]:text-yellow-400 transition-all min-w-0"
                 >
@@ -380,6 +388,7 @@ export default function ClassifiedsPage() {
                   <span className="text-[9px] leading-tight truncate w-full text-center">Conexión</span>
                 </TabsTrigger>
                 <TabsTrigger 
+                  id="tab-cultural-agenda"
                   value="cultural-agenda" 
                   className="flex flex-col items-center justify-center gap-0 text-xs py-1.5 px-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500/20 data-[state=active]:to-pink-500/20 data-[state=active]:border-purple-400/30 transition-all min-w-0"
                 >
@@ -387,6 +396,7 @@ export default function ClassifiedsPage() {
                   <span className="text-[9px] leading-tight truncate w-full text-center">Agenda</span>
                 </TabsTrigger>
                 <TabsTrigger 
+                  id="tab-create"
                   value="create" 
                   className="flex flex-col items-center justify-center gap-0 text-xs py-1.5 px-0.5 data-[state=active]:bg-green-500/20 data-[state=active]:text-green-400 transition-all min-w-0"
                 >
@@ -404,6 +414,7 @@ export default function ClassifiedsPage() {
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                       <Input
+                        id="search-bar"
                         placeholder="Buscar productos, servicios..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -411,6 +422,7 @@ export default function ClassifiedsPage() {
                       />
                     </div>
                     <CyberButton
+                      id="filters-button"
                       variant="outline"
                       onClick={() => setShowFilters(!showFilters)}
                       className="flex items-center justify-center gap-2 min-w-[120px] h-11"
@@ -424,7 +436,7 @@ export default function ClassifiedsPage() {
                   </div>
 
                   {/* Categories mejorado */}
-                  <div className="flex flex-wrap gap-2 mt-4">
+                  <div id="categories-pills" className="flex flex-wrap gap-2 mt-4">
                     {categories.map((category) => (
                       <button
                         key={category.value}
@@ -447,9 +459,10 @@ export default function ClassifiedsPage() {
 
               {/* Classifieds Grid mejorado */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                {filteredClassifieds.map((item) => (
+                {filteredClassifieds.map((item, index) => (
                   <Card 
-                    key={item.id} 
+                    key={item.id}
+                    id={index === 0 ? 'first-classified-card' : undefined}
                     className="glass-card border-white/10 hover:border-neon-green/40 transition-all duration-300 group hover:shadow-xl hover:shadow-neon-green/10 hover:-translate-y-1"
                   >
                     <div className="relative overflow-hidden">
@@ -468,7 +481,7 @@ export default function ClassifiedsPage() {
                       
                       <button
                         onClick={() => handleLike(item.id)}
-                        className={`absolute top-2 right-2 p-1.5 rounded-full backdrop-blur-sm transition-all duration-200 ${
+                        className={`classified-card-like absolute top-2 right-2 p-1.5 rounded-full backdrop-blur-sm transition-all duration-200 ${
                           item.isLiked 
                             ? 'bg-red-500 text-white scale-110' 
                             : 'bg-black/50 text-white hover:bg-red-500 hover:scale-110'
@@ -628,10 +641,12 @@ export default function ClassifiedsPage() {
             </TabsContent>
 
             <TabsContent value="create" className="space-y-6 pb-8">
-              <PublishMainView 
-                onCreatePublication={handleCreatePublication}
-                onBrowseRequested={handleBrowseRequested}
-              />
+              <div id="publication-types">
+                <PublishMainView 
+                  onCreatePublication={handleCreatePublication}
+                  onBrowseRequested={handleBrowseRequested}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="jobs" className="space-y-6 pb-8">
@@ -650,6 +665,10 @@ export default function ClassifiedsPage() {
       </main>
 
       <MobileNav />
+
+      {/* Tutorial Components */}
+      <TutorialClassifiedsOverlay />
+      <TutorialClassifiedsHighlight />
 
       {/* Dialogs */}
       <CreateClassifiedDialog
@@ -798,6 +817,7 @@ export default function ClassifiedsPage() {
           100% { transform: translate(0, 0) rotate(-120deg); opacity: 0.2; text-shadow: 0 0 5px currentColor; }
         }
       `}</style>
-    </div>
+      </div>
+    </TutorialClassifiedsProvider>
   );
 }
