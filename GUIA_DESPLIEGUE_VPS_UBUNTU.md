@@ -32,7 +32,9 @@ echo "🐍 Instalando Python 3.11..."
 sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt update
 sudo apt install -y python3.11 python3.11-venv python3.11-dev
-curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python3.11 get-pip.py
+rm get-pip.py
 
 # Instalar Node.js 20.x
 echo "📗 Instalando Node.js 20.x..."
@@ -134,19 +136,44 @@ sudo apt update
 # Instalar Python 3.11
 sudo apt install -y python3.11 python3.11-venv python3.11-dev
 
-# Instalar pip para Python 3.11
-curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
-
-# Verificar instalación
+# Verificar instalación de Python
 python3.11 --version
-python3.11 -m pip --version
 ```
 
 **Resultado esperado:**
 ```
 Python 3.11.x
-pip 24.x.x from ...
 ```
+
+### ⚠️ IMPORTANTE: Instalar pip (Solución al Error Común)
+
+Si ves el error: `Cannot uninstall pip 24.0` o `uninstall-no-record-file`, es NORMAL. Usa este comando alternativo:
+
+```bash
+# Descargar e instalar pip directamente (evita el error de desinstalación)
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python3.11 get-pip.py
+rm get-pip.py
+
+# Verificar pip
+python3.11 -m pip --version
+```
+
+**Resultado esperado:**
+```
+pip 24.x.x from /usr/local/lib/python3.11/...
+```
+
+### ✅ Verificación Final
+
+```bash
+# Verificar que todo funciona
+python3.11 --version
+python3.11 -m pip --version
+python3.11 -m pip list
+```
+
+**Si ambos comandos funcionan, ¡Python 3.11 está correctamente instalado!**
 
 ---
 
@@ -1095,13 +1122,52 @@ curl https://api.tu-dominio.com/api/  # Backend SSL
 
 ## 🐛 Solución de Problemas Comunes
 
-### Error: pip cannot uninstall
+### ❌ Error: Cannot uninstall pip 24.0 (PASO 2)
+
+**Error completo:**
+```
+error: uninstall-no-record-file
+× Cannot uninstall pip 24.0
+╰─> The package's contents are unknown: no RECORD file was found for pip.
+hint: The package was installed by debian.
+```
+
+**✅ SOLUCIÓN (Copiar y Pegar):**
 
 ```bash
-# Solución
-curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
-python3.11 -m pip install --upgrade pip --ignore-installed
+# Método 1: Descargar e instalar pip directamente (RECOMENDADO)
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python3.11 get-pip.py
+rm get-pip.py
+
+# Verificar
+python3.11 -m pip --version
 ```
+
+**Si el Método 1 no funciona, usar Método 2:**
+
+```bash
+# Método 2: Instalar pip con --break-system-packages
+curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11 - --break-system-packages
+
+# Verificar
+python3.11 -m pip --version
+```
+
+**Si el Método 2 no funciona, usar Método 3:**
+
+```bash
+# Método 3: Usar apt para instalar pip
+sudo apt install -y python3-pip
+
+# Crear enlace simbólico
+sudo ln -s /usr/bin/pip3 /usr/local/bin/pip3.11
+
+# Verificar
+python3.11 -m pip --version
+```
+
+---
 
 ### Error: mysqlclient installation failed
 
