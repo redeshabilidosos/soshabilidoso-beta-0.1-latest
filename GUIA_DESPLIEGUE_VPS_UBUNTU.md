@@ -157,22 +157,59 @@ sudo chown -R $USER:$USER /var/www/soshabilidoso
 ```bash
 cd /var/www/soshabilidoso/backend
 
+# Instalar dependencias del sistema para mysqlclient
+sudo apt install -y python3.11-dev default-libmysqlclient-dev build-essential pkg-config
+
 # Crear entorno virtual con Python 3.11
 python3.11 -m venv venv
 
 # Activar entorno virtual
 source venv/bin/activate
 
-# Actualizar pip en el entorno virtual
-pip install --upgrade pip
+# Verificar que estamos en el entorno virtual
+which python  # Debe mostrar: /var/www/soshabilidoso/backend/venv/bin/python
 
-# Instalar dependencias
+# Actualizar pip en el entorno virtual
+pip install --upgrade pip setuptools wheel
+
+# OPCIÓN 1: Instalar desde requirements.txt (recomendado)
 pip install -r requirements.txt
 
-# Si no existe requirements.txt, instalar manualmente:
-pip install django==5.0.1 djangorestframework django-cors-headers \
-    mysqlclient pillow channels daphne channels-redis redis \
-    python-dotenv django-filter djangorestframework-simplejwt
+# OPCIÓN 2: Instalar manualmente (si no existe requirements.txt)
+# pip install django==5.0.1
+# pip install djangorestframework==3.14.0
+# pip install django-cors-headers==4.3.1
+# pip install djangorestframework-simplejwt==5.3.1
+# pip install mysqlclient==2.2.1
+# pip install channels==4.0.0
+# pip install daphne==4.0.0
+# pip install channels-redis==4.1.0
+# pip install redis==5.0.1
+# pip install pillow==10.1.0
+# pip install python-dotenv==1.0.0
+# pip install django-filter==23.5
+# pip install gunicorn==21.2.0
+
+# Verificar instalación
+pip list
+```
+
+### Verificar Instalación de Django
+
+```bash
+# Verificar versión de Django
+python -m django --version  # Debe mostrar: 5.0.1
+
+# Verificar que todas las dependencias están instaladas
+python -c "import django; print('Django OK')"
+python -c "import rest_framework; print('DRF OK')"
+python -c "import channels; print('Channels OK')"
+python -c "import MySQLdb; print('MySQL OK')"
+python -c "import redis; print('Redis OK')"
+python -c "import gunicorn; print('Gunicorn OK')"
+
+# Ver todas las dependencias instaladas
+pip freeze
 ```
 
 ### Configurar .env del Backend
@@ -762,6 +799,39 @@ curl https://api.tu-dominio.com/api/  # Backend SSL
 # Solución
 curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
 python3.11 -m pip install --upgrade pip --ignore-installed
+```
+
+### Error: mysqlclient installation failed
+
+```bash
+# Instalar dependencias del sistema
+sudo apt install -y python3.11-dev default-libmysqlclient-dev build-essential pkg-config
+
+# Luego reinstalar
+source venv/bin/activate
+pip install mysqlclient
+```
+
+### Error: No module named 'django'
+
+```bash
+# Verificar que el entorno virtual está activado
+which python  # Debe mostrar la ruta del venv
+
+# Si no está activado
+source /var/www/soshabilidoso/backend/venv/bin/activate
+
+# Reinstalar Django
+pip install django==5.0.1
+```
+
+### Error: ImportError: No module named 'MySQLdb'
+
+```bash
+# Instalar mysqlclient
+sudo apt install -y default-libmysqlclient-dev
+source venv/bin/activate
+pip install mysqlclient
 ```
 
 ### Error: Permission denied
