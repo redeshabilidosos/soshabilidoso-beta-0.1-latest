@@ -200,7 +200,7 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
   // Cerrar emoji picker al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showEmojiPicker && !event.target?.closest('.emoji-picker-container')) {
+      if (showEmojiPicker && event.target instanceof Element && !event.target.closest('.emoji-picker-container')) {
         setShowEmojiPicker(false);
       }
     };
@@ -874,7 +874,7 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
                               {formatMessageTime(message.created_at)}
                             </span>
                             {isOwn && (
-                              <CheckCheck className={cn("w-3.5 h-3.5", message.is_read ? "text-blue-400" : "opacity-60")} />
+                              <CheckCheck className={cn("w-3.5 h-3.5", (message as any).is_read ? "text-blue-400" : "opacity-60")} />
                             )}
                           </div>
                         )}
@@ -1034,7 +1034,7 @@ export function ChatWindow({ chatId, onBack }: ChatWindowProps) {
                     setShowEmojiPicker(false);
                     inputRef.current?.focus();
                   }}
-                  theme="dark"
+                  theme={"dark" as any}
                   width={350}
                   height={400}
                   searchDisabled={false}
