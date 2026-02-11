@@ -152,118 +152,277 @@ sudo chown -R $USER:$USER /var/www/soshabilidoso
 
 ---
 
-## 🔧 PASO 7: Configurar Backend (Django)
+## 🔧 PASO 7: Configurar Backend Django (EN ENTORNO VIRTUAL)
+
+> ⚠️ **IMPORTANTE**: Todos los comandos de Django deben ejecutarse DENTRO del entorno virtual
+
+### 7.1 - Instalar Dependencias del Sistema (FUERA del entorno virtual)
 
 ```bash
-cd /var/www/soshabilidoso/backend
-
-# Instalar dependencias del sistema para mysqlclient
+# Estas dependencias se instalan en el sistema, NO en el entorno virtual
 sudo apt install -y python3.11-dev default-libmysqlclient-dev build-essential pkg-config
+```
+
+**¿Por qué?** Estas son librerías del sistema necesarias para compilar `mysqlclient`.
+
+---
+
+### 7.2 - Crear y Activar Entorno Virtual
+
+```bash
+# Ir al directorio del backend
+cd /var/www/soshabilidoso/backend
 
 # Crear entorno virtual con Python 3.11
 python3.11 -m venv venv
 
-# Activar entorno virtual
+# ✅ ACTIVAR el entorno virtual (MUY IMPORTANTE)
 source venv/bin/activate
 
-# Verificar que estamos en el entorno virtual
-which python  # Debe mostrar: /var/www/soshabilidoso/backend/venv/bin/python
+# Verificar que estás DENTRO del entorno virtual
+# El prompt debe mostrar: (venv) usuario@servidor:~$
+which python
+# Debe mostrar: /var/www/soshabilidoso/backend/venv/bin/python
+```
 
-# Actualizar pip en el entorno virtual
+**¿Cómo saber si estoy en el entorno virtual?**
+- Tu terminal mostrará `(venv)` al inicio de la línea
+- `which python` apunta a `/var/www/soshabilidoso/backend/venv/bin/python`
+
+---
+
+### 7.3 - Actualizar pip (DENTRO del entorno virtual)
+
+```bash
+# ✅ Asegúrate de que el entorno virtual está activado
+# Debes ver (venv) en tu terminal
+
 pip install --upgrade pip setuptools wheel
+```
 
-# OPCIÓN 1: Instalar desde requirements.txt (recomendado)
+---
+
+### 7.4 - Instalar Django y Dependencias (DENTRO del entorno virtual)
+
+#### Opción A: Usando requirements.txt (Recomendado)
+
+```bash
+# ✅ Asegúrate de que el entorno virtual está activado
+# Debes ver (venv) en tu terminal
+
 pip install -r requirements.txt
+```
 
-# OPCIÓN 2: Instalar manualmente (si no existe requirements.txt)
-# pip install django==5.0.1
-# pip install djangorestframework==3.14.0
-# pip install django-cors-headers==4.3.1
-# pip install djangorestframework-simplejwt==5.3.1
-# pip install mysqlclient==2.2.1
-# pip install channels==4.0.0
-# pip install daphne==4.0.0
-# pip install channels-redis==4.1.0
-# pip install redis==5.0.1
-# pip install pillow==10.1.0
-# pip install python-dotenv==1.0.0
-# pip install django-filter==23.5
-# pip install gunicorn==21.2.0
+#### Opción B: Instalación Manual (si no existe requirements.txt)
 
-# Verificar instalación
+```bash
+# ✅ Asegúrate de que el entorno virtual está activado
+# Debes ver (venv) en tu terminal
+
+# Django Core
+pip install django==5.0.1
+pip install djangorestframework==3.14.0
+pip install django-cors-headers==4.3.1
+pip install djangorestframework-simplejwt==5.3.1
+
+# Base de Datos
+pip install mysqlclient==2.2.1
+
+# WebSockets
+pip install channels==4.0.0
+pip install daphne==4.0.0
+pip install channels-redis==4.1.0
+pip install redis==5.0.1
+
+# Utilidades
+pip install pillow==10.1.0
+pip install python-dotenv==1.0.0
+pip install django-filter==23.5
+
+# Servidor de Producción
+pip install gunicorn==21.2.0
+```
+
+---
+
+### 7.5 - Verificar Instalación (DENTRO del entorno virtual)
+
+```bash
+# ✅ Asegúrate de que el entorno virtual está activado
+# Debes ver (venv) en tu terminal
+
+# Verificar versión de Django
+python -m django --version
+# Debe mostrar: 5.0.1
+
+# Verificar cada módulo
+python -c "import django; print('✅ Django instalado correctamente')"
+python -c "import rest_framework; print('✅ Django REST Framework instalado')"
+python -c "import channels; print('✅ Channels instalado')"
+python -c "import MySQLdb; print('✅ mysqlclient instalado')"
+python -c "import redis; print('✅ Redis instalado')"
+python -c "import gunicorn; print('✅ Gunicorn instalado')"
+
+# Ver todas las dependencias instaladas
 pip list
 ```
 
-### Verificar Instalación de Django
+**Si todos los comandos funcionan sin errores, ¡Django está correctamente instalado!**
+
+---
+
+### 7.6 - Desactivar Entorno Virtual (cuando termines)
 
 ```bash
-# Verificar versión de Django
-python -m django --version  # Debe mostrar: 5.0.1
+# Para salir del entorno virtual
+deactivate
 
-# Verificar que todas las dependencias están instaladas
-python -c "import django; print('Django OK')"
-python -c "import rest_framework; print('DRF OK')"
-python -c "import channels; print('Channels OK')"
-python -c "import MySQLdb; print('MySQL OK')"
-python -c "import redis; print('Redis OK')"
-python -c "import gunicorn; print('Gunicorn OK')"
-
-# Ver todas las dependencias instaladas
-pip freeze
+# Ahora tu terminal NO mostrará (venv)
 ```
 
-### Configurar .env del Backend
+**¿Cuándo desactivar?**
+- Solo cuando hayas terminado de trabajar con Django
+- Para ejecutar comandos del sistema
+- Para cambiar a otro proyecto
+
+**¿Cómo volver a activar?**
+```bash
+cd /var/www/soshabilidoso/backend
+source venv/bin/activate
+```
+
+---
+
+### 📝 Resumen: ¿Entorno Virtual o No?
+
+| Comando | ¿Dónde ejecutar? | ¿Por qué? |
+|---------|------------------|-----------|
+| `sudo apt install python3.11-dev` | ❌ FUERA del venv | Dependencias del sistema |
+| `python3.11 -m venv venv` | ❌ FUERA del venv | Crear el entorno |
+| `source venv/bin/activate` | ❌ FUERA del venv | Activar el entorno |
+| `pip install django` | ✅ DENTRO del venv | Instalar paquetes Python |
+| `python manage.py migrate` | ✅ DENTRO del venv | Comandos de Django |
+| `python manage.py runserver` | ✅ DENTRO del venv | Ejecutar Django |
+| `deactivate` | ✅ DENTRO del venv | Salir del entorno |
+
+---
+
+### 7.7 - Configurar Variables de Entorno (.env)
 
 ```bash
-# Crear archivo .env
+# ✅ Puedes estar DENTRO o FUERA del entorno virtual para esto
+
+# Crear archivo .env en el directorio backend
 nano /var/www/soshabilidoso/backend/.env
 ```
 
+**Contenido del archivo .env:**
+
 ```env
-# Configuración de Base de Datos
+# ==========================================
+# CONFIGURACIÓN DE BASE DE DATOS
+# ==========================================
 DB_NAME=soshabilidoso
 DB_USER=soshabilidoso
-DB_PASSWORD=tu_password_segura
+DB_PASSWORD=tu_password_segura_aqui
 DB_HOST=localhost
 DB_PORT=3306
 
-# Configuración de Django
-SECRET_KEY=tu-secret-key-super-segura-aqui-cambiar
+# ==========================================
+# CONFIGURACIÓN DE DJANGO
+# ==========================================
+SECRET_KEY=tu-secret-key-super-segura-cambiar-esto
 DEBUG=False
-ALLOWED_HOSTS=tu-dominio.com,www.tu-dominio.com,tu-ip-vps
+ALLOWED_HOSTS=tu-dominio.com,www.tu-dominio.com,tu-ip-vps,localhost
 
-# CORS
+# ==========================================
+# CORS (Cross-Origin Resource Sharing)
+# ==========================================
 CORS_ALLOWED_ORIGINS=https://tu-dominio.com,https://www.tu-dominio.com
 
-# Redis (para WebSockets)
+# ==========================================
+# REDIS (para WebSockets y Cache)
+# ==========================================
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
-# Media y Static
+# ==========================================
+# ARCHIVOS MEDIA Y STATIC
+# ==========================================
 MEDIA_ROOT=/var/www/soshabilidoso/backend/media
 STATIC_ROOT=/var/www/soshabilidoso/backend/staticfiles
 ```
 
-### Migrar Base de Datos
+**Guardar y salir:**
+- Presiona `Ctrl + O` para guardar
+- Presiona `Enter` para confirmar
+- Presiona `Ctrl + X` para salir
+
+---
+
+### 7.8 - Migrar Base de Datos (DENTRO del entorno virtual)
 
 ```bash
-# Activar entorno virtual si no está activo
+# ✅ ACTIVAR el entorno virtual si no está activo
+cd /var/www/soshabilidoso/backend
 source venv/bin/activate
 
-# Hacer migraciones
+# Verificar que estás en el entorno virtual
+# Debes ver (venv) en tu terminal
+
+# Crear migraciones
 python manage.py makemigrations
+
+# Aplicar migraciones a la base de datos
 python manage.py migrate
 
-# Crear superusuario
+# Crear superusuario para el admin de Django
 python manage.py createsuperuser
+# Te pedirá:
+# - Username: admin (o el que prefieras)
+# - Email: tu-email@ejemplo.com
+# - Password: (elige una contraseña segura)
+# - Password (again): (repite la contraseña)
 
 # Recolectar archivos estáticos
 python manage.py collectstatic --noinput
 
-# Crear directorios necesarios
+# Crear directorios para archivos media
 mkdir -p media/avatars media/posts media/stories media/covers
 chmod -R 755 media
 ```
+
+**¿Qué hace cada comando?**
+- `makemigrations`: Crea archivos de migración basados en los modelos
+- `migrate`: Aplica las migraciones a la base de datos MySQL
+- `createsuperuser`: Crea un usuario administrador
+- `collectstatic`: Recopila archivos CSS/JS en un solo directorio
+- `mkdir -p`: Crea directorios para subir imágenes/videos
+
+---
+
+### 7.9 - Probar Django (DENTRO del entorno virtual)
+
+```bash
+# ✅ Asegúrate de que el entorno virtual está activado
+
+# Probar que Django funciona
+python manage.py check
+
+# Debe mostrar: System check identified no issues (0 silenced).
+
+# Probar servidor de desarrollo (SOLO PARA PRUEBA)
+python manage.py runserver 0.0.0.0:8000
+
+# Abre en tu navegador: http://tu-ip-vps:8000
+# Deberías ver la página de Django
+
+# Presiona Ctrl+C para detener el servidor
+```
+
+**⚠️ IMPORTANTE:** El servidor de desarrollo es SOLO para pruebas. En producción usaremos Gunicorn.
+
+---
 
 ---
 
