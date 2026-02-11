@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hand, X, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import anime from 'animejs';
+import { animate } from 'animejs';
 
 export function GestureTutorial() {
   const [show, setShow] = useState(false);
@@ -41,7 +41,7 @@ export function GestureTutorial() {
     if (!hand) return;
 
     // Animación de deslizamiento continuo
-    anime({
+    animate({
       targets: hand,
       translateX: [100, -150, 100],
       opacity: [0, 1, 1, 1, 0],

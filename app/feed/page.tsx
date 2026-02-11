@@ -54,7 +54,7 @@ interface UserStories {
 const MeetingNotifications = lazy(() => import('@/components/communities/meeting-notifications').then(mod => ({ default: mod.MeetingNotifications })));
 const NewPostDialog = lazy(() => import('@/components/ui/new-post-dialog').then(mod => ({ default: mod.NewPostDialog })));
 const AdCard = lazy(() => import('@/components/advertising/ad-card').then(mod => ({ default: mod.AdCard })));
-const StoriesSlider = lazy(() => import('@/components/ui/stories-slider'));
+const StoriesSlider = lazy(() => import('@/components/ui/stories-slider').then(mod => ({ default: mod.default })));
 const NewStoryDialog = lazy(() => import('@/components/ui/new-story-dialog').then(mod => ({ default: mod.NewStoryDialog })));
 
 // Componente para reiniciar el tutorial del feed

@@ -520,63 +520,63 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-3xl lg:max-w-4xl h-[90vh] flex flex-col glass-card border-neon-green/20 p-0 overflow-hidden">
-          <DialogHeader className="p-6 pb-0 pr-16">
-            <DialogTitle className="text-white flex items-center space-x-2">
-              <MessageCircle size={20} className="text-neon-green" />
+        <DialogContent className="sm:max-w-3xl lg:max-w-4xl max-h-[95vh] md:h-[90vh] flex flex-col glass-card border-neon-green/20 p-0 overflow-hidden w-[95vw] md:w-full">
+          <DialogHeader className="p-3 md:p-6 pb-0 pr-10 md:pr-14 flex-shrink-0">
+            <DialogTitle className="text-white flex items-center space-x-2 text-base md:text-lg">
+              <MessageCircle size={18} className="text-neon-green md:w-5 md:h-5" />
               <span>Detalles de la Publicación</span>
             </DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-gray-400 text-xs md:text-sm">
               Explora la publicación completa y sus interacciones.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 pt-4 scrollbar-hide overflow-x-hidden">
+          <div className="flex-1 overflow-y-auto p-3 md:p-6 pt-2 md:pt-4 scrollbar-hide overflow-x-hidden">
             {/* Post Content */}
-            <div className="space-y-4 mb-6 max-w-full">
+            <div className="space-y-3 md:space-y-4 mb-4 md:mb-6 max-w-full">
               {/* User Info */}
               <button 
                 onClick={() => handleOpenUserProfile(post.user)}
-                className="flex items-center space-x-3 group"
+                className="flex items-center space-x-2 md:space-x-3 group w-full"
               >
                 <img
                   src={post.user.avatar}
                   alt={post.user.displayName}
-                  className="w-12 h-12 rounded-full ring-2 ring-neon-green/50 group-hover:ring-neon-blue transition-all duration-300"
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full ring-2 ring-neon-green/50 group-hover:ring-neon-blue transition-all duration-300 flex-shrink-0"
                 />
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h3 className="font-semibold text-white group-hover:text-neon-green transition-colors">{post.user.displayName}</h3>
-                    <span className="text-gray-400 text-sm group-hover:text-white transition-colors">@{post.user.username}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-1 md:space-x-2 flex-wrap">
+                    <h3 className="font-semibold text-white group-hover:text-neon-green transition-colors text-sm md:text-base truncate">{post.user.displayName}</h3>
+                    <span className="text-gray-400 text-xs md:text-sm group-hover:text-white transition-colors truncate">@{post.user.username}</span>
                     {post.type === 'highlight' && (
-                      <div className="flex items-center space-x-1 bg-yellow-500/20 px-2 py-1 rounded-full">
-                        <Trophy className="text-yellow-400" size={12} />
-                        <span className="text-yellow-400 text-xs font-medium">HIGHLIGHT</span>
+                      <div className="flex items-center space-x-1 bg-yellow-500/20 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">
+                        <Trophy className="text-yellow-400" size={10} />
+                        <span className="text-yellow-400 text-[10px] md:text-xs font-medium">HIGHLIGHT</span>
                       </div>
                     )}
                     {post.type === 'podcast' && (
-                      <div className="flex items-center space-x-1 bg-purple-500/20 px-2 py-1 rounded-full">
-                        <Mic className="text-purple-400" size={12} />
-                        <span className="text-purple-400 text-xs font-medium">PODCAST</span>
+                      <div className="flex items-center space-x-1 bg-purple-500/20 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">
+                        <Mic className="text-purple-400" size={10} />
+                        <span className="text-purple-400 text-[10px] md:text-xs font-medium">PODCAST</span>
                       </div>
                     )}
                     {post.type === 'streaming' && (
-                      <div className="flex items-center space-x-1 bg-red-500/20 px-2 py-1 rounded-full">
-                        <Radio className="text-red-400" size={12} />
-                        <span className="text-red-400 text-xs font-medium">STREAMING</span>
+                      <div className="flex items-center space-x-1 bg-red-500/20 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">
+                        <Radio className="text-red-400" size={10} />
+                        <span className="text-red-400 text-[10px] md:text-xs font-medium">STREAMING</span>
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-gray-400">
+                  <div className="flex items-center space-x-1 md:space-x-2 text-xs md:text-sm text-gray-400 flex-wrap">
                     {post.user.position && (
                       <>
-                        <span>{post.user.position}</span>
+                        <span className="truncate">{post.user.position}</span>
                         <span>•</span>
                       </>
                     )}
                     {post.user.team && (
                       <>
-                        <span>{post.user.team}</span>
+                        <span className="truncate">{post.user.team}</span>
                         <span>•</span>
                       </>
                     )}
@@ -586,7 +586,7 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
               </button>
 
               {/* Post Text Content */}
-              <p className="text-white leading-relaxed text-lg">{post.content}</p>
+              <p className="text-white leading-relaxed text-sm md:text-lg">{post.content}</p>
 
               {/* Images */}
               {post.images && post.images.length > 0 && (
@@ -605,7 +605,7 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
                       <img
                         src={image}
                         alt={`Post image ${index + 1}`}
-                        className="w-full h-64 object-cover"
+                        className="w-full h-40 md:h-64 object-cover"
                       />
                       {post.type === 'highlight' && index === 0 && (
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-4">
@@ -694,21 +694,21 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
             </div>
 
             {/* Comments Section */}
-            <div className="space-y-4 pt-4 border-t border-white/10 mt-6">
-              <h3 className="text-xl font-semibold text-white">Comentarios ({postComments.length})</h3>
+            <div className="space-y-3 md:space-y-4 pt-3 md:pt-4 border-t border-white/10 mt-4 md:mt-6">
+              <h3 className="text-base md:text-xl font-semibold text-white">Comentarios ({postComments.length})</h3>
               
               {/* Add Comment */}
-              <div className="flex space-x-3">
+              <div className="flex space-x-2 md:space-x-3">
                 <img
                   src={currentUser?.avatar || currentUser?.coverPhoto || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
                   alt={currentUser?.displayName || 'Tu avatar'}
-                  className="w-8 h-8 rounded-full ring-2 ring-neon-green/30"
+                  className="w-7 h-7 md:w-8 md:h-8 rounded-full ring-2 ring-neon-green/30 flex-shrink-0"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default';
                   }}
                 />
-                <div className="flex-1 flex space-x-2 items-center">
+                <div className="flex-1 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 md:items-center">
                   <div className="relative flex-1">
                     <input
                       ref={commentInputRef}
@@ -716,7 +716,7 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
                       value={newCommentContent}
                       onChange={(e) => setNewCommentContent(e.target.value)}
                       placeholder="Escribe un comentario..."
-                      className="w-full px-4 py-2 pr-12 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
+                      className="w-full px-3 md:px-4 py-1.5 md:py-2 pr-10 md:pr-12 bg-white/10 border border-white/20 rounded-lg text-white text-sm md:text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
                       onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
                       disabled={!currentUser}
                     />
@@ -724,25 +724,25 @@ export function PostDetailDialog({ isOpen, onClose, post, onPostUpdated }: PostD
                       <EmojiPickerButton onEmojiSelect={handleCommentEmojiSelect} />
                     </div>
                   </div>
-                  <CyberButton size="sm" onClick={handleAddComment} disabled={!newCommentContent.trim() || !currentUser}>
+                  <CyberButton size="sm" onClick={handleAddComment} disabled={!newCommentContent.trim() || !currentUser} className="w-full md:w-auto">
                     Enviar
                   </CyberButton>
                 </div>
               </div>
 
               {/* Comments List */}
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-3">
                 {loadingComments ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neon-green mx-auto"></div>
-                    <p className="text-gray-400 text-sm mt-2">Cargando comentarios...</p>
+                  <div className="text-center py-6 md:py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 md:h-8 md:w-8 border-b-2 border-neon-green mx-auto"></div>
+                    <p className="text-gray-400 text-xs md:text-sm mt-2">Cargando comentarios...</p>
                   </div>
                 ) : postComments.length === 0 ? (
-                  <p className="text-gray-400 text-sm text-center py-4">Sé el primero en comentar esta publicación.</p>
+                  <p className="text-gray-400 text-xs md:text-sm text-center py-3 md:py-4">Sé el primero en comentar esta publicación.</p>
                 ) : (
                   postComments.map((comment) => (
                     <div key={comment.id}>
-                      <div className={`flex space-x-3 ${comment.parentId ? 'ml-8 mt-2 pl-4 border-l-2 border-neon-green/30' : ''}`}>
+                      <div className={`flex space-x-2 md:space-x-3 ${comment.parentId ? 'ml-6 md:ml-8 mt-2 pl-3 md:pl-4 border-l-2 border-neon-green/30' : ''}`}>
                         <button 
                           onClick={() => handleOpenUserProfile(comment.user)}
                           className="group flex-shrink-0"
