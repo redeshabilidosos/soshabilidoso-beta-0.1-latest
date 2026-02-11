@@ -159,12 +159,12 @@ const nextConfig = {
   
   // Optimizar imágenes
   images: {
-    // CAPACITOR: Mantener unoptimized para compatibilidad móvil
     unoptimized: true,
     domains: ['images.pexels.com', 'localhost', '127.0.0.1', 'ui-avatars.com'],
     formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    minimumCacheTTL: 60,
   },
   
   // Optimizar compilación
@@ -172,19 +172,48 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn'],
     } : false,
+    reactRemoveProperties: process.env.NODE_ENV === 'production',
+  },
+  
+  // Modularize imports para reducir bundle size
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+    '@radix-ui/react-icons': {
+      transform: '@radix-ui/react-icons/dist/{{member}}.js',
+    },
   },
   
   // Optimizar chunks para navegación instantánea
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     if (!isServer) {
       // Optimizar tamaño de chunks para carga más rápida
       config.optimization = {
         ...config.optimization,
+        moduleIds: 'deterministic',
+        runtimeChunk: 'single',
         splitChunks: {
           chunks: 'all',
+          maxInitialRequests: 25,
+          minSize: 20000,
           cacheGroups: {
             default: false,
             vendors: false,
+            // Framework chunk (React, Next.js)
+            framework: {
+              name: 'framework',
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler|next)[\\/]/,
+              priority: 40,
+              enforce: true,
+            },
+            // UI Libraries chunk
+            ui: {
+              name: 'ui-libs',
+              test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|framer-motion)[\\/]/,
+              priority: 30,
+              reuseExistingChunk: true,
+            },
             // Chunk para librerías grandes
             lib: {
               test: /[\\/]node_modules[\\/]/,
@@ -198,19 +227,30 @@ const nextConfig = {
                 const packageName = match[1];
                 return `npm.${packageName.replace('@', '')}`;
               },
-              priority: 10,
+              priority: 20,
+              minChunks: 1,
               reuseExistingChunk: true,
             },
             // Chunk para componentes comunes
             commons: {
               name: 'commons',
               minChunks: 2,
-              priority: 5,
+              priority: 10,
               reuseExistingChunk: true,
             },
           },
         },
       };
+      
+      // Cache para compilación más rápida
+      if (!dev) {
+        config.cache = {
+          type: 'filesystem',
+          buildDependencies: {
+            config: [__filename],
+          },
+        };
+      }
     }
     return config;
   },
@@ -218,13 +258,26 @@ const nextConfig = {
   // Experimental features para mejor rendimiento
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ['lucide-react', 'date-fns', 'framer-motion'],
+    optimizePackageImports: [
+      'lucide-react',
+      'date-fns',
+      'framer-motion',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-avatar',
+      'sonner',
+    ],
+    // Optimizar servidor
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
   },
   
   // Prefetch más agresivo para navegación instantánea
   onDemandEntries: {
-    maxInactiveAge: 300 * 1000, // 5 minutos - mantener páginas en memoria más tiempo
-    pagesBufferLength: 20, // Más páginas en buffer para navegación rápida
+    maxInactiveAge: 60 * 1000, // 1 minuto - reducido para liberar memoria
+    pagesBufferLength: 5, // Reducido para menos memoria
   },
   
   // Headers de seguridad (compatible con modo híbrido)

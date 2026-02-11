@@ -343,8 +343,8 @@ export default function EditProfilePage() {
               {/* Barra de progreso para auto-redirect */}
               <div className="w-full bg-gray-700 rounded-full h-1 overflow-hidden">
                 <div 
-                  className="h-full bg-neon-green rounded-full transition-all duration-[3000ms] ease-linear"
-                  style={{ width: '100%', animation: 'shrink 3s linear forwards' }}
+                  className="h-full bg-neon-green rounded-full transition-all ease-linear"
+                  style={{ width: '100%', animation: 'shrink 3s linear forwards', transitionDuration: '3000ms' }}
                 />
               </div>
               <p className="text-xs text-gray-400">Redirigiendo a tu perfil...</p>

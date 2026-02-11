@@ -10,6 +10,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:4000'),
   title: 'SOS Habilidoso | Red Social de Fútbol',
   description: 'La red social futurista para amantes del fútbol. Conecta, comparte y celebra tu pasión por el deporte rey.',
   keywords: 'fútbol, red social, deportes, habilidades, goles, highlights',

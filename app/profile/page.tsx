@@ -1,16 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';
 import { Sidebar } from '@/components/navigation/sidebar';
 import { MobileNav } from '@/components/navigation/mobile-nav';
 import { CyberButton } from '@/components/ui/cyber-button';
 import { Camera, Edit2, MapPin, Calendar, Users, Image as ImageIcon, Plus, FolderPlus, User as UserIcon, ImagePlus, X, ArrowLeft, Building2, Eye, Award, Heart, BookOpen } from 'lucide-react';
-import { UpdateCoverPhotoDialog } from '@/components/ui/update-cover-photo-dialog';
-import { UpdateAvatarDialog } from '@/components/ui/update-avatar-dialog';
-import { NewPostDialog } from '@/components/ui/new-post-dialog';
-import { UserPostsGrid } from '@/components/profile/user-posts-grid';
 import { Post } from '@/types/user';
 import { enterprisesService, Enterprise } from '@/lib/services/enterprises.service';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -23,6 +19,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// OPTIMIZACIÓN: Lazy loading SOLO de componentes pesados que funcionan bien con lazy
+const UpdateCoverPhotoDialog = lazy(() => import('@/components/ui/update-cover-photo-dialog').then(m => ({ default: m.UpdateCoverPhotoDialog })));
+const UpdateAvatarDialog = lazy(() => import('@/components/ui/update-avatar-dialog').then(m => ({ default: m.UpdateAvatarDialog })));
+const NewPostDialog = lazy(() => import('@/components/ui/new-post-dialog').then(m => ({ default: m.NewPostDialog })));
+const UserPostsGrid = lazy(() => import('@/components/profile/user-posts-grid').then(m => ({ default: m.UserPostsGrid })));
 
 export default function ProfilePage() {
   const { user, updateProfile, isLoading } = useAuth();
@@ -689,7 +692,15 @@ export default function ProfilePage() {
               </div>
             </CardHeader>
             <CardContent>
-              <UserPostsGrid username={user.username} isOwnProfile={true} refreshTrigger={refreshTrigger} />
+              <Suspense fallback={
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Skeleton key={i} className="h-64 w-full rounded-xl" />
+                  ))}
+                </div>
+              }>
+                <UserPostsGrid username={user.username} isOwnProfile={true} refreshTrigger={refreshTrigger} />
+              </Suspense>
             </CardContent>
           </Card>
 
@@ -1073,7 +1084,7 @@ export default function ProfilePage() {
 
       {/* Dialogs */}
       {user && (
-        <>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><Skeleton className="w-96 h-96" /></div>}>
           <UpdateCoverPhotoDialog
             isOpen={isCoverPhotoDialogOpen}
             onClose={() => setIsCoverPhotoDialogOpen(false)}
@@ -1089,7 +1100,7 @@ export default function ProfilePage() {
             onClose={() => setIsNewPostDialogOpen(false)}
             onPostCreated={handlePostCreated}
           />
-        </>
+        </Suspense>
       )}
 
       {/* Modal de Imagen Expandida (Avatar o Portada) */}

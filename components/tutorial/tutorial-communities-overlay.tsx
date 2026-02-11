@@ -138,17 +138,17 @@ export const TutorialCommunitiesOverlay: React.FC = () => {
             <TutorialHighlight target={currentStepData.target} />
           )}
 
-          {/* Card del tutorial - Responsive */}
+          {/* Card del tutorial - Responsive y Centrado */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className={`fixed z-[10001] px-4 ${getPositionClasses(currentStepData)}`}
+            className={`fixed z-[10001] inset-x-0 flex items-center justify-center ${getPositionClasses(currentStepData)}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="glass-card border-2 border-neon-green/50 p-4 sm:p-6 w-full max-w-[90vw] sm:max-w-md shadow-2xl mx-auto">
+            <div className="glass-card border-2 border-neon-green/50 p-4 sm:p-6 w-[90vw] sm:w-[400px] md:w-[450px] max-w-md shadow-2xl mx-4">
               {/* Header */}
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between mb-4 gap-2">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <Sparkles className="w-5 h-5 text-neon-green flex-shrink-0" />
                   <h3 className="text-base sm:text-lg font-bold text-white truncate">
@@ -159,7 +159,7 @@ export const TutorialCommunitiesOverlay: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={skipTutorial}
-                  className="text-gray-400 hover:text-white -mt-1 -mr-2"
+                  className="text-gray-400 hover:text-white -mt-1 -mr-2 flex-shrink-0"
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -270,20 +270,21 @@ const TutorialHighlight: React.FC<{ target: string }> = ({ target }) => {
   );
 };
 
-// Función para obtener las clases de posición del card - Responsive
+// Función para obtener las clases de posición del card - Respetando MobileNav en móvil
 function getPositionClasses(step: typeof tutorialSteps[0]): string {
   if (step.position === 'center') {
-    return 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full';
+    return 'top-1/2 -translate-y-1/2 inset-x-0';
   }
   
   if (step.position === 'bottom') {
-    return 'bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 w-full';
+    // En móvil más arriba para no quedar debajo del MobileNav
+    return 'bottom-24 sm:bottom-8 md:bottom-12 inset-x-0';
   }
   
   if (step.position === 'left') {
-    // En móvil se centra, en desktop a la derecha
-    return 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-8 sm:translate-x-0 w-full';
+    // En móvil/tablet centrado, en desktop a la derecha
+    return 'top-1/2 -translate-y-1/2 inset-x-0 lg:justify-end lg:pr-8';
   }
   
-  return 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full';
+  return 'top-1/2 -translate-y-1/2 inset-x-0';
 }

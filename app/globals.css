@@ -1253,7 +1253,9 @@ button:hover {
 [data-radix-select-content],
 [data-radix-context-menu-content] {
   z-index: 10001 !important;
-} {
+}
+
+@keyframes float-up {
   0% {
     transform: translateY(0) scale(0.5);
     opacity: 0;
