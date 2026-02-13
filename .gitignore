@@ -85,6 +85,23 @@ test-comparison.html
 test-countdown.html
 test-mobile-navbar.html
 test-static-navbar.html
+
+# Archivos de documentación innecesarios (mantener solo README.md)
+*.md
+!README.md
+
+# Scripts de desarrollo local
+*.bat
+*.ps1
+
+# Archivos de prueba
+test-*.html
+test*.js
+
+# Archivos de texto innecesarios
+*.txt
+!robots.txt
+!public/*.txt
 # PWA
  files
 public/sw.js

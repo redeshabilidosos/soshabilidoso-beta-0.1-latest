@@ -155,7 +155,7 @@ const nextConfig = {
   
   // Optimizaciones de rendimiento
   reactStrictMode: false, // Desactivar para evitar doble render en desarrollo
-  swcMinify: true,
+  swcMinify: false, // DESACTIVADO temporalmente para debug en servidor Linux
   
   // Optimizar imágenes
   images: {
@@ -168,12 +168,13 @@ const nextConfig = {
   },
   
   // Optimizar compilación
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
-    reactRemoveProperties: process.env.NODE_ENV === 'production',
-  },
+  // DESACTIVADO temporalmente para debug en servidor Linux
+  // compiler: {
+  //   removeConsole: process.env.NODE_ENV === 'production' ? {
+  //     exclude: ['error', 'warn'],
+  //   } : false,
+  //   reactRemoveProperties: process.env.NODE_ENV === 'production',
+  // },
   
   // Modularize imports para reducir bundle size
   modularizeImports: {
