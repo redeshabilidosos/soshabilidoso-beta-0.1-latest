@@ -31,10 +31,7 @@ sudo apt install -y curl wget git build-essential software-properties-common
 echo "🐍 Instalando Python 3.11..."
 sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt update
-sudo apt install -y python3.11 python3.11-venv python3.11-dev
-wget https://bootstrap.pypa.io/get-pip.py
-sudo python3.11 get-pip.py
-rm get-pip.py
+sudo apt install -y python3.11 python3.11-venv python3.11-dev python3-pip
 
 # Instalar Node.js 20.x
 echo "📗 Instalando Node.js 20.x..."
@@ -102,6 +99,8 @@ ssh root@tu-ip-vps
 
 ## 📝 INSTALACIÓN MANUAL PASO A PASO
 
+> 💡 **Nota sobre puertos MySQL**: Tu base de datos local usa el puerto 3307 (XAMPP/WAMP), pero en producción usaremos el puerto estándar 3306. Esto no afecta la migración de datos.
+
 > 💡 Si prefieres instalar manualmente o el script automático falló, sigue estos pasos:
 
 ---
@@ -145,35 +144,34 @@ python3.11 --version
 Python 3.11.x
 ```
 
-### ⚠️ IMPORTANTE: Instalar pip (Solución al Error Común)
-
-Si ves el error: `Cannot uninstall pip 24.0` o `uninstall-no-record-file`, es NORMAL. Usa este comando alternativo:
+### ✅ Verificar pip (Ya viene instalado)
 
 ```bash
-# Descargar e instalar pip directamente (evita el error de desinstalación)
-wget https://bootstrap.pypa.io/get-pip.py
-sudo python3.11 get-pip.py
-rm get-pip.py
-
-# Verificar pip
+# Verificar que pip funciona
 python3.11 -m pip --version
 ```
 
-**Resultado esperado:**
-```
-pip 24.x.x from /usr/local/lib/python3.11/...
-```
+**Si ves algo como:** `pip 24.0 from /usr/lib/python3/dist-packages/pip (python 3.11)`
 
-### ✅ Verificación Final
+**¡Perfecto! pip ya está instalado y funcionando.** No necesitas hacer nada más.
+
+### ⚠️ Si ves error "No module named pip"
+
+Solo si NO tienes pip instalado, ejecuta:
 
 ```bash
-# Verificar que todo funciona
-python3.11 --version
+# Instalar pip desde los repositorios de Ubuntu
+sudo apt install -y python3-pip
+
+# Verificar
 python3.11 -m pip --version
-python3.11 -m pip list
 ```
 
-**Si ambos comandos funcionan, ¡Python 3.11 está correctamente instalado!**
+### 🚫 NO intentes actualizar pip del sistema
+
+**IMPORTANTE:** El pip que viene con Ubuntu (pip 24.0) funciona perfectamente. NO intentes actualizarlo con `pip install --upgrade pip` porque causará el error que viste.
+
+**Cuando crees el entorno virtual en el PASO 7, ahí SÍ podrás actualizar pip dentro del entorno virtual sin problemas.**
 
 ---
 
@@ -530,7 +528,78 @@ STATIC_ROOT=/var/www/soshabilidoso/backend/staticfiles
 
 ---
 
-### 7.8 - Migrar Base de Datos (DENTRO del entorno virtual)
+### 7.8 - OPCIÓN A: Importar Base de Datos Existente (RECOMENDADO)
+
+> 💡 **Si ya tienes datos en tu base de datos local**, es mejor importarlos directamente en lugar de crear una base de datos vacía.
+
+#### 7.8.1 - Exportar Base de Datos Local (En tu PC Windows)
+
+```bash
+# En tu PC, navega a la carpeta del proyecto
+cd backend/scripts
+
+# Ejecutar script de exportación
+exportar-bd-local.bat
+```
+
+Esto creará un archivo como: `backup_habilidosos_20260211_143022.sql`
+
+#### 7.8.2 - Transferir Archivo al VPS
+
+**Opción 1 - Usando SCP (desde PowerShell o CMD en tu PC):**
+```bash
+scp backup_habilidosos_*.sql root@76.13.122.81:/var/www/soshabilidoso/backend/
+```
+
+**Opción 2 - Usando WinSCP o FileZilla:**
+1. Conecta a: `76.13.122.81`
+2. Usuario: `root`
+3. Sube el archivo a: `/var/www/soshabilidoso/backend/`
+
+#### 7.8.3 - Importar en el VPS
+
+```bash
+# En el VPS, navega al directorio
+cd /var/www/soshabilidoso/backend
+
+# Importar la base de datos
+mysql -usoshabilidoso -pSosHabilidoso2024!Secure soshabilidoso < backup_habilidosos_*.sql
+
+# O usar el script automatizado
+bash scripts/importar-bd-produccion.sh backup_habilidosos_20260211_143022.sql
+```
+
+#### 7.8.4 - Sincronizar Migraciones de Django (DENTRO del entorno virtual)
+
+```bash
+# ✅ ACTIVAR el entorno virtual
+cd /var/www/soshabilidoso/backend
+source venv/bin/activate
+
+# Ver estado de migraciones
+python manage.py showmigrations
+
+# Aplicar migraciones pendientes (si las hay)
+python manage.py migrate
+
+# Verificar que todo esté correcto
+python manage.py dbshell
+```
+
+En el shell de MySQL:
+```sql
+SHOW TABLES;
+SELECT COUNT(*) FROM users_customuser;
+EXIT;
+```
+
+**✅ Si ves tus tablas y datos, ¡la importación fue exitosa!**
+
+> 📖 **Guía detallada**: Ver `GUIA_MIGRACION_BASE_DATOS.md` para más opciones y solución de problemas.
+
+---
+
+### 7.8 - OPCIÓN B: Crear Base de Datos Nueva (Si NO tienes datos previos)
 
 ```bash
 # ✅ ACTIVAR el entorno virtual si no está activo
@@ -1132,38 +1201,26 @@ error: uninstall-no-record-file
 hint: The package was installed by debian.
 ```
 
-**✅ SOLUCIÓN (Copiar y Pegar):**
+**✅ SOLUCIÓN: NO HAGAS NADA**
 
+Este error aparece cuando intentas actualizar pip del sistema. **La solución es NO actualizarlo.**
+
+**¿Por qué?**
+- pip 24.0 que viene con Ubuntu funciona perfectamente
+- No necesitas actualizarlo en el sistema
+- Cuando crees el entorno virtual (PASO 7), ahí SÍ podrás actualizar pip sin problemas
+
+**Verificar que pip funciona:**
 ```bash
-# Método 1: Descargar e instalar pip directamente (RECOMENDADO)
-wget https://bootstrap.pypa.io/get-pip.py
-sudo python3.11 get-pip.py
-rm get-pip.py
-
-# Verificar
 python3.11 -m pip --version
+# Si ves: pip 24.0 from /usr/lib/python3/dist-packages/pip (python 3.11)
+# ¡Está funcionando correctamente!
 ```
 
-**Si el Método 1 no funciona, usar Método 2:**
-
+**Si realmente necesitas pip:**
 ```bash
-# Método 2: Instalar pip con --break-system-packages
-curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11 - --break-system-packages
-
-# Verificar
-python3.11 -m pip --version
-```
-
-**Si el Método 2 no funciona, usar Método 3:**
-
-```bash
-# Método 3: Usar apt para instalar pip
+# Solo si NO tienes pip instalado
 sudo apt install -y python3-pip
-
-# Crear enlace simbólico
-sudo ln -s /usr/bin/pip3 /usr/local/bin/pip3.11
-
-# Verificar
 python3.11 -m pip --version
 ```
 

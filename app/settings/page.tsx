@@ -130,9 +130,7 @@ export default function SettingsPage() {
     team: '',
   });
 
-  // Estados para el flujo de cambio de contraseña
-  const [passwordChangeStep, setPasswordChangeStep] = useState<'initial' | 'otpRequested' | 'otpVerified'>('initial');
-  const [otpCode, setOtpCode] = useState('');
+  // Estados para el cambio de contraseña (simplificado, sin OTP)
   const [currentPasswordInput, setCurrentPasswordInput] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [confirmNewPasswordInput, setConfirmNewPasswordInput] = useState('');
@@ -224,80 +222,62 @@ export default function SettingsPage() {
     }));
   }, []);
 
-  // Funciones para el flujo de cambio de contraseña
-  const handleRequestOtp = async () => {
+  // Función simplificada para cambiar contraseña SIN OTP
+  const handleChangePassword = async () => {
+    // Validaciones
     if (!currentPasswordInput.trim()) {
       toast.error('Por favor, introduce tu contraseña actual.');
       return;
     }
-    setIsPasswordChangeLoading(true);
-    try {
-      // Simular verificación de contraseña actual (en un entorno real, esto sería una llamada a la API)
-      await new Promise(resolve => setTimeout(resolve, 1000)); 
-      if (currentPasswordInput === 'password123') { // Contraseña mock para demostración
-        // Simular envío de OTP al email del usuario
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        toast.success(`Se ha enviado un código OTP a ${user.email}. Revisa tu bandeja de entrada.`);
-        setPasswordChangeStep('otpRequested');
-      } else {
-        toast.error('Contraseña actual incorrecta.');
-      }
-    } catch (error) {
-      console.error('Error al solicitar OTP:', error);
-      toast.error('Error al solicitar el código. Inténtalo de nuevo.');
-    } finally {
-      setIsPasswordChangeLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (otpCode.length !== 6) {
-      toast.error('Por favor, introduce el código OTP de 6 dígitos.');
-      return;
-    }
-    setIsPasswordChangeLoading(true);
-    try {
-      // Simular verificación de OTP (código mock '123456')
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      if (otpCode === '123456') { // OTP mock para demostración
-        toast.success('Código OTP verificado correctamente.');
-        setPasswordChangeStep('otpVerified');
-        setShowNewPasswordFields(true);
-      } else {
-        toast.error('Código OTP inválido. Vuelve a intentarlo.');
-      }
-    } catch (error) {
-      console.error('Error al verificar OTP:', error);
-      toast.error('Hubo un problema al verificar el código. Vuelve a intentarlo.');
-    } finally {
-      setIsPasswordChangeLoading(false);
-    }
-  };
-
-  const handleSetNewPassword = async () => {
-    if (newPasswordInput.length < 6) {
-      toast.error('La nueva contraseña debe tener al menos 6 caracteres.');
+    if (newPasswordInput.length < 8) {
+      toast.error('La nueva contraseña debe tener al menos 8 caracteres.');
       return;
     }
     if (newPasswordInput !== confirmNewPasswordInput) {
       toast.error('Las contraseñas no coinciden.');
       return;
     }
+
     setIsPasswordChangeLoading(true);
     try {
-      // Simular actualización de contraseña (en un entorno real, esto sería una llamada a la API)
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toast.success('Contraseña actualizada con éxito.');
-      // Resetear el flujo
-      setPasswordChangeStep('initial');
-      setCurrentPasswordInput('');
-      setNewPasswordInput('');
-      setConfirmNewPasswordInput('');
-      setOtpCode('');
-      setShowNewPasswordFields(false);
+      const response = await fetch('http://localhost:8000/api/auth/change-password/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+        body: JSON.stringify({
+          current_password: currentPasswordInput,
+          new_password: newPasswordInput,
+          new_password_confirm: confirmNewPasswordInput,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Contraseña actualizada con éxito.');
+        // Resetear campos
+        setCurrentPasswordInput('');
+        setNewPasswordInput('');
+        setConfirmNewPasswordInput('');
+        setShowCurrentPassword(false);
+        setShowNewPasswordFields(false);
+      } else {
+        // Manejar errores específicos
+        if (data.current_password) {
+          toast.error(data.current_password[0] || 'Contraseña actual incorrecta.');
+        } else if (data.new_password) {
+          toast.error(data.new_password[0] || 'La nueva contraseña no cumple los requisitos.');
+        } else if (data.new_password_confirm) {
+          toast.error(data.new_password_confirm[0] || 'Las contraseñas no coinciden.');
+        } else {
+          toast.error('Error al cambiar la contraseña. Inténtalo de nuevo.');
+        }
+      }
     } catch (error) {
-      console.error('Error al restablecer contraseña:', error);
-      toast.error('Error al restablecer la contraseña. Inténtalo de nuevo.');
+      console.error('Error al cambiar contraseña:', error);
+      toast.error('Error de conexión. Verifica que el servidor esté corriendo.');
     } finally {
       setIsPasswordChangeLoading(false);
     }
@@ -473,114 +453,104 @@ export default function SettingsPage() {
                     {/* Password Section */}
                     <div className="border-t border-white/10 pt-6">
                       <h3 className="text-lg font-medium text-white mb-4">Cambiar Contraseña</h3>
-                      {passwordChangeStep === 'initial' && (
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Contraseña Actual
-                            </label>
-                            <div className="relative">
-                              <Input
-                                type={showCurrentPassword ? 'text' : 'password'}
-                                name="currentPassword"
-                                value={currentPasswordInput}
-                                onChange={(e) => setCurrentPasswordInput(e.target.value)}
-                                className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
-                                disabled={isPasswordChangeLoading}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white p-1"
-                              >
-                                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                              </button>
-                            </div>
-                          </div>
-                          <CyberButton onClick={handleRequestOtp} disabled={isPasswordChangeLoading || !currentPasswordInput.trim()}>
-                            {isPasswordChangeLoading ? 'Enviando...' : <><Mail size={16} className="mr-2" /> Solicitar Código</>}
-                          </CyberButton>
-                        </div>
-                      )}
-
-                      {passwordChangeStep === 'otpRequested' && (
-                        <div className="space-y-4">
-                          <p className="text-gray-400 text-sm">Se ha enviado un código a tu email ({user.email}). Introdúcelo a continuación.</p>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Código OTP
-                            </label>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Contraseña Actual
+                          </label>
+                          <div className="relative">
                             <Input
-                              type="text"
-                              name="otpCode"
-                              value={otpCode}
-                              onChange={(e) => setOtpCode(e.target.value)}
-                              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
-                              placeholder="XXXXXX"
-                              maxLength={6}
+                              type={showCurrentPassword ? 'text' : 'password'}
+                              name="currentPassword"
+                              value={currentPasswordInput}
+                              onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                              className="w-full pl-4 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
+                              placeholder="Introduce tu contraseña actual"
                               disabled={isPasswordChangeLoading}
                             />
+                            <button
+                              type="button"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", zIndex: 10 }} className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                            >
+                              {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                           </div>
-                          <CyberButton onClick={handleVerifyOtp} disabled={isPasswordChangeLoading || otpCode.length !== 6}>
-                            {isPasswordChangeLoading ? 'Verificando...' : <><Check size={16} className="mr-2" /> Verificar Código</>}
-                          </CyberButton>
                         </div>
-                      )}
 
-                      {passwordChangeStep === 'otpVerified' && (
-                        <div className="space-y-4">
-                          <p className="text-neon-green text-sm">Código verificado. Ahora puedes establecer tu nueva contraseña.</p>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Nueva Contraseña
-                            </label>
-                            <div className="relative">
-                              <Input
-                                type={showNewPasswordFields ? 'text' : 'password'}
-                                name="newPassword"
-                                value={newPasswordInput}
-                                onChange={(e) => setNewPasswordInput(e.target.value)}
-                                className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
-                                placeholder="••••••••"
-                                disabled={isPasswordChangeLoading}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowNewPasswordFields(!showNewPasswordFields)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white p-1"
-                              >
-                                {showNewPasswordFields ? <EyeOff size={18} /> : <Eye size={18} />}
-                              </button>
-                            </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Nueva Contraseña
+                          </label>
+                          <div className="relative">
+                            <Input
+                              type={showNewPasswordFields ? 'text' : 'password'}
+                              name="newPassword"
+                              value={newPasswordInput}
+                              onChange={(e) => setNewPasswordInput(e.target.value)}
+                              className="w-full pl-4 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
+                              placeholder="Mínimo 8 caracteres"
+                              disabled={isPasswordChangeLoading}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPasswordFields(!showNewPasswordFields)}
+                              style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", zIndex: 10 }} className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                            >
+                              {showNewPasswordFields ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Confirmar Nueva Contraseña
-                            </label>
-                            <div className="relative">
-                              <Input
-                                type={showNewPasswordFields ? 'text' : 'password'}
-                                name="confirmNewPassword"
-                                value={confirmNewPasswordInput}
-                                onChange={(e) => setConfirmNewPasswordInput(e.target.value)}
-                                className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
-                                placeholder="••••••••"
-                                disabled={isPasswordChangeLoading}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowNewPasswordFields(!showNewPasswordFields)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white p-1"
-                              >
-                                {showNewPasswordFields ? <EyeOff size={18} /> : <Eye size={18} />}
-                              </button>
-                            </div>
-                          </div>
-                          <CyberButton onClick={handleSetNewPassword} disabled={isPasswordChangeLoading || newPasswordInput.length < 6 || newPasswordInput !== confirmNewPasswordInput}>
-                            {isPasswordChangeLoading ? 'Guardando...' : <><Lock size={16} className="mr-2" /> Guardar Nueva Contraseña</>}
-                          </CyberButton>
+                          <p className="text-xs text-gray-400 mt-1">
+                            La contraseña debe tener al menos 8 caracteres
+                          </p>
                         </div>
-                      )}
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Confirmar Nueva Contraseña
+                          </label>
+                          <div className="relative">
+                            <Input
+                              type={showNewPasswordFields ? 'text' : 'password'}
+                              name="confirmNewPassword"
+                              value={confirmNewPasswordInput}
+                              onChange={(e) => setConfirmNewPasswordInput(e.target.value)}
+                              className="w-full pl-4 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neon-green/50"
+                              placeholder="Repite la nueva contraseña"
+                              disabled={isPasswordChangeLoading}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPasswordFields(!showNewPasswordFields)}
+                              style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", zIndex: 10 }} className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                            >
+                              {showNewPasswordFields ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <CyberButton 
+                          onClick={handleChangePassword} 
+                          disabled={
+                            isPasswordChangeLoading || 
+                            !currentPasswordInput.trim() || 
+                            newPasswordInput.length < 8 || 
+                            newPasswordInput !== confirmNewPasswordInput
+                          }
+                        >
+                          {isPasswordChangeLoading ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                              Cambiando...
+                            </>
+                          ) : (
+                            <>
+                              <Lock size={16} className="mr-2" /> 
+                              Cambiar Contraseña
+                            </>
+                          )}
+                        </CyberButton>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -923,3 +893,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+

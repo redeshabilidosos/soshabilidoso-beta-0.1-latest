@@ -5,7 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SOS-HABILIDOSO | La Red Social de las Habilidades - Próximo Lanzamiento</title>
     <meta name="description" content="La red social futurista para compartir y monetizar tus habilidades. Fútbol, música, arte, tecnología y más. Conecta con miles de personas en el mundo.">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SOS Habilidoso">
+    
+    <!-- Icons -->
     <link rel="icon" href="./logososbetav1.png" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo-favicon.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon512_rounded.png">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -33,6 +47,10 @@
                 <a href="#contacto" class="nav-link">Contacto</a>
             </nav>
             <div class="header-actions">
+                <a href="/login" class="btn-download-app" id="btn-download-app-header">
+                    <i class="fas fa-download"></i>
+                    <span>Descargar App</span>
+                </a>
                 <button class="mobile-menu-toggle" id="mobile-menu-toggle">
                     <span class="hamburger-line"></span>
                     <span class="hamburger-line"></span>
@@ -833,6 +851,41 @@
     </section>
     FIN SECCIÓN COMENTADA - COUNTDOWN YA DISPONIBLE -->
 
+    <!-- Sección de Descarga de Apps -->
+    <section class="download-apps">
+        <div class="container">
+            <div class="download-content">
+                <div class="download-text">
+                    <h2 class="download-title">Descarga la App</h2>
+                    <p class="download-subtitle">Disponible para todos tus dispositivos</p>
+                    <p class="download-description">
+                        Instala SOS-HABILIDOSO en tu móvil, tablet u ordenador y lleva tu talento a todas partes.
+                    </p>
+                </div>
+                <div class="download-buttons">
+                    <a href="/login" class="btn-store android" id="btn-download-android">
+                        <div class="store-icon">
+                            <i class="fab fa-android"></i>
+                        </div>
+                        <div class="store-text">
+                            <span class="store-label">Disponible en</span>
+                            <span class="store-name">Android</span>
+                        </div>
+                    </a>
+                    <a href="/login" class="btn-store ios" id="btn-download-ios">
+                        <div class="store-icon">
+                            <i class="fab fa-apple"></i>
+                        </div>
+                        <div class="store-text">
+                            <span class="store-label">Disponible en</span>
+                            <span class="store-name">iOS</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -901,6 +954,23 @@
         </div>
     </div>
 
-    <script src="index-script.js"></script>
+    <script src="landing-script.js"></script>
+    
+    <!-- Registro del Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('✓ Service Worker registrado:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('✗ Error al registrar Service Worker:', error);
+                    });
+            });
+        } else {
+            console.log('✗ Service Worker no soportado en este navegador');
+        }
+    </script>
 </body>
 </html>

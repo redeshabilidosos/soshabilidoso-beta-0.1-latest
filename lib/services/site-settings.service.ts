@@ -1,4 +1,4 @@
-import api from './api';
+import { api } from '../api-client';
 
 export interface SiteSettings {
   show_register_habilidosos_button: boolean;
@@ -10,8 +10,8 @@ class SiteSettingsService {
    * Obtener las configuraciones del sitio
    */
   async getSettings(): Promise<SiteSettings> {
-    const response = await api.get<SiteSettings>('/site-settings/');
-    return response.data;
+    const response = await api.get<{ data: SiteSettings }>('/site-settings/');
+    return response.data as any;
   }
 }
 

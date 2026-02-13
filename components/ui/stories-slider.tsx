@@ -654,7 +654,7 @@ const StoryViewer = ({
     avatar: currentUser.user.avatar,
     email: '',
     createdAt: new Date().toISOString(),
-  } : null;
+  } as User : null;
 
   if (!currentStory) return null;
 
@@ -891,7 +891,7 @@ const StoryViewer = ({
                       onEmojiClick={handleEmojiClick}
                       width={320}
                       height={400}
-                      theme="dark"
+                      theme={"dark" as any}
                       searchPlaceHolder="Buscar emoji..."
                       previewConfig={{ showPreview: false }}
                     />

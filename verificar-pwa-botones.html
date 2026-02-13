@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación PWA - Botones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border: 2px solid #10b981;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background: #0ea5e9;
+        }
+        .log {
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .info { color: #0ea5e9; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Verificación de Botones PWA</h1>
+    
+    <div class="test-section">
+        <h2>1. Estado de PWA</h2>
+        <div id="pwa-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Botones de Prueba</h2>
+        <button id="btn-test-1">Botón Test 1</button>
+        <button id="btn-test-2">Botón Test 2</button>
+        <button id="btn-test-3">Botón Test 3</button>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Logs</h2>
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const logDiv = document.getElementById('log');
+        const statusDiv = document.getElementById('pwa-status');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            logDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        // Verificar estado PWA
+        function checkPWAStatus() {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            const isHTTPS = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+            const hasServiceWorker = 'serviceWorker' in navigator;
+            
+            let html = '<ul>';
+            html += `<li class="${isHTTPS ? 'success' : 'error'}">HTTPS/Localhost: ${isHTTPS ? '✓' : '✗'}</li>`;
+            html += `<li class="${hasServiceWorker ? 'success' : 'error'}">Service Worker Support: ${hasServiceWorker ? '✓' : '✗'}</li>`;
+            html += `<li class="${isStandalone ? 'info' : 'success'}">Ya instalada: ${isStandalone ? 'Sí' : 'No'}</li>`;
+            html += '</ul>';
+            
+            statusDiv.innerHTML = html;
+            
+            log('Estado PWA verificado', 'success');
+            log(`HTTPS: ${isHTTPS}`, isHTTPS ? 'success' : 'error');
+            log(`Service Worker: ${hasServiceWorker}`, hasServiceWorker ? 'success' : 'error');
+            log(`Instalada: ${isStandalone}`, 'info');
+        }
+
+        // Variable para el prompt
+        let deferredPrompt;
+
+        // Capturar beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            log('✓ beforeinstallprompt capturado!', 'success');
+            e.preventDefault();
+            deferredPrompt = e;
+            log('Prompt guardado, botones listos', 'success');
+        });
+
+        // Función de instalación
+        async function handleInstall(source) {
+            log(`Botón ${source} clickeado`, 'info');
+            
+            if (!deferredPrompt) {
+                log('✗ No hay prompt disponible', 'error');
+                log('Posibles razones:', 'info');
+                log('1. La PWA ya está instalada', 'info');
+                log('2. No estás en HTTPS/localhost', 'info');
+                log('3. Falta manifest.json o service worker', 'info');
+                log('4. El navegador no soporta PWA', 'info');
+                return;
+            }
+            
+            log('Mostrando prompt de instalación...', 'info');
+            deferredPrompt.prompt();
+            
+            const { outcome } = await deferredPrompt.userChoice;
+            log(`Usuario respondió: ${outcome}`, outcome === 'accepted' ? 'success' : 'info');
+            
+            deferredPrompt = null;
+        }
+
+        // Agregar listeners
+        document.getElementById('btn-test-1').addEventListener('click', () => handleInstall('Test 1'));
+        document.getElementById('btn-test-2').addEventListener('click', () => handleInstall('Test 2'));
+        document.getElementById('btn-test-3').addEventListener('click', () => handleInstall('Test 3'));
+
+        // Detectar instalación exitosa
+        window.addEventListener('appinstalled', () => {
+            log('✓ ¡App instalada exitosamente!', 'success');
+        });
+
+        // Inicializar
+        checkPWAStatus();
+        log('Script de verificación cargado', 'success');
+        log('Esperando evento beforeinstallprompt...', 'info');
+    </script>
+</body>
+</html>

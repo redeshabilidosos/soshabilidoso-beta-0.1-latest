@@ -9,6 +9,9 @@ import { AthleteProfileDetail } from '@/components/donations/athlete-profile-det
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { getAthleteById, transformAthleteForDetail } from '@/lib/api/donations';
 
+// Forzar renderizado dinámico para evitar error en build
+export const dynamic = 'force-dynamic';
+
 export default function AthleteProfilePage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();

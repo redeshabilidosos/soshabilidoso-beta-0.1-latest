@@ -266,7 +266,7 @@ export class AuthService {
     
     console.log('✅ [AUTH SERVICE] Respuesta del servidor:', response);
     
-    return response;
+    return response as { avatar_url: string; user?: User };
   }
 
   // Subir foto de portada
@@ -290,7 +290,7 @@ export class AuthService {
     
     console.log('✅ [AUTH SERVICE] Respuesta del servidor:', response);
     
-    return response;
+    return response as { cover_photo_url: string; user?: User };
   }
 }
 

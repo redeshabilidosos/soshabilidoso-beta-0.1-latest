@@ -268,10 +268,6 @@ const nextConfig = {
       '@radix-ui/react-avatar',
       'sonner',
     ],
-    // Optimizar servidor
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
   },
   
   // Prefetch más agresivo para navegación instantánea

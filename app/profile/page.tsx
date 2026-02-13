@@ -1084,7 +1084,7 @@ export default function ProfilePage() {
 
       {/* Dialogs */}
       {user && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><Skeleton className="w-96 h-96" /></div>}>
+        <Suspense fallback={null}>
           <UpdateCoverPhotoDialog
             isOpen={isCoverPhotoDialogOpen}
             onClose={() => setIsCoverPhotoDialogOpen(false)}

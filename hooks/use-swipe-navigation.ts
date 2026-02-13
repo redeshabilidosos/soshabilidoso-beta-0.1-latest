@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { animate } from 'animejs';
+import * as anime from 'animejs';
 
 // Orden de navegación de las tabs principales
 const navigationOrder = [
@@ -39,7 +39,7 @@ export function useSwipeNavigation() {
     const hand = document.getElementById('swipe-hint-hand');
     if (!hand) return;
 
-    animate({
+    (anime as any)({
       targets: hand,
       translateX: [0, -150, 0],
       opacity: [0, 1, 1, 0],

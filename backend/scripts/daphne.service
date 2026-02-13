@@ -1,0 +1,15 @@
+[Unit]
+Description=Daphne daemon for SOS-HABILIDOSO WebSockets
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/var/www/soshabilidoso/backend
+ExecStart=/var/www/soshabilidoso/backend/venv/bin/daphne \
+          -b 0.0.0.0 \
+          -p 8001 \
+          sos_habilidoso.asgi:application
+
+[Install]
+WantedBy=multi-user.target

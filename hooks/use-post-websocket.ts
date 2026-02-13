@@ -119,7 +119,7 @@ export const usePostWebSocket = (postId: string | null): UsePostWebSocketReturn 
       console.error('Error creando WebSocket del post:', error);
       setConnectionError('Error al establecer conexión');
     }
-  }, [user, token, postId]);
+  }, [user, postId]);
 
   const disconnect = useCallback(() => {
     // Limpiar timeouts e intervals

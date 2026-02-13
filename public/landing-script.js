@@ -1,82 +1,122 @@
 // Partículas en Canvas
 const canvas = document.getElementById('particles-canvas');
-const ctx = canvas.getContext('2d');
+console.log('Canvas element:', canvas);
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-const particles = [];
-const particleCount = 100;
-
-class Particle {
-    constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 3 + 1;
-        this.speedX = Math.random() * 1 - 0.5;
-        this.speedY = Math.random() * 1 - 0.5;
-        this.color = Math.random() > 0.5 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(14, 165, 233, 0.8)';
-    }
-
-    update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-
-        if (this.x > canvas.width) this.x = 0;
-        if (this.x < 0) this.x = canvas.width;
-        if (this.y > canvas.height) this.y = 0;
-        if (this.y < 0) this.y = canvas.height;
-    }
-
-    draw() {
-        // Partícula con brillo
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = this.color;
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
-}
-
-function initParticles() {
-    for (let i = 0; i < particleCount; i++) {
-        particles.push(new Particle());
-    }
-}
-
-function animateParticles() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+if (!canvas) {
+    console.error('Canvas element not found!');
+} else {
+    const ctx = canvas.getContext('2d');
+    console.log('Canvas context:', ctx);
     
-    particles.forEach(particle => {
-        particle.update();
-        particle.draw();
-    });
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
+}
 
-    // Conectar partículas cercanas
-    for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-            const dx = particles[i].x - particles[j].x;
-            const dy = particles[i].y - particles[j].y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+if (!canvas) {
+    console.error('Canvas element not found!');
+} else {
+    const ctx = canvas.getContext('2d');
+    console.log('Canvas context:', ctx);
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
 
-            if (distance < 120) {
-                const opacity = 1 - distance / 120;
-                ctx.strokeStyle = `rgba(16, 185, 129, ${opacity * 0.5})`;
-                ctx.lineWidth = 1;
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = 'rgba(16, 185, 129, 0.5)';
-                ctx.beginPath();
-                ctx.moveTo(particles[i].x, particles[i].y);
-                ctx.lineTo(particles[j].x, particles[j].y);
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-            }
+    const particles = [];
+    const particleCount = 100;
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 3 + 1;
+            this.speedX = Math.random() * 1 - 0.5;
+            this.speedY = Math.random() * 1 - 0.5;
+            this.color = Math.random() > 0.5 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(14, 165, 233, 0.8)';
+        }
+
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+
+            if (this.x > canvas.width) this.x = 0;
+            if (this.x < 0) this.x = canvas.width;
+            if (this.y > canvas.height) this.y = 0;
+            if (this.y < 0) this.y = canvas.height;
+        }
+
+        draw() {
+            // Partícula con brillo
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
         }
     }
 
-    requestAnimationFrame(animateParticles);
+    function initParticles() {
+        console.log('Initializing particles...');
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+        console.log('Particles initialized:', particles.length);
+    }
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        particles.forEach(particle => {
+            particle.update();
+            particle.draw();
+        });
+
+        // Conectar partículas cercanas
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 120) {
+                    const opacity = 1 - distance / 120;
+                    ctx.strokeStyle = `rgba(16, 185, 129, ${opacity * 0.5})`;
+                    ctx.lineWidth = 1;
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = 'rgba(16, 185, 129, 0.5)';
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+
+        requestAnimationFrame(animateParticles);
+    }
+
+    // Resize canvas
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+    // Inicializar partículas cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, starting particles...');
+            initParticles();
+            animateParticles();
+        });
+    } else {
+        console.log('DOM already loaded, starting particles...');
+        initParticles();
+        animateParticles();
+    }
 }
 
 // Estrellas mejoradas
@@ -245,18 +285,28 @@ const btnDemo = document.getElementById('btn-demo');
 const modalClose = document.getElementById('modal-close');
 
 function openModal() {
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function closeModal() {
-    modal.classList.remove('active');
-    document.body.style.overflow = 'auto';
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
 }
 
-btnRegister.addEventListener('click', openModal);
-btnEarlyAccess.addEventListener('click', openModal);
-modalClose.addEventListener('click', closeModal);
+if (btnRegister) {
+    btnRegister.addEventListener('click', openModal);
+}
+if (btnEarlyAccess) {
+    btnEarlyAccess.addEventListener('click', openModal);
+}
+if (modalClose) {
+    modalClose.addEventListener('click', closeModal);
+}
 
 // Botón Reality
 const btnReality = document.getElementById('btn-reality');
@@ -457,12 +507,84 @@ document.addEventListener('keydown', (e) => {
 
 // Inicializar todo
 window.addEventListener('load', () => {
+    console.log('🚀 === INICIO DE CARGA ===');
+    
     initParticles();
     animateParticles();
     createStars();
     animateStats();
     updateCountdown();
     updateLaunchCountdown(); // Nuevo contador de lanzamiento
+    
+    // Inicializar botones PWA
+    console.log('🔍 Buscando botones PWA...');
+    installButtonHeader = document.getElementById('btn-download-app-header');
+    installButtonAndroid = document.getElementById('btn-download-android');
+    installButtonIOS = document.getElementById('btn-download-ios');
+    
+    console.log('📱 PWA: Buttons initialized:', {
+        header: installButtonHeader ? '✓ Encontrado' : '✗ NO encontrado',
+        android: installButtonAndroid ? '✓ Encontrado' : '✗ NO encontrado',
+        ios: installButtonIOS ? '✓ Encontrado' : '✗ NO encontrado'
+    });
+    
+    console.log('🔧 Estado PWA:', {
+        isStandalone: window.matchMedia('(display-mode: standalone)').matches,
+        hasServiceWorker: 'serviceWorker' in navigator,
+        deferredPrompt: deferredPrompt ? 'Disponible' : 'No disponible',
+        userAgent: navigator.userAgent
+    });
+    
+    // Agregar event listeners a todos los botones PWA
+    if (installButtonHeader) {
+        installButtonHeader.addEventListener('click', (e) => {
+            console.log('🖱️ CLICK en botón HEADER');
+            // Si no hay prompt disponible, dejar que el enlace funcione normalmente
+            if (deferredPrompt) {
+                e.preventDefault(); // Solo prevenir si vamos a mostrar el prompt
+                handleInstall(installButtonHeader, 'header');
+            } else {
+                console.log('🔗 Dejando que el enlace funcione normalmente (abrirá la PWA si está instalada)');
+            }
+        });
+        console.log('✓ PWA: Header button listener added');
+    } else {
+        console.warn('⚠️ PWA: Header button NOT found in DOM');
+    }
+
+    if (installButtonAndroid) {
+        installButtonAndroid.addEventListener('click', (e) => {
+            console.log('🖱️ CLICK en botón ANDROID');
+            // Si no hay prompt disponible, dejar que el enlace funcione normalmente
+            if (deferredPrompt) {
+                e.preventDefault(); // Solo prevenir si vamos a mostrar el prompt
+                handleInstall(installButtonAndroid, 'android');
+            } else {
+                console.log('🔗 Dejando que el enlace funcione normalmente (abrirá la PWA si está instalada)');
+            }
+        });
+        console.log('✓ PWA: Android button listener added');
+    } else {
+        console.warn('⚠️ PWA: Android button NOT found in DOM');
+    }
+
+    if (installButtonIOS) {
+        installButtonIOS.addEventListener('click', (e) => {
+            console.log('🖱️ CLICK en botón iOS');
+            // Si no hay prompt disponible, dejar que el enlace funcione normalmente
+            if (deferredPrompt) {
+                e.preventDefault(); // Solo prevenir si vamos a mostrar el prompt
+                handleInstall(installButtonIOS, 'ios');
+            } else {
+                console.log('🔗 Dejando que el enlace funcione normalmente (abrirá la PWA si está instalada)');
+            }
+        });
+        console.log('✓ PWA: iOS button listener added');
+    } else {
+        console.warn('⚠️ PWA: iOS button NOT found in DOM');
+    }
+    
+    console.log('✅ === CARGA COMPLETADA ===');
     
     // Fade in inicial
     document.body.style.opacity = '0';
@@ -480,3 +602,328 @@ document.addEventListener('gesturestart', function (e) {
 // Console message
 console.log('%c¡Hola Habilidoso! 👋', 'color: #10b981; font-size: 20px; font-weight: bold;');
 console.log('%c¿Interesado en unirte al equipo? Envíanos un email a: careers@sos-habilidoso.com', 'color: #0ea5e9; font-size: 14px;');
+
+
+// ============================================
+// PWA INSTALLATION FUNCTIONALITY
+// ============================================
+
+let deferredPrompt;
+let installButtonHeader;
+let installButtonAndroid;
+let installButtonIOS;
+
+// Detectar el evento beforeinstallprompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('\n🎉 === BEFOREINSTALLPROMPT EVENT FIRED ===');
+    console.log('📅 Timestamp:', new Date().toLocaleTimeString());
+    console.log('🎯 Event:', e);
+    
+    // Prevenir que el navegador muestre su propio prompt
+    e.preventDefault();
+    console.log('🚫 Default prompt prevented');
+    
+    // Guardar el evento para usarlo después
+    deferredPrompt = e;
+    console.log('💾 Prompt saved to deferredPrompt variable');
+    
+    console.log('✅ PWA: Install buttons ready');
+    console.log('🏁 === BEFOREINSTALLPROMPT HANDLED ===\n');
+});
+
+// Función para manejar la instalación
+async function handleInstall(buttonElement, source) {
+    console.log(`\n🎯 === HANDLE INSTALL INICIADO ===`);
+    console.log(`📍 Source: ${source}`);
+    console.log(`🔘 Button element:`, buttonElement);
+    
+    // Verificar si la app ya está instalada
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const isStandaloneIOS = window.navigator.standalone === true;
+    const isInstalled = isStandalone || isStandaloneIOS;
+    
+    console.log(`📊 Estado de instalación:`, {
+        isStandalone,
+        isStandaloneIOS,
+        isInstalled,
+        deferredPromptAvailable: !!deferredPrompt
+    });
+    
+    if (isInstalled) {
+        console.log('✅ PWA: App already installed, already running in standalone mode');
+        showNotification('¡Ya estás usando la app!', 'La aplicación ya está abierta en modo PWA', 'info');
+        console.log(`🏁 === HANDLE INSTALL FINALIZADO (ya instalada) ===\n`);
+        return;
+    }
+    
+    // Si estamos en el navegador pero la app está instalada, intentar abrirla
+    if (!deferredPrompt) {
+        console.log('⚠️ PWA: No deferred prompt available');
+        console.log('🔍 Checking if app is installed...');
+        
+        // Detectar el sistema operativo
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+        const isAndroid = /android/i.test(userAgent);
+        
+        console.log(`📱 Sistema operativo detectado:`, {
+            isIOS,
+            isAndroid,
+            userAgent: userAgent.substring(0, 50) + '...'
+        });
+        
+        // Mostrar mensaje para abrir la app instalada
+        console.log('💬 Mostrando notificación de app instalada');
+        showNotification(
+            '¡App ya instalada!', 
+            'Busca el ícono de SOS Habilidoso en tu pantalla de inicio o lista de aplicaciones para abrirla.', 
+            'info'
+        );
+        
+        // Intentar abrir la app usando el manifest start_url
+        console.log('⏳ Redirigiendo a /login en 2 segundos...');
+        setTimeout(() => {
+            console.log('🔄 Ejecutando redirección a /login');
+            window.location.href = '/login';
+        }, 2000);
+        
+        console.log(`🏁 === HANDLE INSTALL FINALIZADO (sin prompt) ===\n`);
+        return;
+    }
+    
+    // Si hay prompt disponible, mostrar instalación
+    console.log('✨ PWA: Showing install prompt...');
+    console.log('🎬 Ejecutando deferredPrompt.prompt()');
+    deferredPrompt.prompt();
+    
+    // Esperar la respuesta del usuario
+    console.log('⏳ Esperando respuesta del usuario...');
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`👤 PWA: User response: ${outcome}`);
+    
+    if (outcome === 'accepted') {
+        console.log('✅ PWA: User accepted the install prompt');
+        showNotification('¡Instalación Exitosa!', 'La app está lista en tu dispositivo', 'success');
+    } else {
+        console.log('❌ PWA: User dismissed the install prompt');
+    }
+    
+    // Limpiar el prompt
+    deferredPrompt = null;
+    console.log('🧹 Prompt limpiado');
+    console.log(`🏁 === HANDLE INSTALL FINALIZADO (con prompt) ===\n`);
+}
+
+// Detectar cuando la app se instala exitosamente
+window.addEventListener('appinstalled', (e) => {
+    console.log('PWA: App installed successfully');
+    showNotification('¡Instalación Exitosa!', 'La app está lista en tu dispositivo', 'success');
+    deferredPrompt = null;
+});
+
+// Función para mostrar notificaciones
+function showNotification(title, message, type = 'success') {
+    const notification = document.createElement('div');
+    
+    let icon = '<i class="fas fa-check-circle"></i>';
+    let gradient = 'linear-gradient(135deg, #10b981, #0ea5e9)';
+    
+    if (type === 'info') {
+        icon = '<i class="fas fa-info-circle"></i>';
+        gradient = 'linear-gradient(135deg, #0ea5e9, #3b82f6)';
+    } else if (type === 'warning') {
+        icon = '<i class="fas fa-exclamation-circle"></i>';
+        gradient = 'linear-gradient(135deg, #f59e0b, #ef4444)';
+    }
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: ${gradient};
+        color: white;
+        padding: 20px 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+        z-index: 10000;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        animation: slideInRight 0.5s ease;
+        max-width: 350px;
+    `;
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-size: 24px;">${icon}</div>
+            <div>
+                <div style="font-size: 16px; margin-bottom: 5px;">${title}</div>
+                <div style="font-size: 13px; opacity: 0.9;">${message}</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remover después de 5 segundos
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.5s ease';
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 500);
+    }, 5000);
+}
+
+// Función para mostrar instrucciones de iOS
+function showIOSInstructions() {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 10001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        ">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <i class="fab fa-apple" style="font-size: 48px; color: #0ea5e9; margin-bottom: 20px;"></i>
+                <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 10px; color: white;">Instalar en iOS</h2>
+                <p style="color: #9ca3af; font-size: 14px;">Sigue estos pasos para instalar la app:</p>
+            </div>
+            <div style="color: white; line-height: 1.8; margin-bottom: 30px;">
+                <div style="display: flex; align-items: start; gap: 15px; margin-bottom: 20px;">
+                    <div style="
+                        background: linear-gradient(135deg, #10b981, #0ea5e9);
+                        width: 30px;
+                        height: 30px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                        font-weight: 700;
+                    ">1</div>
+                    <div>
+                        <strong>Toca el botón de compartir</strong> <i class="fas fa-share" style="color: #0ea5e9;"></i> en la barra inferior de Safari
+                    </div>
+                </div>
+                <div style="display: flex; align-items: start; gap: 15px; margin-bottom: 20px;">
+                    <div style="
+                        background: linear-gradient(135deg, #10b981, #0ea5e9);
+                        width: 30px;
+                        height: 30px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                        font-weight: 700;
+                    ">2</div>
+                    <div>
+                        Desplázate y selecciona <strong>"Agregar a pantalla de inicio"</strong> <i class="fas fa-plus-square" style="color: #0ea5e9;"></i>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: start; gap: 15px;">
+                    <div style="
+                        background: linear-gradient(135deg, #10b981, #0ea5e9);
+                        width: 30px;
+                        height: 30px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                        font-weight: 700;
+                    ">3</div>
+                    <div>
+                        Toca <strong>"Agregar"</strong> en la esquina superior derecha
+                    </div>
+                </div>
+            </div>
+            <button onclick="this.closest('div').parentElement.remove()" style="
+                width: 100%;
+                padding: 15px;
+                background: linear-gradient(135deg, #10b981, #0ea5e9);
+                border: none;
+                border-radius: 12px;
+                color: white;
+                font-weight: 600;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s;
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 30px rgba(16, 185, 129, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                Entendido
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Cerrar al hacer clic fuera
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// Agregar animaciones CSS si no existen
+if (!document.getElementById('pwa-animations')) {
+    const style = document.createElement('style');
+    style.id = 'pwa-animations';
+    style.textContent = `
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Log para debugging
+console.log('PWA: Installation script loaded');
+console.log('PWA: Waiting for DOM to initialize buttons...');

@@ -63,7 +63,7 @@ export const enterprisesService = {
     params.append('page', page.toString());
     
     try {
-      const response = await api.get(`/enterprises/?${params.toString()}`);
+      const response = await api.get(`/enterprises/?${params.toString()}`) as any;
       return {
         results: response.results || response,
         count: response.count || response.length,
@@ -93,8 +93,8 @@ export const enterprisesService = {
 
   // Obtener mis empresas
   async getMyEnterprises(): Promise<Enterprise[]> {
-    const response = await api.get('/enterprises/my_enterprises/');
-    return response;
+    const response = await api.get('/enterprises/my_enterprises/') as any;
+    return response as Enterprise[];
   },
 
   // Seguir empresa

@@ -319,6 +319,43 @@ body::before {
     gap: 10px;
 }
 
+/* Botón Descargar App en Header */
+.btn-download-app {
+    background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+    color: var(--text-white);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-download-app:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.5);
+}
+
+.btn-download-app i {
+    font-size: 16px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
 .btn-block {
     width: 100%;
 }
@@ -1963,6 +2000,115 @@ body::before {
     color: var(--text-gray);
 }
 
+/* Sección de Descarga de Apps */
+.download-apps {
+    padding: 80px 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(14, 165, 233, 0.05));
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.download-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+}
+
+.download-text {
+    flex: 1;
+}
+
+.download-title {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.download-subtitle {
+    font-size: 20px;
+    color: var(--text-gray);
+    margin-bottom: 20px;
+}
+
+.download-description {
+    font-size: 16px;
+    color: var(--text-gray);
+    line-height: 1.6;
+}
+
+.download-buttons {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.btn-store {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 30px;
+    border-radius: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(26, 26, 46, 0.6);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 200px;
+}
+
+.btn-store:hover {
+    transform: translateY(-5px);
+    border-color: var(--neon-green);
+    background: rgba(16, 185, 129, 0.1);
+    box-shadow: 0 15px 40px rgba(16, 185, 129, 0.3);
+}
+
+.btn-store.android:hover {
+    border-color: #3DDC84;
+    box-shadow: 0 15px 40px rgba(61, 220, 132, 0.3);
+}
+
+.btn-store.ios:hover {
+    border-color: #0ea5e9;
+    box-shadow: 0 15px 40px rgba(14, 165, 233, 0.3);
+}
+
+.store-icon {
+    font-size: 48px;
+}
+
+.btn-store.android .store-icon {
+    color: #3DDC84;
+}
+
+.btn-store.ios .store-icon {
+    color: #0ea5e9;
+}
+
+.store-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.store-label {
+    font-size: 12px;
+    color: var(--text-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.store-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-white);
+}
+
 /* Footer */
 .footer {
     padding: 60px 0 30px;
@@ -2177,6 +2323,21 @@ body::before {
         backdrop-filter: blur(15px);
     }
     
+    /* Botón Descargar App en móvil */
+    .btn-download-app {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    
+    .btn-download-app span {
+        display: none;
+    }
+    
+    .btn-download-app i {
+        font-size: 18px;
+        margin: 0;
+    }
+    
     body {
         padding-top: 70px; /* Ajustar padding para móvil */
     }
@@ -2288,6 +2449,31 @@ body::before {
     
     .footer-content {
         gap: 30px;
+    }
+    
+    /* Sección de Descarga en móvil */
+    .download-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 40px;
+    }
+    
+    .download-title {
+        font-size: 32px;
+    }
+    
+    .download-subtitle {
+        font-size: 18px;
+    }
+    
+    .download-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-store {
+        width: 100%;
+        justify-content: center;
     }
     
     .footer-logo {

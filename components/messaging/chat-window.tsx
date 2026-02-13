@@ -1686,7 +1686,11 @@ function ShareMessageDialog({
                 <div className="flex-1 text-left min-w-0">
                   <p className="font-medium text-white truncate">{getChatDisplayName(chat)}</p>
                   {chat.last_message && (
-                    <p className="text-xs text-gray-400 truncate">{chat.last_message}</p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {typeof chat.last_message === 'string' 
+                        ? chat.last_message 
+                        : chat.last_message.content || 'Mensaje'}
+                    </p>
                   )}
                 </div>
                 {selectedChats.has(chat.id) && (

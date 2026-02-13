@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hand, X, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { animate } from 'animejs';
+// @ts-ignore - animejs doesn't have proper TypeScript types
+const anime = require('animejs');
 
 export function GestureTutorial() {
   const [show, setShow] = useState(false);
@@ -41,7 +42,7 @@ export function GestureTutorial() {
     if (!hand) return;
 
     // Animación de deslizamiento continuo
-    animate({
+    (anime as any).default({
       targets: hand,
       translateX: [100, -150, 100],
       opacity: [0, 1, 1, 1, 0],

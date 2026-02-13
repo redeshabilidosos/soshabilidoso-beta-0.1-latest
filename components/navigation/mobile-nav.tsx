@@ -195,7 +195,7 @@ export const MobileNav = memo(function MobileNav() {
         backgroundColor: 'rgba(255, 0, 0, 0.5)' // ROJO para debugging
       }}
     >
-      {console.log('🎨 Renderizando dropdown, estado:', modals.dropdown)}
+      {/* Debug: Renderizando dropdown, estado: {modals.dropdown ? 'abierto' : 'cerrado'} */}
       
       {/* Overlay */}
       <div 

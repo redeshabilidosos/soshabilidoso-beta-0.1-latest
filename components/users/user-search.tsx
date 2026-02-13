@@ -454,10 +454,10 @@ export function UserSearch({ onUserSelect, onMessageUser }: UserSearchProps) {
                           <div className="flex items-center gap-1">
                             <span>{enterprise.posts_count} publicaciones</span>
                           </div>
-                          {enterprise.rating > 0 && (
+                          {(enterprise as any).rating > 0 && (
                             <div className="flex items-center gap-1">
-                              <span>⭐ {enterprise.rating.toFixed(1)}</span>
-                              <span className="text-xs">({enterprise.reviews_count})</span>
+                              <span>⭐ {(enterprise as any).rating.toFixed(1)}</span>
+                              <span className="text-xs">({(enterprise as any).reviews_count})</span>
                             </div>
                           )}
                         </div>

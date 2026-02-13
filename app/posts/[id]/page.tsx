@@ -1,5 +1,8 @@
 'use client';
 
+// Forzar renderizado dinámico para evitar error en build
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/components/providers/providers';

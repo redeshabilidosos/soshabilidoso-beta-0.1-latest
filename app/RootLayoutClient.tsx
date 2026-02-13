@@ -14,7 +14,7 @@ import { menuConfigService } from '@/lib/services/menu-config';
 import { RoutePrefetcher } from '@/components/navigation/route-prefetcher';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { SwipeHint } from '@/components/navigation/swipe-hint';
-import { GestureTutorial } from '@/components/tutorial/gesture-tutorial';
+// import { GestureTutorial } from '@/components/tutorial/gesture-tutorial'; // TEMPORALMENTE DESHABILITADO
 
 // Lazy loading de componentes flotantes
 const FloatingChatButton = lazy(() => import('@/components/ui/floating-chat-button'));
@@ -24,8 +24,8 @@ const FloatingLogoAndMenuButton = lazy(() =>
 const InstallPWAPrompt = lazy(() => 
   import('@/components/ui/install-pwa-prompt').then(m => ({ default: m.InstallPWAPrompt }))
 );
-const ParticleBackground = lazy(() => 
-  import('@/components/ui/particle-background').then(m => ({ default: m.ParticleBackground }))
+const OptimizedBackground = lazy(() => 
+  import('@/components/ui/optimized-background').then(m => ({ default: m.OptimizedBackground }))
 );
 
 interface RootLayoutClientProps {
@@ -47,8 +47,8 @@ export const RootLayoutClient = memo(function RootLayoutClient({ children }: Roo
   // Ocultar botones flotantes en la página de mensajes
   const hideFloatingButtons = pathname?.startsWith('/messages');
   
-  // Habilitar fondo de partículas en todas las páginas excepto comunidades
-  const showParticles = !pathname?.startsWith('/communities');
+  // Habilitar fondo optimizado en todas las páginas
+  const showBackground = true;
 
   useEffect(() => {
     setIsMounted(true);
@@ -77,16 +77,16 @@ export const RootLayoutClient = memo(function RootLayoutClient({ children }: Roo
     <Providers>
       <TutorialProvider>
         <BackgroundColorProvider />
-        {/* Fondo de partículas animadas */}
-        {isMounted && showParticles && (
+        {/* Fondo optimizado con anime.js */}
+        {isMounted && showBackground && (
           <Suspense fallback={null}>
-            <ParticleBackground />
+            <OptimizedBackground />
           </Suspense>
         )}
         {/* Hint de swipe navigation */}
         {isMounted && <SwipeHint show={showSwipeHint} />}
-        {/* Tutorial de gestos (solo móvil/tablet) */}
-        {isMounted && <GestureTutorial />}
+        {/* Tutorial de gestos (solo móvil/tablet) - TEMPORALMENTE DESHABILITADO POR ERROR DE BUILD */}
+        {/* {isMounted && <GestureTutorial />} */}
         <div className="min-h-screen relative" style={{ zIndex: 10 }}>
           <ProtectedRoute>
             {children}

@@ -129,7 +129,7 @@ export const useFeedWebSocket = (): UseFeedWebSocketReturn => {
       console.error('Error creando WebSocket:', error);
       setConnectionError('Error al establecer conexión');
     }
-  }, [user, token]);
+  }, [user]);
 
   const disconnect = useCallback(() => {
     // Limpiar timeouts e intervals

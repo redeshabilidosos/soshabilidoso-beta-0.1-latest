@@ -1,0 +1,16 @@
+[Unit]
+Description=Gunicorn daemon for SOS-HABILIDOSO Django
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/var/www/soshabilidoso/backend
+ExecStart=/var/www/soshabilidoso/backend/venv/bin/gunicorn \
+          --workers 3 \
+          --bind unix:/var/www/soshabilidoso/backend/gunicorn.sock \
+          --timeout 120 \
+          sos_habilidoso.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
